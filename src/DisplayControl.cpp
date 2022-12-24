@@ -17,13 +17,18 @@ DisplayControl::DisplayControl()
 void DisplayControl::initialize(int rotation)
 {
     m_lcd.Init_LCD(); //initialize lcd
-    m_maxLines = 46;
+    m_lcd.Fill_Screen(BLACK);
+    setRotation(rotation);
+}
+
+void DisplayControl::setRotation(int rotation)
+{
     m_lcd.Set_Rotation(rotation);
+    m_maxLines = 48;
     if (rotation == 1 || rotation == 3)
     {
-        m_maxLines = 30;
+        m_maxLines = 32;
     }
-    m_lcd.Fill_Screen(BLACK);
 }
 
 void DisplayControl::fillScreen(uint16_t color)
@@ -55,32 +60,57 @@ void DisplayControl::windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht,
     }
 }
 
-void DisplayControl::printLine(char *str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
+void DisplayControl::print(char *str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
-    if (m_currentLine >= m_maxLines)
+    int charLength = strlen(str);
+    int x = 4+(m_currentIndex*m_charWidth);
+    if(x+(charLength*m_charWidth) > m_lcd.Get_Display_Width())
     {
-        m_currentLine = m_maxLines;
+        m_currentIndex = 0;
+        x = 4;
+        printLine();
     }
 
-    int y = m_currentLine*10+2;
-    int x = 4;
-    if (invert)
-    {
-        printString(str, x, y, 1, backgroundColor, foregroudColor);
-    }
-    else
-    {
-        printString(str, x, y, 1, foregroudColor, backgroundColor);
-    }
+    int y = m_currentLine*m_lineHeight;
+    printString(str, x, y, 1, foregroudColor, backgroundColor, invert);
+    // hacky way of doing it...but m_lcd.Get_Text_Y_Cousur 
+    // doesn't return the end of the string after a print
+    m_currentIndex += charLength;
+}
+
+void DisplayControl::printLine()
+{
     m_currentLine++;
 }
 
-void DisplayControl::printString(char *str, int16_t x, int16_t y, uint8_t csize, uint16_t foregroudColor, uint16_t backgroundColor, boolean mode)
+void DisplayControl::printLine(char *str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
+{
+    int y = m_currentLine*m_lineHeight;
+    int x = 4;
+    if (m_currentLine > m_maxLines)
+    {
+        m_lcd.Vert_Scroll(0, m_lcd.Get_Display_Height(), -m_lineHeight*(m_currentLine%m_maxLines));
+        y = ((m_currentLine%m_maxLines)-1)*m_lineHeight;
+    }
+
+    printString(str, x, y, 1, foregroudColor, backgroundColor, invert);
+    m_currentLine++;
+}
+
+void DisplayControl::printString(char *str, int16_t x, int16_t y, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert, boolean mode)
 {
     m_lcd.Set_Text_Mode(mode);
-    m_lcd.Set_Text_Size(csize);
-    m_lcd.Set_Text_colour(foregroudColor);
-    m_lcd.Set_Text_Back_colour(backgroundColor);
+    m_lcd.Set_Text_Size(textSize);
+    if (invert)
+    {
+        m_lcd.Set_Text_colour(backgroundColor);
+        m_lcd.Set_Text_Back_colour(foregroudColor);
+    }
+    else
+    {
+        m_lcd.Set_Text_colour(foregroudColor);
+        m_lcd.Set_Text_Back_colour(backgroundColor);
+    }    
     m_lcd.Print_String(str,x,y);
 }
 

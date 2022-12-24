@@ -29,7 +29,10 @@ class DisplayControl
 {
     private:
         int m_currentLine = 0;
+        int m_currentIndex = 0;
         int m_maxLines = 0;
+        int m_lineHeight = 10;
+        int m_charWidth = 6;
 
     public:
 
@@ -38,11 +41,17 @@ class DisplayControl
         /// @param rotation 0,1,2,3 = (0,90,180,270)
         void initialize(int rotation = 0);
 
+        void setRotation(int rotation);
+
         void fillScreen(uint16_t color);
 
-        void printLine(char *str, uint16_t foregroudColor, uint16_t backgroundColor = BLACK, boolean invert = false);
+        void print(char *str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
 
-        void printString(char *str, int16_t x, int16_t y, uint8_t csize, uint16_t foregroudColor, uint16_t backgroundColor, boolean mode = false);
+        void printLine();
+
+        void printLine(char *str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
+
+        void printString(char *str, int16_t x, int16_t y, uint8_t textSize, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 
         void showMainMenu();
 

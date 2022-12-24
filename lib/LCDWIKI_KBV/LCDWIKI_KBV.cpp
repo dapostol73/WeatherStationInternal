@@ -686,7 +686,7 @@ void LCDWIKI_KBV::Fill_Rect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t
 //Scroll display 
 void LCDWIKI_KBV::Vert_Scroll(int16_t top, int16_t scrollines, int16_t offset)
 {
-    int16_t bfa = HEIGHT - top - scrollines; 
+    int16_t bfa = Get_Display_Height() - top - scrollines; 
     int16_t vsp;
     int16_t sea = top;
     if (offset <= -scrollines || offset >= scrollines)

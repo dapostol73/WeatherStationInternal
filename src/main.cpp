@@ -42,21 +42,12 @@ void setup()
   while (!Serial)
     ;
 
-  displayControl.initialize(1);
-
-  /*
-  for (int i = 1; i < 60; i++)
-  {
-    char line[10];
-    sprintf(line, "Line %i", i);
-    displayControl.printLine(line, WHITE, BLACK);
-  }
-  */
+  displayControl.initialize();
+  displayControl.fillScreen(BLACK);
 
   char intialMsg[] = "Intializing Wifi module.";
   Serial.println(intialMsg);
-  displayControl.fillScreen(BLACK);
-  displayControl.printLine(intialMsg, WHITE, BLACK);
+  displayControl.printLine(intialMsg);
   Serial3.begin(115200);
   WiFi.init(&Serial3);
 
@@ -64,7 +55,7 @@ void setup()
   {
     char initialErr[] = "Communication with WiFi module failed!";
     Serial.println(initialErr);
-    displayControl.printLine(initialErr, RED, BLACK);
+    displayControl.printLine(initialErr, RED);
     // don't continue
     while (true)
       ;
@@ -73,19 +64,19 @@ void setup()
   char infoMsg[] = "Waiting for connection to WiFi";
   WiFi.begin(NAME_OF_SSID, PASSWORD_OF_SSID);
   Serial.println(infoMsg);
-  displayControl.printLine(infoMsg, CYAN, BLACK);
+  displayControl.printLine(infoMsg, CYAN);
 
   int timeout = 0;
   int timeoutMax = 30;
-  char countMsg[timeoutMax] = "";
   while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
   {
     delay(1000);
     Serial.print('.');
-    countMsg[timeout] = '.';
-    displayControl.printLine(countMsg, CYAN, BLACK);
+    displayControl.print(".", CYAN);
     ++timeout;
   }
+  Serial.println();
+  displayControl.printLine();
   Serial.println(WiFi.status());
 
   if (WiFi.status() == WL_DISCONNECTED)
@@ -100,6 +91,7 @@ void setup()
   }
 
   printConnectInfo();
+  displayControl.setRotation(1);
   //showMainMenu();
 }
 
@@ -119,17 +111,17 @@ void printConnectInfo()
   char wifiInfo[34] = "";
   sprintf(wifiInfo, "Wifi: %s", NAME_OF_SSID);
   Serial.println(wifiInfo);
-  displayControl.printLine(wifiInfo, GREEN, BLACK );
+  displayControl.printLine(wifiInfo, GREEN);
 
   // print MAC address
   char macInfo[34] = "";
   sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
   Serial.println(macInfo);
-  displayControl.printLine(macInfo, YELLOW, BLACK);
+  displayControl.printLine(macInfo, YELLOW);
 
   // print IP address
   char ipInfo[34] = "";
   Serial.println(ipInfo);
   sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
-  displayControl.printLine(ipInfo, YELLOW, BLACK);
+  displayControl.printLine(ipInfo, YELLOW);
 }
