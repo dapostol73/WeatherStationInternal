@@ -8,6 +8,8 @@
 #include <SPI.h>
 #include <Wire.h>
 
+#define USE_8BIT_SHIELD_ON_MEGA 0
+
 #include "DisplayControl.h"
 
 #define OFFICE
