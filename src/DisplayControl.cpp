@@ -12,7 +12,6 @@ LCDWIKI_TOUCH m_touch(53, 52, 50, 51, 44); //tcs,tclk,tdout,tdin,tirq
 
 DisplayControl::DisplayControl()
 {
-
 }
 
 void DisplayControl::init(uint16_t rotation)
@@ -20,6 +19,11 @@ void DisplayControl::init(uint16_t rotation)
     m_lcd.Init_LCD(); //initialize lcd
     m_lcd.Fill_Screen(BLACK);
     setRotation(rotation);
+}
+
+LCDWIKI_KBV* DisplayControl::getDisplay()
+{
+    return &m_lcd;
 }
 
 void DisplayControl::setRotation(uint16_t rotation)
@@ -129,7 +133,7 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
         x -= (str.length() * textSize * m_charWidth);
         //y += textSize * m_charHeight;
     }
-    
+
     m_lcd.Print_String(str, x, y);
 }
 
@@ -164,19 +168,73 @@ void DisplayControl::drawProgress(int16_t x, int16_t y, int16_t sx, int16_t sy, 
     }
 }
 
+void DisplayControl::enableIndicator()
+{
+    m_state.isIndicatorDrawen = true;
+}
+
 void DisplayControl::drawFrame()
 {
-
+    switch (m_state.frameState)
+    {
+        case IN_TRANSITION: 
+        {
+            m_lcd.Fill_Screen(BLACK);
+            break;
+        }
+        case FIXED:
+            // Always assume that the indicator is drawn!
+            // And set indicatorDrawState to "not known yet"
+            m_indicatorDrawState = 0;
+            enableIndicator();
+            (m_frameFunctions[m_state.currentFrame])(&m_state, 0, 0);
+        break;
+    }
 }
 
 void DisplayControl::drawOverlays()
 {
-
+    for (uint8_t i=0; i<m_overlayCount; i++)
+    {
+        (m_overlayFunctions[i])(&m_state);
+    }
 }
 
 void DisplayControl::tick()
 {
+    m_state.ticksSinceLastStateSwitch++;
 
+    switch (m_state.frameState)
+    {
+        case IN_TRANSITION:
+            if (m_state.ticksSinceLastStateSwitch >= m_ticksPerTransition)
+            {
+                m_state.frameState = FIXED;
+                m_state.currentFrame = getNextFrameNumber();
+                m_state.ticksSinceLastStateSwitch = 0;
+                m_nextFrameNumber = -1;
+            }
+            break;
+        case FIXED:
+        // Revert manuelControll
+            if (m_state.manuelControll)
+            {
+                m_state.frameTransitionDirection = m_lastTransitionDirection;
+                m_state.manuelControll = false;
+            }
+            if (m_state.ticksSinceLastStateSwitch >= m_ticksPerFrame)
+            {
+                if (m_autoTransition)
+                {
+                    m_state.frameState = IN_TRANSITION;
+                }
+                m_state.ticksSinceLastStateSwitch = 0;
+            }
+        break;
+    }
+
+    drawFrame();
+    drawOverlays();
 }
 
 void DisplayControl::resetState()
@@ -186,6 +244,16 @@ void DisplayControl::resetState()
     m_state.frameState = FIXED;
     m_state.currentFrame = 0;
     m_state.isIndicatorDrawen = true;
+}
+
+uint8_t DisplayControl::getNextFrameNumber()
+{
+    if (m_nextFrameNumber != -1)
+    {
+        return m_nextFrameNumber;
+    }
+
+    return (m_state.currentFrame + m_frameCount + m_state.frameTransitionDirection) % m_frameCount;
 }
 
 // -/----- Frame settings -----\-
@@ -226,7 +294,7 @@ int8_t DisplayControl::update()
     }
 
     m_state.lastUpdate = frameStart;
-    this->tick();
+    tick();
   }
   return m_updateInterval - (millis() - frameStart);
 }

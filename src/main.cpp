@@ -128,7 +128,6 @@ void setup()
 	displayControl.init(1);
 
 	configureWifi();
-
 	
 	timeClient.begin();
 
@@ -138,21 +137,13 @@ void setup()
 
 	updateData();
 	//showMainMenu();
-	displayControl.fillScreen(BLACK);
 }
 
 void loop()
 {
-	timeClient.update();
-
-	if (timeClient.isTimeSet())
-	{
-		displayControl.drawString(timeClient.getFormattedTime(), 240, 160, TEXT_CENTER, 8, PURPLE);
-	}
-
 	//Read sensor values base on Upload interval seconds
 	if(millis() - readTime > SENSOR_INTERVAL_SECS){
-		readTemperatureHumidity();
+		//readTemperatureHumidity();
 		readTime = millis();
 	}
 
@@ -206,6 +197,7 @@ void updateData()
 	readyForWeatherUpdate = false;
 	displayControl.drawProgress(5, 148, 470, 24, 100, "Updating done!", 2, GREEN);
 	delay(1000);
+	displayControl.fillScreen(BLACK);
 }
 
 void configureWifi()
@@ -251,7 +243,6 @@ void configureWifi()
 
 	Serial.println();
 	displayControl.printLine();
-	Serial.println(WiFi.status());
 
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
@@ -273,6 +264,15 @@ void configureWifi()
 	printConnectInfo();
 	displayControl.drawProgress(5, 148, 470, 14, 100, "Wifi initialization done!", 2, GREEN);
 	delay(1000);
+
+	if (WiFi.ping("www.google.com"))
+	{
+		Serial.println("Successfully pinged www.google.com");
+	}
+	else
+	{
+		Serial.println("Failed to pinged www.google.com");
+	}
 }
 
 void printConnectInfo()
@@ -296,8 +296,8 @@ void printConnectInfo()
 
 	// print IP address
 	char ipInfo[34] = "";
-	Serial.println(ipInfo);
 	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+	Serial.println(ipInfo);
 	displayControl.printLine(ipInfo, YELLOW);
 }
 
@@ -325,7 +325,12 @@ void readTemperatureHumidity()
 	}
 }
 
-void drawDateTime(DisplayControlState* state, int16_t x, int16_t y) {
+void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
+{
+	if (timeClient.update())
+	{
+		displayControl.drawString(timeClient.getFormattedTime(), 240, 160, TEXT_CENTER, 4, PURPLE);
+	}
 /*   now = time(nullptr);
   struct tm* timeInfo;
   timeInfo = localtime(&now);
@@ -345,7 +350,9 @@ void drawDateTime(DisplayControlState* state, int16_t x, int16_t y) {
   display->setTextAlignment(TEXT_ALIGN_LEFT); */
 }
 
-void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y) {
+void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
+{
+	displayControl.drawString("Current Weather", 240, 150, TEXT_CENTER, 2, ORANGE);
 /*   display->setFont(ArialMT_Plain_10);
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->drawString(64 + x, 38 + y, currentWeather.description);
@@ -360,7 +367,12 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y) {
   display->drawString(32 + x, 0 + y, currentWeather.iconMeteoCon); */
 }
 
-void drawForecastDetails(int x, int y, int dayIndex) {
+void drawForecastDetails(int x, int y, int dayIndex) 
+{
+	int tempx = 15+(150*(dayIndex+1));
+	char index[14];
+	sprintf(index, "I:%02d", dayIndex);
+	displayControl.drawString(index, tempx, 150, TEXT_CENTER, 2, YELLOW);
 /*   time_t observationTimestamp = forecasts[dayIndex].observationTime;
   struct tm* timeInfo;
   timeInfo = localtime(&observationTimestamp);
@@ -376,25 +388,25 @@ void drawForecastDetails(int x, int y, int dayIndex) {
   display->setTextAlignment(TEXT_ALIGN_LEFT); */
 }
 
-void drawForecast(DisplayControlState* state, int16_t x, int16_t y) {
-  drawForecastDetails(x, y, 0);
-  drawForecastDetails(x + 44, y, 1);
-  drawForecastDetails(x + 88, y, 2);
+void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
+{
+	drawForecastDetails(x, y, 0);
+	drawForecastDetails(x + 44, y, 1);
+	drawForecastDetails(x + 88, y, 2);
 }
 
-void drawHeaderOverlay(DisplayControlState* state) {
-/*   now = time(nullptr);
-  struct tm* timeInfo;
-  timeInfo = localtime(&now);
-  char buff[14];
-  sprintf_P(buff, PSTR("%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min);
+void drawHeaderOverlay(DisplayControlState* state)
+{
+	timeClient.update();
+	char time[14];
+	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
+	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
 
-  display->setColor(WHITE);
-  display->setFont(ArialMT_Plain_10);
-  display->setTextAlignment(TEXT_ALIGN_LEFT);
-  display->drawString(0, 54, String(buff));
-  display->setTextAlignment(TEXT_ALIGN_RIGHT);
-  String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
-  display->drawString(128, 54, temp);
-  display->drawHorizontalLine(0, 52, 128); */
+	displayControl.getDisplay()->Set_Draw_color(BLACK);
+	displayControl.getDisplay()->Draw_Rectangle(0, 280, 480, 320);
+	displayControl.getDisplay()->Set_Draw_color(CYAN);
+	displayControl.getDisplay()->Draw_Fast_HLine(0, 280, 480);
+	displayControl.drawString(time, 120, 300, TEXT_CENTER, 3, CYAN);
+	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 3, CYAN);
+	
 }

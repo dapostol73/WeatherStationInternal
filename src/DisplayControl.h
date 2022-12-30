@@ -81,8 +81,8 @@ class DisplayControl
         // Values for the Frames
         AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
         int8_t              m_lastTransitionDirection   = 1;
-        uint16_t            m_ticksPerFrame             = 151; // ~ 5000ms at 30 FPS
-        uint16_t            m_ticksPerTransition        = 15;  // ~  500ms at 30 FPS
+        uint16_t            m_ticksPerFrame             = 150; // ~ 5000ms at 30 FPS
+        uint16_t            m_ticksPerTransition        = 3;  // ~  100ms at 30 FPS
         bool                m_autoTransition = true;
         FrameCallback*      m_frameFunctions;
         uint8_t             m_frameCount                = 0;
@@ -92,8 +92,16 @@ class DisplayControl
         OverlayCallback*    m_overlayFunctions;
         uint8_t             m_overlayCount              = 0;
 
+        // Will the Indicator be drawen
+        // 3 Not drawn in both frames
+        // 2 Drawn this frame but not next
+        // 1 Not drown this frame but next
+        // 0 Not known yet
+        uint8_t             m_indicatorDrawState        = 1;
+
         DisplayControlState m_state;
 
+        uint8_t getNextFrameNumber();
         void drawFrame();
         void drawOverlays();
         void tick();
@@ -105,6 +113,8 @@ class DisplayControl
         /// @brief 
         /// @param rotation 0,1,2,3 = (0,90,180,270)
         void init(uint16_t rotation = 0);
+
+        LCDWIKI_KBV* getDisplay();
 
         void setRotation(uint16_t rotation);
 
@@ -122,6 +132,7 @@ class DisplayControl
 
         void drawProgress(int16_t x, int16_t y, int16_t sx, int16_t sy, int16_t p, String str = "", uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK);
 
+        void enableIndicator();
         /**
          * Configure what animation is used to transition from one frame to another
          */
