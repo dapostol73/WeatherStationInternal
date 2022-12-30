@@ -1,0 +1,7 @@
+{
+  "name": "OpenWeatherMap",
+  "keywords": "embedded, display, oled",
+  "description": "A WiFi connected information display",
+  "frameworks": "arduino",
+  "version": "0.0.0"
+}

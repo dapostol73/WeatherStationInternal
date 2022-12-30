@@ -12,16 +12,17 @@ LCDWIKI_TOUCH m_touch(53, 52, 50, 51, 44); //tcs,tclk,tdout,tdin,tirq
 
 DisplayControl::DisplayControl()
 {
+
 }
 
-void DisplayControl::initialize(int rotation)
+void DisplayControl::init(uint16_t rotation)
 {
     m_lcd.Init_LCD(); //initialize lcd
     m_lcd.Fill_Screen(BLACK);
     setRotation(rotation);
 }
 
-void DisplayControl::setRotation(int rotation)
+void DisplayControl::setRotation(uint16_t rotation)
 {
     m_lcd.Set_Rotation(rotation);
     m_maxLines = 48;
@@ -34,6 +35,11 @@ void DisplayControl::setRotation(int rotation)
 void DisplayControl::fillScreen(uint16_t color)
 {
     m_lcd.Fill_Screen(color);
+}
+
+void DisplayControl::drawBitMap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, int16_t scale)
+{
+    m_lcd.Draw_Bit_Map(x, y, sx, sy, data, scale);
 }
 
 void DisplayControl::windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht, int16_t dx, int16_t dy, uint16_t *buf)
@@ -60,9 +66,9 @@ void DisplayControl::windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht,
     }
 }
 
-void DisplayControl::print(char *str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
+void DisplayControl::print(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
-    int charLength = strlen(str);
+    int charLength = str.length();
     int x = 4+(m_currentIndex*m_charWidth);
     if(x+(charLength*m_charWidth) > m_lcd.Get_Display_Width())
     {
@@ -72,7 +78,7 @@ void DisplayControl::print(char *str, uint16_t foregroudColor, uint16_t backgrou
     }
 
     int y = m_currentLine*m_lineHeight;
-    printString(str, x, y, 1, foregroudColor, backgroundColor, invert);
+    drawString(str, x, y, TEXT_LEFT, 1, foregroudColor, backgroundColor, invert);
     // hacky way of doing it...but m_lcd.Get_Text_Y_Cousur 
     // doesn't return the end of the string after a print
     m_currentIndex += charLength;
@@ -83,7 +89,7 @@ void DisplayControl::printLine()
     m_currentLine++;
 }
 
-void DisplayControl::printLine(char *str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
+void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
     int y = m_currentLine*m_lineHeight;
     int x = 4;
@@ -93,11 +99,11 @@ void DisplayControl::printLine(char *str, uint16_t foregroudColor, uint16_t back
         y = ((m_currentLine%m_maxLines)-1)*m_lineHeight;
     }
 
-    printString(str, x, y, 1, foregroudColor, backgroundColor, invert);
+    drawString(str, x, y, TEXT_LEFT, 1, foregroudColor, backgroundColor, invert);
     m_currentLine++;
 }
 
-void DisplayControl::printString(char *str, int16_t x, int16_t y, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert, boolean mode)
+void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert, boolean mode)
 {
     m_lcd.Set_Text_Mode(mode);
     m_lcd.Set_Text_Size(textSize);
@@ -110,20 +116,119 @@ void DisplayControl::printString(char *str, int16_t x, int16_t y, uint8_t textSi
     {
         m_lcd.Set_Text_colour(foregroudColor);
         m_lcd.Set_Text_Back_colour(backgroundColor);
-    }    
-    m_lcd.Print_String(str,x,y);
+    }
+
+    
+    if (align == TEXT_CENTER)
+    {
+        x -= (str.length() * textSize * m_charWidth * 0.5);
+        y -= textSize * m_charHeight * 0.5;
+    }
+    else if (align == TEXT_RIGHT)
+    {
+        x -= (str.length() * textSize * m_charWidth);
+        //y += textSize * m_charHeight;
+    }
+    
+    m_lcd.Print_String(str, x, y);
 }
 
-void DisplayControl::showMainMenu()
+void DisplayControl::drawProgress(int16_t x, int16_t y, int16_t sx, int16_t sy, int16_t p, String str, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor)
 {
-    m_lcd.Set_Draw_color(YELLOW);
-    m_lcd.Fill_Round_Rectangle(5, 0, (m_lcd.Get_Display_Width()-20)/3+5,COLORBOXSIZE/2+20, 5);
-    m_lcd.Fill_Round_Rectangle((m_lcd.Get_Display_Width()-20)/3*2+15, 0, (m_lcd.Get_Display_Width()-20)/3*3+15,COLORBOXSIZE/2+20, 5);
-    m_lcd.Set_Draw_color(MAGENTA);
-    m_lcd.Fill_Round_Rectangle((m_lcd.Get_Display_Width()-20)/3+10, 0, (m_lcd.Get_Display_Width()-20)/3*2+10,COLORBOXSIZE/2+20, 5);
-    printString("COLOUR",5+((m_lcd.Get_Display_Width()-20)/3-72)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,BLUE, BLACK,1);
-    printString("CLEAR",(m_lcd.Get_Display_Width()-20)/3+10+((m_lcd.Get_Display_Width()-20)/3-60)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,WHITE, BLACK,1);
-    printString("PENSIZE",(m_lcd.Get_Display_Width()-20)/3*2+15+((m_lcd.Get_Display_Width()-20)/3-84)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,BLUE, BLACK,1);
+    int16_t strl = str.length();
+    int16_t minX = 6 + strl * textSize * m_charWidth;
+    int16_t minY = 6 + textSize * m_charHeight;
+    if (sx < minX) sx = minX;
+    if (sy < minY) sy = minY;
+    int16_t px = x+(sx*(p*0.01))-2;
+    int16_t strx = x+(sx*0.5)-(strl*0.5*m_charWidth*textSize);
+    int16_t stry = y+(sy*0.5)-(0.5*m_charHeight*textSize);
+
+    m_lcd.Set_Draw_color(backgroundColor);
+    m_lcd.Fill_Round_Rectangle(x, y, x+sx, y+sy, 2);
+    m_lcd.Set_Draw_color(foregroudColor);
+    m_lcd.Draw_Round_Rectangle(x, y, x+sx, y+sy, 2);
+    m_lcd.Fill_Round_Rectangle(x+2, y+2, px, y+sy-2, 2);
+
+    for (int i = 0; i < strl; i++)
+    {
+        if (strx > px)
+        {
+            m_lcd.Draw_Char(strx, stry, str[i], foregroudColor, backgroundColor, textSize, true);
+        }
+        else
+        {
+            m_lcd.Draw_Char(strx, stry, str[i], backgroundColor, foregroudColor, textSize, true);
+        }
+        strx += m_charWidth * textSize;
+    }
+}
+
+void DisplayControl::drawFrame()
+{
+
+}
+
+void DisplayControl::drawOverlays()
+{
+
+}
+
+void DisplayControl::tick()
+{
+
+}
+
+void DisplayControl::resetState()
+{
+    m_state.lastUpdate = 0;
+    m_state.ticksSinceLastStateSwitch = 0;
+    m_state.frameState = FIXED;
+    m_state.currentFrame = 0;
+    m_state.isIndicatorDrawen = true;
+}
+
+// -/----- Frame settings -----\-
+void DisplayControl::setFrameAnimation(AnimationDirection dir)
+{
+    m_frameAnimationDirection = dir;
+}
+
+void DisplayControl::setFrames(FrameCallback* frameFunctions, uint8_t frameCount)
+{
+    m_frameFunctions = frameFunctions;
+    m_frameCount     = frameCount;
+    resetState();
+}
+
+//m_-- Overlays ------\-
+void DisplayControl::setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount)
+{
+    m_overlayFunctions = overlayFunctions;
+    m_overlayCount     = overlayCount;
+}
+
+DisplayControlState* DisplayControl::getUiState()
+{
+    return &m_state;
+}
+
+int8_t DisplayControl::update()
+{
+  unsigned long frameStart = millis();
+  int8_t timeBudget = m_updateInterval - (frameStart - m_state.lastUpdate);
+  if ( timeBudget <= 0) 
+  {
+    // Implement frame skipping to ensure time budget is keept
+    if (m_autoTransition && m_state.lastUpdate != 0) 
+    {
+        m_state.ticksSinceLastStateSwitch += ceil(-timeBudget / m_updateInterval);
+    }
+
+    m_state.lastUpdate = frameStart;
+    this->tick();
+  }
+  return m_updateInterval - (millis() - frameStart);
 }
 
 void DisplayControl::testDisplay()
@@ -135,3 +240,17 @@ void DisplayControl::testDisplay()
     m_lcd.Fill_Screen(0,255,0);
     m_lcd.Fill_Screen(0,0,255);
 }
+
+/*
+void DisplayControl::showMainMenu()
+{
+    m_lcd.Set_Draw_color(YELLOW);
+    m_lcd.Fill_Round_Rectangle(5, 0, (m_lcd.Get_Display_Width()-20)/3+5,COLORBOXSIZE/2+20, 5);
+    m_lcd.Fill_Round_Rectangle((m_lcd.Get_Display_Width()-20)/3*2+15, 0, (m_lcd.Get_Display_Width()-20)/3*3+15,COLORBOXSIZE/2+20, 5);
+    m_lcd.Set_Draw_color(MAGENTA);
+    m_lcd.Fill_Round_Rectangle((m_lcd.Get_Display_Width()-20)/3+10, 0, (m_lcd.Get_Display_Width()-20)/3*2+10,COLORBOXSIZE/2+20, 5);
+    drawString("COLOUR",5+((m_lcd.Get_Display_Width()-20)/3-72)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,BLUE, BLACK,1);
+    drawString("CLEAR",(m_lcd.Get_Display_Width()-20)/3+10+((m_lcd.Get_Display_Width()-20)/3-60)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,WHITE, BLACK,1);
+    drawString("PENSIZE",(m_lcd.Get_Display_Width()-20)/3*2+15+((m_lcd.Get_Display_Width()-20)/3-84)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,BLUE, BLACK,1);
+}
+*/
