@@ -34,3 +34,6 @@ google-services.json
 .reference/
 .vscode/
 .temp/
+
+# Wifi settings
+src/WifiInfo.h
