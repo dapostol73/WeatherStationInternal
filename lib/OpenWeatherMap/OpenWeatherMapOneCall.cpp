@@ -21,8 +21,8 @@
  SOFTWARE.
  */
 
-#include <WiFiEsp.h>
-#include <WiFiEspClient.h>
+#include <WiFiEspAT.h>
+#include <WiFiClient.h>
 #include "OpenWeatherMapOneCall.h"
 
 String PATH_SEPERATOR = "/";
@@ -56,15 +56,14 @@ void OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
 	sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
 	Serial.println(connectInfo);
 
-  WiFiEspClient client;
+  WiFiClient client;
   if (client.connect(host.c_str(), port)) {
     bool isBody = false;
     char c;
     Serial.println("[HTTP] connected, now GETting data");
     client.print("GET " + path + " HTTP/1.1\r\n"
-                                 "Host: " +
-                 host + "\r\n"
-                        "Connection: close\r\n\r\n");
+                 "Host: " + host + "\r\n"
+                 "Connection: close\r\n\r\n");
 
     while (client.connected() || client.available()) {
       if (client.available()) {

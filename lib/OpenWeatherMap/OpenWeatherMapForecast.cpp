@@ -21,8 +21,8 @@
  SOFTWARE.
  */
 
-#include <WiFiEsp.h>
-#include <WiFiEspClient.h>
+#include <WiFiEspAT.h>
+#include <WiFiClient.h>
 #include "OpenWeatherMapForecast.h"
 
 OpenWeatherMapForecast::OpenWeatherMapForecast() {
@@ -56,7 +56,7 @@ uint8_t OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, Strin
 	sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
 	Serial.println(connectInfo);
 
-  WiFiEspClient client;
+  WiFiClient client;
   if(client.connect(host.c_str(), port)) {
     bool isBody = false;
     char c;

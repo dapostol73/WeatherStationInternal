@@ -6,13 +6,13 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <WiFiEsp.h>
-#include <WiFiEspClient.h>
-#include <WiFiEspUdp.h>
-#include <NTPClient.h>
+#include <WiFiEspAT.h>
+#include <WiFiClient.h>
+#include <WiFiUdp.h>
 
 // time
-#include <time.h>                       // time() ctime()
+#include <TimeLib.h>
+#include <NTPClient.h>
 
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
@@ -31,6 +31,8 @@
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
+#define SERIAL_BAUD_RATE 115200
+
 /***************************
  * Begin DHT11 Settings
  **************************/
@@ -43,7 +45,7 @@ long readTime = 0;
 void readTemperatureHumidity();
 
 // ThingSpeak Settings
-WiFiEspClient client;
+WiFiClient client;
 const char *host = "api.thingspeak.com";                  //IP address of the thingspeak server
 const char *api_key ="EMCNAORN3ZXKCFW1";                  //Your own thingspeak api_key
 const int httpPort = 80;
@@ -66,7 +68,7 @@ String OPEN_WEATHER_MAP_LOCATION = "6090785";
 // Chinese Simplified - zh_cn, Chinese Traditional - zh_tw.
 
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
-const uint8_t MAX_FORECASTS = 4;
+const uint8_t MAX_FORECASTS = 3;
 
 // Adjust according to your language
 const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
@@ -85,7 +87,7 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawDateTime, drawCurrentWeather, drawForecast };
+FrameCallback frames[] = { drawForecast, drawCurrentWeather, drawDateTime };
 int numberOfFrames = 3;
 
 OverlayCallback overlays[] = { drawHeaderOverlay };
@@ -105,8 +107,8 @@ const int UPDATE_INTERVAL_SECS = 20 * 60; // Update every 20 minutes
 #define TZ_MN           ((TZ)*60)
 #define TZ_SEC          ((TZ)*3600)
 #define DST_SEC         ((DST_MN)*60)
-time_t now;
-WiFiEspUDP ntpUDP;
+//time_t now;
+WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
 // flag changed in the ticker function every 10 minutes
@@ -115,13 +117,14 @@ String lastUpdate = "--";
 long timeSinceLastWUpdate = 0;
 
 void setReadyForWeatherUpdate();
+void updateSystemTime();
 void updateData();
 void configureWifi();
 void printConnectInfo();
 
 void setup()
 {
-	Serial.begin(115200);
+	Serial.begin(SERIAL_BAUD_RATE);
 	while (!Serial)
 		;
 
@@ -130,6 +133,7 @@ void setup()
 	configureWifi();
 	
 	timeClient.begin();
+	updateSystemTime();
 
 	displayControl.setFrameAnimation(SLIDE_LEFT);
 	displayControl.setFrames(frames, numberOfFrames);
@@ -181,9 +185,22 @@ void setReadyForWeatherUpdate()
 	readyForWeatherUpdate = true;
 }
 
+void updateSystemTime()
+{
+	timeClient.forceUpdate();
+	setTime((time_t)timeClient.getEpochTime());
+	Serial.println(timeClient.getEpochTime());
+	Serial.println(month());
+	Serial.println(day());
+	Serial.println(weekday());
+	Serial.println(hour());
+	Serial.println(minute());
+}
+
 void updateData() 
 {
 	displayControl.drawProgress(5, 148, 470, 24, 10, "Updating time...", 2, CYAN);
+	updateSystemTime();
 	displayControl.drawProgress(5, 148, 470, 24, 30, "Updating weather...", 2, CYAN);
 	currentWeatherClient.setMetric(IS_METRIC);
 	currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
@@ -206,7 +223,7 @@ void configureWifi()
 	char intialMsg[] = "Intializing Wifi module.";
 	Serial.println(intialMsg);
 	displayControl.drawProgress(5, 148, 470, 14, 20, intialMsg, 2, CYAN);
-	Serial3.begin(115200);
+	Serial3.begin(SERIAL_BAUD_RATE);
 	WiFi.init(&Serial3);
 
 	if (WiFi.status() == WL_NO_SHIELD)
@@ -264,15 +281,6 @@ void configureWifi()
 	printConnectInfo();
 	displayControl.drawProgress(5, 148, 470, 14, 100, "Wifi initialization done!", 2, GREEN);
 	delay(1000);
-
-	if (WiFi.ping("www.google.com"))
-	{
-		Serial.println("Successfully pinged www.google.com");
-	}
-	else
-	{
-		Serial.println("Failed to pinged www.google.com");
-	}
 }
 
 void printConnectInfo()
@@ -327,32 +335,20 @@ void readTemperatureHumidity()
 
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
 {
-	if (timeClient.update())
-	{
-		displayControl.drawString(timeClient.getFormattedTime(), 240, 160, TEXT_CENTER, 4, PURPLE);
-	}
-/*   now = time(nullptr);
-  struct tm* timeInfo;
-  timeInfo = localtime(&now);
-  char buff[16];
+	char buff[16];
+	sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[weekday()-1].c_str(), day(), month(), year());
+	displayControl.drawString(buff, 240, 140, TEXT_CENTER, 4, CYAN);
 
-
-  display->setTextAlignment(TEXT_ALIGN_CENTER);
-  display->setFont(ArialMT_Plain_10);
-  String date = WDAY_NAMES[timeInfo->tm_wday];
-
-  sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[timeInfo->tm_wday].c_str(), timeInfo->tm_mday, timeInfo->tm_mon+1, timeInfo->tm_year + 1900);
-  display->drawString(64 + x, 5 + y, String(buff));
-  display->setFont(ArialMT_Plain_24);
-
-  sprintf_P(buff, PSTR("%02d:%02d:%02d"), timeInfo->tm_hour, timeInfo->tm_min, timeInfo->tm_sec);
-  display->drawString(64 + x, 15 + y, String(buff));
-  display->setTextAlignment(TEXT_ALIGN_LEFT); */
+	sprintf_P(buff, PSTR("%02d:%02d:%02d"), hour(), minute(), second());
+	displayControl.drawString(buff, 240, 180, TEXT_CENTER, 4, CYAN);
 }
 
 void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayControl.drawString("Current Weather", 240, 150, TEXT_CENTER, 2, ORANGE);
+	displayControl.drawString(currentWeather.description, 240, 200, TEXT_CENTER, 2, ORANGE);
+	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
+	displayControl.drawString(temp, 240, 125, TEXT_CENTER, 2, ORANGE);
+	displayControl.drawString(currentWeather.iconMeteoCon, 240, 50, TEXT_CENTER, 2, ORANGE);
 /*   display->setFont(ArialMT_Plain_10);
   display->setTextAlignment(TEXT_ALIGN_CENTER);
   display->drawString(64 + x, 38 + y, currentWeather.description);
@@ -369,36 +365,24 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 
 void drawForecastDetails(int x, int y, int dayIndex) 
 {
-	int tempx = 15+(150*(dayIndex+1));
-	char index[14];
-	sprintf(index, "I:%02d", dayIndex);
-	displayControl.drawString(index, tempx, 150, TEXT_CENTER, 2, YELLOW);
-/*   time_t observationTimestamp = forecasts[dayIndex].observationTime;
-  struct tm* timeInfo;
-  timeInfo = localtime(&observationTimestamp);
-  display->setTextAlignment(TEXT_ALIGN_CENTER);
-  display->setFont(ArialMT_Plain_10);
-  display->drawString(x + 20, y, WDAY_NAMES[timeInfo->tm_wday]);
-
-  display->setFont(Meteocons_Plain_21);
-  display->drawString(x + 20, y + 12, forecasts[dayIndex].iconMeteoCon);
-  String temp = String(forecasts[dayIndex].temp, 0) + (IS_METRIC ? "°C" : "°F");
-  display->setFont(ArialMT_Plain_10);
-  display->drawString(x + 20, y + 34, temp);
-  display->setTextAlignment(TEXT_ALIGN_LEFT); */
+	time_t observationTimestamp = forecasts[dayIndex].observationTime;
+	int day = weekday(observationTimestamp)-1;
+	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "°C" : "°F");
+	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, 2, YELLOW);
+	displayControl.drawString(forecasts[dayIndex].iconMeteoCon, x, y + 25, TEXT_CENTER, 2, YELLOW);
+	displayControl.drawString(temp, x, y + 50, TEXT_CENTER, 3, CYAN);	
 }
 
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
 {
-	drawForecastDetails(x, y, 0);
-	drawForecastDetails(x + 44, y, 1);
-	drawForecastDetails(x + 88, y, 2);
+	drawForecastDetails(120, 100, 0);
+	drawForecastDetails(240, 100, 1);
+	drawForecastDetails(360, 100, 2);
 }
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
-	timeClient.update();
-	char time[14];
+	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
 	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
 
@@ -406,7 +390,7 @@ void drawHeaderOverlay(DisplayControlState* state)
 	displayControl.getDisplay()->Draw_Rectangle(0, 280, 480, 320);
 	displayControl.getDisplay()->Set_Draw_color(CYAN);
 	displayControl.getDisplay()->Draw_Fast_HLine(0, 280, 480);
-	displayControl.drawString(time, 120, 300, TEXT_CENTER, 3, CYAN);
-	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 3, CYAN);
+	displayControl.drawString(time, 120, 300, TEXT_CENTER, 3, ORANGE);
+	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 3, ORANGE);
 	
 }

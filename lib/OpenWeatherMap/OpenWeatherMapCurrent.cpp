@@ -21,8 +21,8 @@
  SOFTWARE.
  */
 
-#include <WiFiEsp.h>
-#include <WiFiEspClient.h>
+#include <WiFiEspAT.h>
+#include <WiFiClient.h>
 #include "OpenWeatherMapCurrent.h"
 
 OpenWeatherMapCurrent::OpenWeatherMapCurrent() {
@@ -43,42 +43,36 @@ String OpenWeatherMapCurrent::buildPath(String appId, String locationParameter) 
 }
 
 void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String path) {
-  unsigned long lostTest = 10000UL;
-  unsigned long lost_do = millis();
+  //unsigned long lostTest = 10000UL;
+  //unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
   this->data = data;
   JsonStreamingParser parser;
   parser.setListener(this);
   char connectInfo[256] = "";
-	sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
-	Serial.println(connectInfo);
+  sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
+  Serial.println(connectInfo);
 
-  WiFiEspClient client;
+  WiFiClient client;
   if(client.connect(host.c_str(), port)) {
     bool isBody = false;
     char c;
     Serial.println("[HTTP] connected, now GETting data");
+    // TODO: Figure out why Connection: close truncates client.read()
     client.print("GET " + path + " HTTP/1.1\r\n"
                  "Host: " + host + "\r\n"
                  "Connection: close\r\n\r\n");
-
-    while (client.connected() || client.available()) {
-      if (client.available()) {
-        if ((millis() - lost_do) > lostTest) {
-          Serial.println("[HTTP] lost in client with a timeout");
-          client.stop();
-          WiFi.reset();
-        }
-        c = client.read();
-        if (c == '{' || c == '[') {
-          isBody = true;
-        }
-        if (isBody) {
-          parser.parse(c);
-        }
+    
+    String response = client.readString();
+    for (unsigned int i=0; i < response.length(); i++)
+    {
+      c = response[i];
+      if (c == '{' || c == '[') {
+        isBody = true;
       }
-      // give WiFi and TCP/IP libraries a chance to handle pending events
-      yield();
+      if (isBody) {
+        parser.parse(c);
+      }
     }
     client.stop();
   } else {
