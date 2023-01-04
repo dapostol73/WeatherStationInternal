@@ -43,7 +43,32 @@ void DisplayControl::fillScreen(uint16_t color)
 
 void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale)
 {
-    m_lcd.Draw_Bit_Map(x, y, sx, sy, data, scale);
+	int16_t color;
+    //int16_t byteWidth = (sx + 3) / 4; // Bitmap scanline pad = whole byte
+	m_lcd.Set_Addr_Window(x, y, x + sx*scale - 1, y + sy*scale - 1); 
+	if(scale > 1)
+	{
+		for (int16_t row = 0; row < sy; row++) 
+		{
+			for (int16_t col = 0; col < sx; col++) 
+			{
+				color = pgm_read_word(&data[row * sx + col]);
+				m_lcd.Fill_Rect(x+col*scale, y+row*scale, scale, scale, color);
+			}
+		}
+	}
+	else 
+	{
+		for (int16_t row = 0; row < sy; row++) 
+		{
+			for (int16_t col = 0; col < sx; col++) 
+			{
+                color = pgm_read_word(&data[row * sx + col]);
+                Serial.println(color);
+				m_lcd.Draw_Pixe(x+col, y+row, color);
+			}
+		}
+	}
 }
 
 void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *palBmp)

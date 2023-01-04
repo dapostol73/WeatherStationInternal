@@ -21,10 +21,10 @@
 #include "DisplayControl.h"
 #include "WifiInfo.h"
 #include "WeatherStationFonts.h"
-#include "WeatherStationIcons.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
+#include "Icons/OpenWeatherIcons.h"
 
 #ifdef HAVE_SERIAL1
 #include "SoftwareSerial.h"
@@ -328,6 +328,18 @@ void readTemperatureHumidity()
 	}
 }
 
+void drawOpenWeatherIcon(int16_t x, int16_t y, String iconName, bool large = true)
+{
+	if (large)
+	{
+		displayControl.drawPaletteBitmap(x, y, palette, getOpenWeatherPaletteIconFromProgmem(iconName));
+	}
+	else
+	{
+		displayControl.drawPaletteBitmap(x, y, palette, getOpenWeatherMiniPaletteIconFromProgmem(iconName));
+	}
+}
+
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
 {
 	char buff[16];
@@ -344,7 +356,8 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 	y = 40;
 	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
 	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, 3, YELLOW);
-	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getMeteoconIconFromProgmem(currentWeather.icon));
+	drawOpenWeatherIcon(x - 50, y + 40, currentWeather.icon);
+	//displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getMeteoconIconFromProgmem(currentWeather.icon));
 	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 3, CYAN);
 	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, 2, ORANGE);
 }
@@ -355,7 +368,8 @@ void drawForecastDetails(int x, int y, int dayIndex)
 	int day = weekday(observationTimestamp)-1;
 	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "°C" : "°F");
 	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, 3, YELLOW);
-	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getMeteoconIconFromProgmem(forecasts[dayIndex].icon));
+	drawOpenWeatherIcon(x - 50, y + 40, forecasts[dayIndex].icon);
+	//displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getMeteoconIconFromProgmem(forecasts[dayIndex].icon));
 	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 3, CYAN);
 	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, 2, ORANGE);	
 }
