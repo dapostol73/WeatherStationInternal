@@ -5,25 +5,36 @@
 #include <LCDWIKI_KBV.h> //Hardware-specific library
 #include <LCDWIKI_TOUCH.h> //touch screen library
 
-#define BLACK 0x0000
-#define NAVY 0x000F
-#define DARKGREEN 0x03E0
-#define DARKCYAN 0x03EF
-#define MAROON 0x7800
-#define PURPLE 0x780F
-#define OLIVE 0x7BE0
-#define LIGHTGREY 0xC618
-#define DARKGREY 0x7BEF
-#define BLUE 0x001F
-#define GREEN 0x07E0
+#define BITS_PER_PIXEL 2 // 2^2 =  4 colors
+#define BIT_MASK ((1 << BITS_PER_PIXEL) - 1)
+#define PIXELS_PER_BYTE (8 / BITS_PER_PIXEL)
+#define CUSTOM_BITMAP_DATA_START 6
+
+// Using window system colors and converter
+// https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.colors?view=windowsdesktop-7.0&viewFallbackFrom=netcore-3.1
+// http://www.rinkydinkelectronics.com/calc_rgb565.php
+
 #define CYAN 0x07FF
-#define RED 0xF800
-#define MAGENTA 0xF81F
-#define YELLOW 0xFFE0
-#define WHITE 0xFFFF
-#define ORANGE 0xFD20
+#define DEEPSKYBLUE 0x05FF
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define GOLD 0xFEA0
+#define GREEN 0x07E0
 #define GREENYELLOW 0xAFE5
+#define DARKCYAN 0x03EF
+#define DARKGREEN 0x03E0
+#define DARKGREY 0x7BEF
+#define LIGHTGREY 0xC618
+#define MAGENTA 0xF81F
+#define MAROON 0x7800
+#define NAVY 0x000F
+#define ORANGE 0xFD20
+#define OLIVE 0x7BE0
 #define PINK 0xF81F
+#define PURPLE 0x780F
+#define RED 0xF800
+#define WHITE 0xFFFF
+#define YELLOW 0xFFE0
 
 enum AnimationDirection {
   SLIDE_UP,
@@ -82,22 +93,16 @@ class DisplayControl
         AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
         int8_t              m_lastTransitionDirection   = 1;
         uint16_t            m_ticksPerFrame             = 150; // ~ 5000ms at 30 FPS
-        uint16_t            m_ticksPerTransition        = 3;  // ~  100ms at 30 FPS
+        uint16_t            m_ticksPerTransition        = 1;  // ~  100ms at 30 FPS
         bool                m_autoTransition = true;
         FrameCallback*      m_frameFunctions;
         uint8_t             m_frameCount                = 0;
         // Internally used to transition to a specific frame
         int8_t              m_nextFrameNumber           = -1;
+        int8_t              m_currentFrameNumber        = -1;
         // Values for Overlays
         OverlayCallback*    m_overlayFunctions;
         uint8_t             m_overlayCount              = 0;
-
-        // Will the Indicator be drawen
-        // 3 Not drawn in both frames
-        // 2 Drawn this frame but not next
-        // 1 Not drown this frame but next
-        // 0 Not known yet
-        uint8_t             m_indicatorDrawState        = 1;
 
         DisplayControlState m_state;
 
@@ -128,7 +133,9 @@ class DisplayControl
 
         void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 
-        void drawBitMap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, int16_t scale);
+        void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale = 1);
+
+        void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 
         void drawProgress(int16_t x, int16_t y, int16_t sx, int16_t sy, int16_t p, String str = "", uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK);
 

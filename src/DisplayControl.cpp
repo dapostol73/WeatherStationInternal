@@ -41,9 +41,59 @@ void DisplayControl::fillScreen(uint16_t color)
     m_lcd.Fill_Screen(color);
 }
 
-void DisplayControl::drawBitMap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, int16_t scale)
+void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale)
 {
     m_lcd.Draw_Bit_Map(x, y, sx, sy, data, scale);
+}
+
+void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *palBmp)
+{
+    //uint8_t version = pgm_read_byte(palBmp);
+    uint8_t bmpBitDepth = pgm_read_byte(palBmp + 1);
+    if (bmpBitDepth != BITS_PER_PIXEL) {
+        Serial.println("Bmp has wrong bit depth");
+        return;
+    }
+    uint16_t width = pgm_read_byte(palBmp + 2) << 8 | pgm_read_byte(palBmp + 3);
+    uint16_t height = pgm_read_byte(palBmp + 4) << 8 | pgm_read_byte(palBmp + 5);
+
+    //int16_t widthRoundedUp = (width + 7) & ~7;
+    uint8_t data;
+    uint8_t paletteIndex = 0;
+    uint32_t pointer = CUSTOM_BITMAP_DATA_START;
+    // bitdepth = 8, initialShift = 0
+    // bitdepth = 4, initialShift = 4
+    // bitdepth = 2, initialShift = 6
+    // bitdepth = 1, initialShift = 7
+    uint8_t shift = 8 - BITS_PER_PIXEL;
+    data = pgm_read_byte(palBmp + pointer);
+    uint8_t bitCounter = 0;
+    for(uint16_t py = 0; py < height; py++) 
+    {
+        for(uint16_t px = 0; px < width; px++ ) 
+        {
+            if (bitCounter == PIXELS_PER_BYTE || bitCounter == 0) 
+            {
+                //Serial.println("Reading new data");
+                data = pgm_read_byte(palBmp + pointer);
+                pointer++;
+                //shift = bitsPerPixel;
+                bitCounter = 0;
+            }
+            shift = 8 - (bitCounter + 1) * BITS_PER_PIXEL;
+            paletteIndex = (data >> shift) & BIT_MASK;
+
+            //Serial.println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
+            //Serial.println(paletteIndex);
+            // if there is a bit draw it
+
+            m_lcd.Set_Draw_color(palette[paletteIndex]);
+            m_lcd.Draw_Pixel(x + px, y + py);
+            bitCounter++;
+        }
+    //pointer++;
+    bitCounter = 0;
+    } 
 }
 
 void DisplayControl::windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht, int16_t dx, int16_t dy, uint16_t *buf)
@@ -183,11 +233,13 @@ void DisplayControl::drawFrame()
             break;
         }
         case FIXED:
-            // Always assume that the indicator is drawn!
-            // And set indicatorDrawState to "not known yet"
-            m_indicatorDrawState = 0;
-            enableIndicator();
-            (m_frameFunctions[m_state.currentFrame])(&m_state, 0, 0);
+            // draw the frame if it hasn't been drawn.
+            if (m_currentFrameNumber != m_state.currentFrame)
+            {
+                enableIndicator();
+                (m_frameFunctions[m_state.currentFrame])(&m_state, 0, 0);
+                m_currentFrameNumber = m_state.currentFrame;
+            }
         break;
     }
 }
@@ -216,7 +268,7 @@ void DisplayControl::tick()
             }
             break;
         case FIXED:
-        // Revert manuelControll
+            // Revert manuelControll
             if (m_state.manuelControll)
             {
                 m_state.frameTransitionDirection = m_lastTransitionDirection;
@@ -308,17 +360,3 @@ void DisplayControl::testDisplay()
     m_lcd.Fill_Screen(0,255,0);
     m_lcd.Fill_Screen(0,0,255);
 }
-
-/*
-void DisplayControl::showMainMenu()
-{
-    m_lcd.Set_Draw_color(YELLOW);
-    m_lcd.Fill_Round_Rectangle(5, 0, (m_lcd.Get_Display_Width()-20)/3+5,COLORBOXSIZE/2+20, 5);
-    m_lcd.Fill_Round_Rectangle((m_lcd.Get_Display_Width()-20)/3*2+15, 0, (m_lcd.Get_Display_Width()-20)/3*3+15,COLORBOXSIZE/2+20, 5);
-    m_lcd.Set_Draw_color(MAGENTA);
-    m_lcd.Fill_Round_Rectangle((m_lcd.Get_Display_Width()-20)/3+10, 0, (m_lcd.Get_Display_Width()-20)/3*2+10,COLORBOXSIZE/2+20, 5);
-    drawString("COLOUR",5+((m_lcd.Get_Display_Width()-20)/3-72)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,BLUE, BLACK,1);
-    drawString("CLEAR",(m_lcd.Get_Display_Width()-20)/3+10+((m_lcd.Get_Display_Width()-20)/3-60)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,WHITE, BLACK,1);
-    drawString("PENSIZE",(m_lcd.Get_Display_Width()-20)/3*2+15+((m_lcd.Get_Display_Width()-20)/3-84)/2-1,((COLORBOXSIZE/2+20)-16)/2,2,BLUE, BLACK,1);
-}
-*/
