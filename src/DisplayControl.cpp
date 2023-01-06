@@ -10,6 +10,30 @@ LCDWIKI_TOUCH m_touch(53, 52, 50, 51, 44); //tcs,tclk,tdout,tdin,tirq
 #define COLORBOXSIZE m_lcd.Get_Display_Width()/6
 #define PENBOXSIZE m_lcd.Get_Display_Width()/4
 
+inline GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c) {
+#ifdef __AVR__
+  return &(((GFXglyph *)pgm_read_word(&gfxFont->glyph))[c]);
+#else
+  // expression in __AVR__ section may generate "dereferencing type-punned
+  // pointer will break strict-aliasing rules" warning In fact, on other
+  // platforms (such as STM32) there is no need to do this pointer magic as
+  // program memory may be read in a usual way So expression may be simplified
+  return gfxFont->glyph + c;
+#endif //__AVR__
+}
+
+inline uint8_t *pgm_read_bitmap_ptr(const GFXfont *gfxFont) {
+#ifdef __AVR__
+  return (uint8_t *)pgm_read_word(&gfxFont->bitmap);
+#else
+  // expression in __AVR__ section generates "dereferencing type-punned pointer
+  // will break strict-aliasing rules" warning In fact, on other platforms (such
+  // as STM32) there is no need to do this pointer magic as program memory may
+  // be read in a usual way So expression may be simplified
+  return gfxFont->bitmap;
+#endif //__AVR__
+}
+
 DisplayControl::DisplayControl()
 {
 }
@@ -24,6 +48,13 @@ void DisplayControl::init(uint16_t rotation)
 LCDWIKI_KBV* DisplayControl::getDisplay()
 {
     return &m_lcd;
+}
+
+void DisplayControl::setFont(const GFXfont *f) {
+  m_gfxFont = (GFXfont *)f;
+  m_charHeight = pgm_read_byte(&m_gfxFont->yAdvance);
+  m_lineHeight = m_charHeight;
+  m_charWidth = m_charHeight * 0.5 + 1;// hack for now
 }
 
 void DisplayControl::setRotation(uint16_t rotation)
@@ -145,6 +176,49 @@ void DisplayControl::windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht,
     }
 }
 
+Position DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint8_t size, uint16_t foregrounColor, uint16_t backgroundColor, boolean mode)
+{	
+    Position pos;
+    pos.x = x;
+    pos.y = y;
+    c -= (uint8_t)pgm_read_byte(&m_gfxFont->first);
+    GFXglyph *glyph = pgm_read_glyph_ptr(m_gfxFont, c);
+    uint8_t *bitmap = pgm_read_bitmap_ptr(m_gfxFont);
+    uint8_t ya = pgm_read_byte(&m_gfxFont->yAdvance);
+
+    uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
+    uint8_t w = pgm_read_byte(&glyph->width), 
+            h = pgm_read_byte(&glyph->height),
+            xa = pgm_read_byte(&glyph->xAdvance);
+    int8_t xo = pgm_read_byte(&glyph->xOffset),
+           yo = pgm_read_byte(&glyph->yOffset);
+    uint8_t bits = 0, bit = 0;
+
+    if((x >= m_lcd.Get_Width()) || (y >= m_lcd.Get_Height()) || ((x + w * size - 1) < 0) || ((y + h * size - 1) < 0))
+	{
+    	return pos;
+	}		
+
+    for (int yy = 0; yy < h; yy++) {
+      for (int xx = 0; xx < w; xx++) {
+        if (!(bit++ & 7)) {
+          bits = pgm_read_byte(&bitmap[bo++]);
+        }
+        if (bits & 0x80) {
+          if (size <= 1) {
+            m_lcd.Draw_Pixe(x + xo + xx, y + yo + yy + ya, foregrounColor);
+          } else {
+            m_lcd.Fill_Rect(x + ((xo + xx) * size), y + ((yo + yy + ya) * size), size, size, foregrounColor);
+          }
+        }
+        bits <<= 1;
+      }
+    }
+    
+    pos.x += (xa + 1) * size;
+    return pos;
+}
+
 void DisplayControl::print(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
     int charLength = str.length();
@@ -182,22 +256,21 @@ void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t bac
     m_currentLine++;
 }
 
-void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert, boolean mode)
+void DisplayControl::printString(String str, int16_t x, int16_t y, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor)
 {
-    m_lcd.Set_Text_Mode(mode);
-    m_lcd.Set_Text_Size(textSize);
-    if (invert)
+	Position pos;
+    pos.x = x;
+    pos.y = y;
+    for (uint16_t i=0; i < str.length(); i++)
     {
-        m_lcd.Set_Text_colour(backgroundColor);
-        m_lcd.Set_Text_Back_colour(foregroudColor);
+        Position npos = drawChar(pos.x, pos.y, str[i], textSize, foregroudColor, backgroundColor);
+        pos.x = npos.x;
+        pos.y = npos.y;
     }
-    else
-    {
-        m_lcd.Set_Text_colour(foregroudColor);
-        m_lcd.Set_Text_Back_colour(backgroundColor);
-    }
+}
 
-    
+void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert, boolean mode)
+{    
     if (align == TEXT_CENTER)
     {
         x -= (str.length() * textSize * m_charWidth * 0.5);
@@ -209,37 +282,51 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
         //y += textSize * m_charHeight;
     }
 
-    m_lcd.Print_String(str, x, y);
+    printString(str, x, y, textSize, foregroudColor, backgroundColor);
 }
 
-void DisplayControl::drawProgress(int16_t x, int16_t y, int16_t sx, int16_t sy, int16_t p, String str, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor)
+void DisplayControl::setProgress(DisplayContolProgress progress)
 {
-    int16_t strl = str.length();
-    int16_t minX = 6 + strl * textSize * m_charWidth;
-    int16_t minY = 6 + textSize * m_charHeight;
+    m_progress = progress;
+}
+
+void DisplayControl::drawProgress(int16_t percent, String message)
+{
+    m_progress.progress = percent;
+    m_progress.message = message;
+    int16_t strl = m_progress.message.length();
+    int16_t minX = 6 + strl * m_progress.textSize * m_charWidth;
+    int16_t minY = 6 + m_progress.textSize * m_charHeight;
+    int16_t x = m_progress.x + m_progress.padding;
+    int16_t y = m_progress.y + m_progress.padding;
+    int16_t sx = x + m_progress.width - 2*m_progress.padding;
+    int16_t sy = y + m_progress.height - 2*m_progress.padding;
+    int16_t corner = min(m_progress.corner, min(sx*0.5, sy*0.5));
+    
     if (sx < minX) sx = minX;
     if (sy < minY) sy = minY;
-    int16_t px = x+(sx*(p*0.01))-2;
-    int16_t strx = x+(sx*0.5)-(strl*0.5*m_charWidth*textSize);
-    int16_t stry = y+(sy*0.5)-(0.5*m_charHeight*textSize);
+    int16_t px = max((sx*(m_progress.progress*0.01))-2, 0);
+    Position pos;
+    pos.x = (x+sx)*0.5-(strl*0.5*m_charWidth*m_progress.textSize);
+    pos.y = (y+sy)*0.5-(0.5*m_charHeight*m_progress.textSize);
 
-    m_lcd.Set_Draw_color(backgroundColor);
-    m_lcd.Fill_Round_Rectangle(x, y, x+sx, y+sy, 2);
-    m_lcd.Set_Draw_color(foregroudColor);
-    m_lcd.Draw_Round_Rectangle(x, y, x+sx, y+sy, 2);
-    m_lcd.Fill_Round_Rectangle(x+2, y+2, px, y+sy-2, 2);
+    m_lcd.Set_Draw_color(m_progress.backgroundColor);
+    m_lcd.Fill_Round_Rectangle(x, y, sx, sy, corner);
+    m_lcd.Set_Draw_color(m_progress.foregroudColor);
+    m_lcd.Draw_Round_Rectangle(x, y, sx, sy, corner);
+    m_lcd.Fill_Round_Rectangle(x+2, y+2, px, sy-2, max(corner-2, 0));
 
+    //Serial.println(String(x) + ", " + String(y) + ": Size:" + String(sx) + ", " + String(sy) + ", String:" + String(strx) + ", " + String(stry) + ", Corner:" + String(corner));
     for (int i = 0; i < strl; i++)
     {
-        if (strx > px)
+        if (pos.x > px)
         {
-            m_lcd.Draw_Char(strx, stry, str[i], foregroudColor, backgroundColor, textSize, true);
+            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.foregroudColor, m_progress.backgroundColor, m_progress.textSize, true);
         }
         else
         {
-            m_lcd.Draw_Char(strx, stry, str[i], backgroundColor, foregroudColor, textSize, true);
+            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.backgroundColor, m_progress.foregroudColor, m_progress.textSize, true);
         }
-        strx += m_charWidth * textSize;
     }
 }
 

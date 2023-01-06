@@ -19,8 +19,8 @@
 #include <DHT_U.h>
 
 #include "DisplayControl.h"
+#include "DisplayFonts.h"
 #include "WifiInfo.h"
-#include "WeatherStationFonts.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
@@ -68,20 +68,18 @@ String OPEN_WEATHER_MAP_LOCATION = "6090785";
 // Chinese Simplified - zh_cn, Chinese Traditional - zh_tw.
 
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
-const uint8_t MAX_FORECASTS = 3;
+const uint8_t MAX_FORECASTS = 4;
 
 // Adjust according to your language
 const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 const String MONTH_NAMES[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 
 OpenWeatherMapCurrentData currentWeather;
-OpenWeatherMapCurrent currentWeatherClient;
-
 OpenWeatherMapForecastData forecasts[MAX_FORECASTS];
-OpenWeatherMapForecast forecastClient;
 
 uint16_t palette[] = {BLACK, WHITE, GOLD, DEEPSKYBLUE};
 DisplayControl displayControl;
+DisplayContolProgress progress;
 
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y);
@@ -108,13 +106,12 @@ const int UPDATE_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
 #define TZ_MN           ((TZ)*60)
 #define TZ_SEC          ((TZ)*3600)
 #define DST_SEC         ((DST_MN)*60)
-//time_t now;
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
 // flag changed in the ticker function every 10 minutes
 bool readyForUpdate = false;
-String lastUpdate = "--";
+char lastUpdate[40] = "?Unkown";
 long timeSinceLastWUpdate = 0;
 
 void setReadyForUpdate();
@@ -129,19 +126,46 @@ void setup()
 	while (!Serial)
 		;
 
+	progress.x = 0;
+	progress.y = 280;
+	progress.width = 480;
+	progress.height = 40;
+	progress.padding = 5;
+	progress.corner = 10;
+	progress.textSize = 1;
+	progress.foregroudColor = CYAN;
 	displayControl.init(1);
+	displayControl.setFont(&Teko_Medium8pt7b);
 
-	configureWifi();
-	
-	timeClient.begin();
-	updateSystemTime();
+	//displayControl.printLine("This is a print line1");
+	//displayControl.printLine("This is a print line2");
+	//displayControl.printString("This is a string", 4, 32);
+	//displayControl.drawString("This is a draw string.", 4, 48);
+	//displayControl.drawString("This are special char: !@#$%^&*().", 4, 64, TEXT_LEFT, 2);
 
+	displayControl.setProgress(progress);
 	displayControl.setFrameAnimation(SLIDE_LEFT);
 	displayControl.setFrames(frames, numberOfFrames);
 	displayControl.setOverlays(overlays, numberOfOverlays);
 
+	displayControl.fillScreen(BLACK);
+	displayControl.drawPaletteBitmap(-10, 20, palette, getOpenWeatherPaletteIconFromProgmem("01d"));
+	displayControl.drawPaletteBitmap(90, 20, palette, getOpenWeatherPaletteIconFromProgmem("02d"));
+	displayControl.drawPaletteBitmap(190, 20, palette, getOpenWeatherPaletteIconFromProgmem("03d"));
+	displayControl.drawPaletteBitmap(290, 20, palette, getOpenWeatherPaletteIconFromProgmem("04d"));
+	displayControl.drawPaletteBitmap(390, 20, palette, getOpenWeatherPaletteIconFromProgmem("09d"));
+	displayControl.drawPaletteBitmap(40, 140, palette, getOpenWeatherPaletteIconFromProgmem("10d"));
+	displayControl.drawPaletteBitmap(140, 140, palette, getOpenWeatherPaletteIconFromProgmem("11d"));
+	displayControl.drawPaletteBitmap(240, 140, palette, getOpenWeatherPaletteIconFromProgmem("13d"));
+	displayControl.drawPaletteBitmap(340, 140, palette, getOpenWeatherPaletteIconFromProgmem("50d"));
+	displayControl.getDisplay()->Set_Draw_color(CYAN);
+	displayControl.getDisplay()->Draw_Fast_HLine(0, 278, 480);
+	displayControl.getDisplay()->Draw_Fast_HLine(0, 279, 480);
+
+	configureWifi();
+	timeClient.begin();
 	updateData();
-	//showMainMenu();
+	displayControl.fillScreen(BLACK);
 }
 
 void loop()
@@ -194,30 +218,38 @@ void updateSystemTime()
 
 void updateData() 
 {
-	displayControl.drawProgress(5, 148, 470, 24, 10, "Updating time...", 2, CYAN);
+	displayControl.drawProgress(10, "Updating time...");
 	updateSystemTime();
-	displayControl.drawProgress(5, 148, 470, 24, 30, "Updating weather...", 2, CYAN);
-	currentWeatherClient.setMetric(IS_METRIC);
-	currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-	currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
-	displayControl.drawProgress(5, 148, 470, 24, 50, "Updating forecasts...", 2, CYAN);
-	forecastClient.setMetric(IS_METRIC);
-	forecastClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+
+	displayControl.drawProgress(30, "Updating weather...");
+	OpenWeatherMapCurrent* currentWeatherClient = new OpenWeatherMapCurrent();
+	currentWeatherClient->setMetric(IS_METRIC);
+	currentWeatherClient->setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+	currentWeatherClient->updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
+	delete currentWeatherClient;
+	currentWeatherClient = nullptr;
+
+	displayControl.drawProgress(50, "Updating forecasts...");
+	OpenWeatherMapForecast* forecastClient = new OpenWeatherMapForecast();
+	forecastClient->setMetric(IS_METRIC);
+	forecastClient->setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
 	uint8_t allowedHours[] = {12};
-	forecastClient.setAllowedHours(allowedHours, sizeof(allowedHours));
-	forecastClient.updateForecastsById(forecasts, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
+	forecastClient->setAllowedHours(allowedHours, sizeof(allowedHours));
+	forecastClient->updateForecastsById(forecasts, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
+	delete forecastClient;
+  	forecastClient = nullptr;
+	
+	sprintf(lastUpdate, "%02d/%02d/%04d -- %02d:%02d:%02d", month(), day(), year(), hour(), minute(), second());
 	readyForUpdate = false;
-	displayControl.drawProgress(5, 148, 470, 24, 100, "Updating done!", 2, GREEN);
+	displayControl.drawProgress(100, "Updating done!");
 	delay(1000);
-	displayControl.fillScreen(BLACK);
 }
 
 void configureWifi()
 {
-	displayControl.fillScreen(BLACK);
 	char intialMsg[] = "Intializing Wifi module.";
 	Serial.println(intialMsg);
-	displayControl.drawProgress(5, 148, 470, 14, 20, intialMsg, 2, CYAN);
+	displayControl.drawProgress(20, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
 	WiFi.init(&Serial3);
 
@@ -235,7 +267,7 @@ void configureWifi()
 	char infoMsg[] = "Waiting for connection to WiFi";
 	WiFi.begin(NAME_OF_SSID, PASSWORD_OF_SSID);
 	Serial.println(infoMsg);
-	displayControl.drawProgress(5, 148, 470, 14, 40, infoMsg, 2, CYAN);
+	displayControl.drawProgress(40, infoMsg);
 
 	int counter = 0;
 	int timeout = 0;
@@ -245,7 +277,7 @@ void configureWifi()
 	{
 		delay(1000);
 		Serial.print('.');
-		displayControl.drawProgress(5, 148, 470, 14, 60, "Connecting to WiFi", 2, CYAN);
+		displayControl.drawProgress(60, "Connecting to WiFi");
 		//displayControl.drawBitMap(46, 30, 8, 8, counter % 3 == 0 ? activeSymbole : inactiveSymbole, 1);
 		//displayControl.drawBitMap(60, 30, 8, 8, counter % 3 == 1 ? activeSymbole : inactiveSymbole, 1);
 		//displayControl.drawBitMap(74, 30, 8, 8, counter % 3 == 2 ? activeSymbole : inactiveSymbole, 1);
@@ -271,10 +303,10 @@ void configureWifi()
 	char wifiInfo[42] = "";
 	sprintf(wifiInfo, "Connected to Wifi: %s", NAME_OF_SSID);
 	displayControl.fillScreen(BLACK);
-	displayControl.drawProgress(5, 148, 470, 14, 80, wifiInfo, 2, CYAN);
+	displayControl.drawProgress(80, wifiInfo);
 		
 	printConnectInfo();
-	displayControl.drawProgress(5, 148, 470, 14, 100, "Wifi initialization done!", 2, GREEN);
+	displayControl.drawProgress(100, "Wifi initialization done!");
 	delay(1000);
 }
 
@@ -328,49 +360,35 @@ void readTemperatureHumidity()
 	}
 }
 
-void drawOpenWeatherIcon(int16_t x, int16_t y, String iconName, bool large = true)
-{
-	if (large)
-	{
-		displayControl.drawPaletteBitmap(x, y, palette, getOpenWeatherPaletteIconFromProgmem(iconName));
-	}
-	else
-	{
-		displayControl.drawPaletteBitmap(x, y, palette, getOpenWeatherMiniPaletteIconFromProgmem(iconName));
-	}
-}
-
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
 {
 	char buff[16];
 	sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[weekday()-1].c_str(), day(), month(), year());
-	displayControl.drawString(buff, 240, 140, TEXT_CENTER, 4, CYAN);
+	displayControl.drawString(buff, 240, 140, TEXT_CENTER, 2, CYAN);
 
 	sprintf_P(buff, PSTR("%02d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
-	displayControl.drawString(buff, 240, 180, TEXT_CENTER, 4, CYAN);
+	displayControl.drawString(buff, 240, 180, TEXT_CENTER, 2, CYAN);
 }
 
 void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 {
 	x = 240;
 	y = 40;
-	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
-	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, 3, YELLOW);
-	drawOpenWeatherIcon(x - 50, y + 40, currentWeather.icon);
-	//displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getMeteoconIconFromProgmem(currentWeather.icon));
-	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 3, CYAN);
-	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, 2, ORANGE);
+	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "C" : "F");
+	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, 2, YELLOW);
+	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(currentWeather.icon));
+	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 2, CYAN);
+	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, 1, ORANGE);
 }
 
 void drawForecastDetails(int x, int y, int dayIndex) 
 {
 	time_t observationTimestamp = forecasts[dayIndex].observationTime;
 	int day = weekday(observationTimestamp)-1;
-	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "°C" : "°F");
-	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, 3, YELLOW);
-	drawOpenWeatherIcon(x - 50, y + 40, forecasts[dayIndex].icon);
-	//displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getMeteoconIconFromProgmem(forecasts[dayIndex].icon));
-	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 3, CYAN);
+	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "C" : "F");
+	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, 2, YELLOW);
+	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(forecasts[dayIndex].icon));
+	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 2, CYAN);
 	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, 2, ORANGE);	
 }
 
@@ -385,14 +403,15 @@ void drawHeaderOverlay(DisplayControlState* state)
 {
 	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
+	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "C" : "F");
 
 	displayControl.getDisplay()->Set_Draw_color(BLACK);
 	displayControl.getDisplay()->Draw_Rectangle(0, 280, 480, 320);
 	displayControl.getDisplay()->Set_Draw_color(CYAN);
 	displayControl.getDisplay()->Draw_Fast_HLine(0, 278, 480);
 	displayControl.getDisplay()->Draw_Fast_HLine(0, 279, 480);
-	displayControl.drawString(time, 120, 300, TEXT_CENTER, 3, ORANGE);
-	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 3, ORANGE);
+	displayControl.drawString(time, 120, 300, TEXT_CENTER, 2, ORANGE);
+	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 2, ORANGE);
+	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
 	
 }

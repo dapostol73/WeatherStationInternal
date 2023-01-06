@@ -4,6 +4,7 @@
 #include <LCDWIKI_GUI.h> //Core graphics library
 #include <LCDWIKI_KBV.h> //Hardware-specific library
 #include <LCDWIKI_TOUCH.h> //touch screen library
+#include "gfxfont.h"
 
 #define BITS_PER_PIXEL 2 // 2^2 =  4 colors
 #define BIT_MASK ((1 << BITS_PER_PIXEL) - 1)
@@ -56,6 +57,27 @@ enum TextAlignment
   TEXT_RIGHT
 };
 
+struct Position
+{
+  int16_t x = 0;
+  int16_t y = 0;
+};
+
+struct DisplayContolProgress
+{
+  int16_t x = 0;
+  int16_t y = 0;
+  int16_t width = 100;
+  int16_t height = 30;
+  int16_t padding = 0;
+  int16_t corner = 2;
+  int16_t progress = 0; 
+  String message = "";
+  uint8_t textSize = 1;
+  uint16_t foregroudColor = WHITE;
+  uint16_t backgroundColor = BLACK;
+};
+
 // Structure of the UiState
 struct DisplayControlState
 {
@@ -88,6 +110,7 @@ class DisplayControl
         uint8_t m_lineHeight = 10;
         uint8_t m_charWidth = 6;
         uint8_t m_charHeight = 8;
+        const GFXfont *m_gfxFont;
         uint8_t m_updateInterval = 33;
         // Values for the Frames
         AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
@@ -105,6 +128,7 @@ class DisplayControl
         uint8_t             m_overlayCount              = 0;
 
         DisplayControlState m_state;
+        DisplayContolProgress m_progress;
 
         uint8_t getNextFrameNumber();
         void drawFrame();
@@ -121,6 +145,8 @@ class DisplayControl
 
         LCDWIKI_KBV* getDisplay();
 
+        void setFont(const GFXfont *font = NULL);
+
         void setRotation(uint16_t rotation);
 
         void fillScreen(uint16_t color);
@@ -130,14 +156,20 @@ class DisplayControl
         void printLine();
 
         void printLine(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
-
+        
+        void printString(String str, int16_t x, int16_t y, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK);
+        
         void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 
         void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale = 1);
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 
-        void drawProgress(int16_t x, int16_t y, int16_t sx, int16_t sy, int16_t p, String str = "", uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK);
+        Position drawChar(int16_t x, int16_t y, unsigned char c, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean mode = true);
+
+        void setProgress(DisplayContolProgress progress);
+
+        void drawProgress(int16_t progress = 0, String message = "");
 
         void enableIndicator();
         /**
