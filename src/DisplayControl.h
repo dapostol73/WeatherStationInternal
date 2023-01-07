@@ -1,9 +1,9 @@
 #ifndef _DISPLAY_CONTROL_
 #define _DISPLAY_CONTROL_
 
-#include <LCDWIKI_GUI.h> //Core graphics library
-#include <LCDWIKI_KBV.h> //Hardware-specific library
-#include <LCDWIKI_TOUCH.h> //touch screen library
+#define SUPPORT_B509_7793
+
+#include <UTFTGLUE.h>
 #include "gfxfont.h"
 
 #define BITS_PER_PIXEL 2 // 2^2 =  4 colors
@@ -74,7 +74,7 @@ struct DisplayContolProgress
   int16_t progress = 0; 
   String message = "";
   uint8_t textSize = 1;
-  uint16_t foregroudColor = WHITE;
+  uint16_t foregroundColor = WHITE;
   uint16_t backgroundColor = BLACK;
 };
 
@@ -143,7 +143,7 @@ class DisplayControl
         /// @param rotation 0,1,2,3 = (0,90,180,270)
         void init(uint16_t rotation = 0);
 
-        LCDWIKI_KBV* getDisplay();
+        MCUFRIEND_kbv* getDisplay();
 
         void setFont(const GFXfont *font = NULL);
 
@@ -188,8 +188,6 @@ class DisplayControl
         DisplayControlState* getUiState();
 
         int8_t update();
-
-        void windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht, int16_t dx, int16_t dy, uint16_t *buf);
 
         void testDisplay();
 };

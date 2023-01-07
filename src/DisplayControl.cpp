@@ -1,7 +1,9 @@
 #include "DisplayControl.h"
 
-LCDWIKI_KBV m_lcd(ILI9488, 40, 38, 39, 43, 41); //model,cs,cd,wr,rd,reset
-LCDWIKI_TOUCH m_touch(53, 52, 50, 51, 44); //tcs,tclk,tdout,tdin,tirq
+//MCUFRIEND_kbv m_lcd;
+UTFTGLUE m_lcd(0x7796,38,39,40,41,43);
+//LCDWIKI_KBV m_lcd(ILI9488, 40, 38, 39, 43, 41); //model,cs,cd,wr,rd,reset
+//LCDWIKI_TOUCH m_touch(53, 52, 50, 51, 44); //tcs,tclk,tdout,tdin,tirq
 //LCDWIKI_KBV m_lcd(ST7796S,A3,A2,A1,A0,A4);
 //LCDWIKI_KBV m_lcd(ST7796S,40,38,39,44,41);
 //LCDWIKI_KBV m_lcd(320,480,A3,A2,A1,A0,A4);
@@ -22,36 +24,25 @@ inline GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c) {
 #endif //__AVR__
 }
 
-inline uint8_t *pgm_read_bitmap_ptr(const GFXfont *gfxFont) {
-#ifdef __AVR__
-  return (uint8_t *)pgm_read_word(&gfxFont->bitmap);
-#else
-  // expression in __AVR__ section generates "dereferencing type-punned pointer
-  // will break strict-aliasing rules" warning In fact, on other platforms (such
-  // as STM32) there is no need to do this pointer magic as program memory may
-  // be read in a usual way So expression may be simplified
-  return gfxFont->bitmap;
-#endif //__AVR__
-}
-
 DisplayControl::DisplayControl()
 {
 }
 
 void DisplayControl::init(uint16_t rotation)
 {
-    m_lcd.Init_LCD(); //initialize lcd
-    m_lcd.Fill_Screen(BLACK);
+    m_lcd.begin(0x7796); //initialize lcd
+    m_lcd.fillScreen(BLACK);
     setRotation(rotation);
 }
 
-LCDWIKI_KBV* DisplayControl::getDisplay()
+MCUFRIEND_kbv* DisplayControl::getDisplay()
 {
     return &m_lcd;
 }
 
-void DisplayControl::setFont(const GFXfont *f) {
-  m_gfxFont = (GFXfont *)f;
+void DisplayControl::setFont(const GFXfont *font) {
+  m_gfxFont = (GFXfont *)font;
+  m_lcd.setFont(m_gfxFont);
   m_charHeight = pgm_read_byte(&m_gfxFont->yAdvance);
   m_lineHeight = m_charHeight;
   m_charWidth = m_charHeight * 0.5 + 1;// hack for now
@@ -59,7 +50,7 @@ void DisplayControl::setFont(const GFXfont *f) {
 
 void DisplayControl::setRotation(uint16_t rotation)
 {
-    m_lcd.Set_Rotation(rotation);
+    m_lcd.setRotation(rotation);
     m_maxLines = 48;
     if (rotation == 1 || rotation == 3)
     {
@@ -69,14 +60,14 @@ void DisplayControl::setRotation(uint16_t rotation)
 
 void DisplayControl::fillScreen(uint16_t color)
 {
-    m_lcd.Fill_Screen(color);
+    m_lcd.fillScreen(color);
 }
 
 void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale)
 {
 	int16_t color;
     //int16_t byteWidth = (sx + 3) / 4; // Bitmap scanline pad = whole byte
-	m_lcd.Set_Addr_Window(x, y, x + sx*scale - 1, y + sy*scale - 1); 
+	m_lcd.setAddrWindow(x, y, x + sx*scale - 1, y + sy*scale - 1); 
 	if(scale > 1)
 	{
 		for (int16_t row = 0; row < sy; row++) 
@@ -84,7 +75,8 @@ void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, ui
 			for (int16_t col = 0; col < sx; col++) 
 			{
 				color = pgm_read_word(&data[row * sx + col]);
-				m_lcd.Fill_Rect(x+col*scale, y+row*scale, scale, scale, color);
+                m_lcd.setColor(color);
+				m_lcd.fillRect(x+col*scale, y+row*scale, scale, scale);
 			}
 		}
 	}
@@ -96,7 +88,8 @@ void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, ui
 			{
                 color = pgm_read_word(&data[row * sx + col]);
                 Serial.println(color);
-				m_lcd.Draw_Pixe(x+col, y+row, color);
+                m_lcd.setColor(color);
+				m_lcd.drawPixel(x+col, y+row);
 			}
 		}
 	}
@@ -142,9 +135,8 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
             //Serial.println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
             //Serial.println(paletteIndex);
             // if there is a bit draw it
-
-            m_lcd.Set_Draw_color(palette[paletteIndex]);
-            m_lcd.Draw_Pixel(x + px, y + py);
+            m_lcd.setColor(palette[paletteIndex]);
+            m_lcd.drawPixel(x + px, y + py);
             bitCounter++;
         }
     //pointer++;
@@ -152,68 +144,23 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
     } 
 }
 
-void DisplayControl::windowScroll(int16_t x, int16_t y, int16_t wid, int16_t ht, int16_t dx, int16_t dy, uint16_t *buf)
-{
-    if (dx)
-    { 
-      for (int16_t row = 0; row < ht; row++) 
-      {
-            m_lcd.Read_GRAM(x, y + row, buf,wid, 1);
-            m_lcd.Set_Addr_Window(x, y + row, x + wid - 1, y + row);
-            m_lcd.Push_Any_Color(buf + dx, wid - dx, 1,0);
-            m_lcd.Push_Any_Color(buf + 0, dx, 0,0);
-        }
-    }
-    if (dy) 
-    {
-      for (int16_t col = 0; col < wid; col++) 
-      {
-            m_lcd.Read_GRAM(x + col, y, buf,1, ht);
-            m_lcd.Set_Addr_Window(x + col, y, x + col, y + ht - 1);
-            m_lcd.Push_Any_Color(buf + dy, ht - dy, 1,0);
-            m_lcd.Push_Any_Color(buf + 0, dy, 0,0);
-      }
-    }
-}
-
-Position DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint8_t size, uint16_t foregrounColor, uint16_t backgroundColor, boolean mode)
+Position DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint8_t size, uint16_t foregroundColor, uint16_t backgroundColor, boolean mode)
 {	
     Position pos;
     pos.x = x;
     pos.y = y;
-    c -= (uint8_t)pgm_read_byte(&m_gfxFont->first);
-    GFXglyph *glyph = pgm_read_glyph_ptr(m_gfxFont, c);
-    uint8_t *bitmap = pgm_read_bitmap_ptr(m_gfxFont);
-    uint8_t ya = pgm_read_byte(&m_gfxFont->yAdvance);
-
-    uint16_t bo = pgm_read_word(&glyph->bitmapOffset);
+    unsigned char tc = c - (uint8_t)pgm_read_byte(&m_gfxFont->first);
+    GFXglyph *glyph = pgm_read_glyph_ptr(m_gfxFont, tc);
     uint8_t w = pgm_read_byte(&glyph->width), 
             h = pgm_read_byte(&glyph->height),
             xa = pgm_read_byte(&glyph->xAdvance);
-    int8_t xo = pgm_read_byte(&glyph->xOffset),
-           yo = pgm_read_byte(&glyph->yOffset);
-    uint8_t bits = 0, bit = 0;
 
-    if((x >= m_lcd.Get_Width()) || (y >= m_lcd.Get_Height()) || ((x + w * size - 1) < 0) || ((y + h * size - 1) < 0))
+    if((x >= m_lcd.width()) || (y >= m_lcd.height()) || ((x + w * size - 1) < 0) || ((y + h * size - 1) < 0))
 	{
     	return pos;
-	}		
+	}
 
-    for (int yy = 0; yy < h; yy++) {
-      for (int xx = 0; xx < w; xx++) {
-        if (!(bit++ & 7)) {
-          bits = pgm_read_byte(&bitmap[bo++]);
-        }
-        if (bits & 0x80) {
-          if (size <= 1) {
-            m_lcd.Draw_Pixe(x + xo + xx, y + yo + yy + ya, foregrounColor);
-          } else {
-            m_lcd.Fill_Rect(x + ((xo + xx) * size), y + ((yo + yy + ya) * size), size, size, foregrounColor);
-          }
-        }
-        bits <<= 1;
-      }
-    }
+    m_lcd.drawChar(x, y, c, foregroundColor, backgroundColor, size);
     
     pos.x += (xa + 1) * size;
     return pos;
@@ -223,7 +170,7 @@ void DisplayControl::print(String str, uint16_t foregroudColor, uint16_t backgro
 {
     int charLength = str.length();
     int x = 4+(m_currentIndex*m_charWidth);
-    if(x+(charLength*m_charWidth) > m_lcd.Get_Display_Width())
+    if(x+(charLength*m_charWidth) > m_lcd.width())
     {
         m_currentIndex = 0;
         x = 4;
@@ -248,7 +195,7 @@ void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t bac
     int x = 4;
     if (m_currentLine > m_maxLines)
     {
-        m_lcd.Vert_Scroll(0, m_lcd.Get_Display_Height(), -m_lineHeight*(m_currentLine%m_maxLines));
+        m_lcd.vertScroll(0, m_lcd.height(), -m_lineHeight*(m_currentLine%m_maxLines));
         y = ((m_currentLine%m_maxLines)-1)*m_lineHeight;
     }
 
@@ -310,22 +257,22 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     pos.x = (x+sx)*0.5-(strl*0.5*m_charWidth*m_progress.textSize);
     pos.y = (y+sy)*0.5-(0.5*m_charHeight*m_progress.textSize);
 
-    m_lcd.Set_Draw_color(m_progress.backgroundColor);
-    m_lcd.Fill_Round_Rectangle(x, y, sx, sy, corner);
-    m_lcd.Set_Draw_color(m_progress.foregroudColor);
-    m_lcd.Draw_Round_Rectangle(x, y, sx, sy, corner);
-    m_lcd.Fill_Round_Rectangle(x+2, y+2, px, sy-2, max(corner-2, 0));
+    m_lcd.setColor(m_progress.backgroundColor);
+    m_lcd.fillRoundRect(x, y, sx, sy, corner);
+    m_lcd.setColor(m_progress.foregroundColor);
+    m_lcd.drawRoundRect(x, y, sx, sy, corner);
+    m_lcd.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0));
 
     //Serial.println(String(x) + ", " + String(y) + ": Size:" + String(sx) + ", " + String(sy) + ", String:" + String(strx) + ", " + String(stry) + ", Corner:" + String(corner));
     for (int i = 0; i < strl; i++)
     {
         if (pos.x > px)
         {
-            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.foregroudColor, m_progress.backgroundColor, m_progress.textSize, true);
+            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.foregroundColor, m_progress.backgroundColor, m_progress.textSize, true);
         }
         else
         {
-            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.backgroundColor, m_progress.foregroudColor, m_progress.textSize, true);
+            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.backgroundColor, m_progress.foregroundColor, m_progress.textSize, true);
         }
     }
 }
@@ -341,7 +288,7 @@ void DisplayControl::drawFrame()
     {
         case IN_TRANSITION: 
         {
-            m_lcd.Fill_Screen(BLACK);
+            m_lcd.fillScreen(BLACK);
             break;
         }
         case FIXED:
@@ -466,9 +413,9 @@ int8_t DisplayControl::update()
 void DisplayControl::testDisplay()
 {
     //Sequential display black,white,red,green,blue
-    m_lcd.Fill_Screen(0,0,0);  
-    m_lcd.Fill_Screen(255,255,255); 
-    m_lcd.Fill_Screen(255,0,0); 
-    m_lcd.Fill_Screen(0,255,0);
-    m_lcd.Fill_Screen(0,0,255);
+    m_lcd.fillScreen(BLACK);  
+    m_lcd.fillScreen(WHITE); 
+    m_lcd.fillScreen(RED); 
+    m_lcd.fillScreen(GREEN);
+    m_lcd.fillScreen(BLUE);
 }

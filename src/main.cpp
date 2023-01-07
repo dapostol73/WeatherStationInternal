@@ -2,6 +2,9 @@
 // https://github.com/Edragon/esp_firmware/tree/master/Firmware/AT-other/AI-THINKER/At_firmware_bin1.54
 // Libraries for Screen
 // http://www.lcdwiki.com/3.95inch_Arduino_Display-Mega2560_ST7796
+// For the screen to work, you need to uncomment the following in MCUFRIEND_kbv Library
+// In utility\mcufriend_shield.h uncomment #define USE_SPECIAL
+// In utility\mcufriend_special.h uncomment #define USE_MEGA_8BIT_PORTC_SHIELD
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -133,7 +136,7 @@ void setup()
 	progress.padding = 5;
 	progress.corner = 10;
 	progress.textSize = 1;
-	progress.foregroudColor = CYAN;
+	progress.foregroundColor = CYAN;
 	displayControl.init(1);
 	displayControl.setFont(&Teko_Medium8pt7b);
 
@@ -158,9 +161,8 @@ void setup()
 	displayControl.drawPaletteBitmap(140, 140, palette, getOpenWeatherPaletteIconFromProgmem("11d"));
 	displayControl.drawPaletteBitmap(240, 140, palette, getOpenWeatherPaletteIconFromProgmem("13d"));
 	displayControl.drawPaletteBitmap(340, 140, palette, getOpenWeatherPaletteIconFromProgmem("50d"));
-	displayControl.getDisplay()->Set_Draw_color(CYAN);
-	displayControl.getDisplay()->Draw_Fast_HLine(0, 278, 480);
-	displayControl.getDisplay()->Draw_Fast_HLine(0, 279, 480);
+	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
+	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
 	configureWifi();
 	timeClient.begin();
@@ -405,11 +407,9 @@ void drawHeaderOverlay(DisplayControlState* state)
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
 	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "C" : "F");
 
-	displayControl.getDisplay()->Set_Draw_color(BLACK);
-	displayControl.getDisplay()->Draw_Rectangle(0, 280, 480, 320);
-	displayControl.getDisplay()->Set_Draw_color(CYAN);
-	displayControl.getDisplay()->Draw_Fast_HLine(0, 278, 480);
-	displayControl.getDisplay()->Draw_Fast_HLine(0, 279, 480);
+	displayControl.getDisplay()->drawRect(0, 280, 480, 320, BLACK);
+	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
+	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 	displayControl.drawString(time, 120, 300, TEXT_CENTER, 2, ORANGE);
 	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 2, ORANGE);
 	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
