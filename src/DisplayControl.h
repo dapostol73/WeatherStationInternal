@@ -4,7 +4,7 @@
 #define SUPPORT_B509_7793
 
 #include <UTFTGLUE.h>
-#include "gfxfont.h"
+#include <gfxfont.h>
 
 #define BITS_PER_PIXEL 2 // 2^2 =  4 colors
 #define BIT_MASK ((1 << BITS_PER_PIXEL) - 1)
@@ -57,12 +57,6 @@ enum TextAlignment
   TEXT_RIGHT
 };
 
-struct Position
-{
-  int16_t x = 0;
-  int16_t y = 0;
-};
-
 struct DisplayContolProgress
 {
   int16_t x = 0;
@@ -73,7 +67,6 @@ struct DisplayContolProgress
   int16_t corner = 2;
   int16_t progress = 0; 
   String message = "";
-  uint8_t textSize = 1;
   uint16_t foregroundColor = WHITE;
   uint16_t backgroundColor = BLACK;
 };
@@ -105,12 +98,10 @@ class DisplayControl
 {
     private:
         uint8_t m_currentLine = 0;
-        uint8_t m_currentIndex = 0;
-        uint8_t m_maxLines = 0;
         uint8_t m_lineHeight = 10;
-        uint8_t m_charWidth = 6;
-        uint8_t m_charHeight = 8;
+        uint8_t m_maxLines = 0;
         const GFXfont *m_gfxFont;
+        const GFXfont *m_gfxFontTemp;
         uint8_t m_updateInterval = 33;
         // Values for the Frames
         AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
@@ -141,15 +132,19 @@ class DisplayControl
         DisplayControl();
         /// @brief 
         /// @param rotation 0,1,2,3 = (0,90,180,270)
-        void init(uint16_t rotation = 0);
+        void init(uint16_t rotation, const GFXfont *gfxFont);
 
         MCUFRIEND_kbv* getDisplay();
 
-        void setFont(const GFXfont *font = NULL);
+        void setFont(const GFXfont *font);
 
         void setRotation(uint16_t rotation);
 
         void fillScreen(uint16_t color);
+
+        void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroudColor = WHITE);
+
+        void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 
         void print(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
 
@@ -157,15 +152,9 @@ class DisplayControl
 
         void printLine(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
         
-        void printString(String str, int16_t x, int16_t y, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK);
-        
-        void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
-
         void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale = 1);
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
-
-        Position drawChar(int16_t x, int16_t y, unsigned char c, uint8_t textSize = 1, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean mode = true);
 
         void setProgress(DisplayContolProgress progress);
 

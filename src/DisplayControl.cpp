@@ -28,10 +28,11 @@ DisplayControl::DisplayControl()
 {
 }
 
-void DisplayControl::init(uint16_t rotation)
+void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
 {
     m_lcd.begin(0x7796); //initialize lcd
     m_lcd.fillScreen(BLACK);
+    setFont(gfxFont);
     setRotation(rotation);
 }
 
@@ -40,12 +41,10 @@ MCUFRIEND_kbv* DisplayControl::getDisplay()
     return &m_lcd;
 }
 
-void DisplayControl::setFont(const GFXfont *font) {
-  m_gfxFont = (GFXfont *)font;
+void DisplayControl::setFont(const GFXfont *gfxFont) {
+  m_gfxFont = (GFXfont *)gfxFont;
   m_lcd.setFont(m_gfxFont);
-  m_charHeight = pgm_read_byte(&m_gfxFont->yAdvance);
-  m_lineHeight = m_charHeight;
-  m_charWidth = m_charHeight * 0.5 + 1;// hack for now
+  m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
 }
 
 void DisplayControl::setRotation(uint16_t rotation)
@@ -144,44 +143,72 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
     } 
 }
 
-Position DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint8_t size, uint16_t foregroundColor, uint16_t backgroundColor, boolean mode)
+void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor)
 {	
-    Position pos;
-    pos.x = x;
-    pos.y = y;
-    unsigned char tc = c - (uint8_t)pgm_read_byte(&m_gfxFont->first);
-    GFXglyph *glyph = pgm_read_glyph_ptr(m_gfxFont, tc);
-    uint8_t w = pgm_read_byte(&glyph->width), 
-            h = pgm_read_byte(&glyph->height),
-            xa = pgm_read_byte(&glyph->xAdvance);
+    //char str[2];
+    //str[0] = c;
+    //str[1] = '\0';
+    m_lcd.setColor(foregroundColor);
+    m_lcd.setTextColor(foregroundColor);
+    m_lcd.setCursor(x, y);
+    //m_lcd.print(str);
+    m_lcd.write(c);
+}
 
-    if((x >= m_lcd.width()) || (y >= m_lcd.height()) || ((x + w * size - 1) < 0) || ((y + h * size - 1) < 0))
-	{
-    	return pos;
-	}
+void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert, boolean mode)
+{
+    int16_t x1, y1 = 0;
+    uint16_t w, h = 0;
+    if (mode || align > TEXT_LEFT)
+    {
+        m_lcd.getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
+        if (align == TEXT_CENTER)
+        {
+            x -= w * 0.5;
+            y -= h * 0.5;
+        }
+        else if (align == TEXT_RIGHT)
+        {
+            x -= w + 1;
+            //y -= h;
+        }
+    }
 
-    m_lcd.drawChar(x, y, c, foregroundColor, backgroundColor, size);
-    
-    pos.x += (xa + 1) * size;
-    return pos;
+    if (invert)
+    {
+        if (mode)
+        {
+            m_lcd.setColor(foregroundColor);
+            m_lcd.fillRect(x, y, x + w, y + h);
+        }
+        m_lcd.setTextColor(backgroundColor);
+        m_lcd.print(str, x, y);
+    }
+    else
+    {
+        if (mode)
+        {
+            m_lcd.setColor(backgroundColor);
+            m_lcd.fillRect(x, y, x + w, y + h);
+        }
+        m_lcd.setTextColor(foregroundColor);
+        m_lcd.print(str, x, y);
+    }
 }
 
 void DisplayControl::print(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
-    int charLength = str.length();
-    int x = 4+(m_currentIndex*m_charWidth);
-    if(x+(charLength*m_charWidth) > m_lcd.width())
-    {
-        m_currentIndex = 0;
-        x = 4;
-        printLine();
-    }
-
+    m_gfxFontTemp = m_gfxFont;
+    m_lcd.setFont(&FreeSmallFont);
+    int x = m_lcd.getCursorX();
     int y = m_currentLine*m_lineHeight;
-    drawString(str, x, y, TEXT_LEFT, 1, foregroudColor, backgroundColor, invert);
-    // hacky way of doing it...but m_lcd.Get_Text_Y_Cousur 
-    // doesn't return the end of the string after a print
-    m_currentIndex += charLength;
+    drawString(str, x, y, TEXT_LEFT, foregroudColor, backgroundColor, invert);
+    // check if the text cursor over flowed and by how many lines
+    while (m_lcd.getCursorY() < m_currentLine*m_lineHeight - 2)
+    {
+        m_currentLine++;
+    }
+    m_lcd.setFont(m_gfxFontTemp);
 }
 
 void DisplayControl::printLine()
@@ -199,37 +226,9 @@ void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t bac
         y = ((m_currentLine%m_maxLines)-1)*m_lineHeight;
     }
 
-    drawString(str, x, y, TEXT_LEFT, 1, foregroudColor, backgroundColor, invert);
-    m_currentLine++;
-}
-
-void DisplayControl::printString(String str, int16_t x, int16_t y, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor)
-{
-	Position pos;
-    pos.x = x;
-    pos.y = y;
-    for (uint16_t i=0; i < str.length(); i++)
-    {
-        Position npos = drawChar(pos.x, pos.y, str[i], textSize, foregroudColor, backgroundColor);
-        pos.x = npos.x;
-        pos.y = npos.y;
-    }
-}
-
-void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint8_t textSize, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert, boolean mode)
-{    
-    if (align == TEXT_CENTER)
-    {
-        x -= (str.length() * textSize * m_charWidth * 0.5);
-        y -= textSize * m_charHeight * 0.5;
-    }
-    else if (align == TEXT_RIGHT)
-    {
-        x -= (str.length() * textSize * m_charWidth);
-        //y += textSize * m_charHeight;
-    }
-
-    printString(str, x, y, textSize, foregroudColor, backgroundColor);
+    m_lcd.setCursor(x, y);
+    print(str, foregroudColor, backgroundColor, invert);
+    printLine();
 }
 
 void DisplayControl::setProgress(DisplayContolProgress progress)
@@ -239,23 +238,25 @@ void DisplayControl::setProgress(DisplayContolProgress progress)
 
 void DisplayControl::drawProgress(int16_t percent, String message)
 {
+    int16_t x1, y1 = 0;
+    uint16_t w1, h1 = 0;
+    m_lcd.getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
     m_progress.progress = percent;
     m_progress.message = message;
     int16_t strl = m_progress.message.length();
-    int16_t minX = 6 + strl * m_progress.textSize * m_charWidth;
-    int16_t minY = 6 + m_progress.textSize * m_charHeight;
+    int16_t minX = x1 - 2 * m_progress.padding;
+    int16_t minY = y1 - 2 * m_progress.padding;
     int16_t x = m_progress.x + m_progress.padding;
     int16_t y = m_progress.y + m_progress.padding;
-    int16_t sx = x + m_progress.width - 2*m_progress.padding;
-    int16_t sy = y + m_progress.height - 2*m_progress.padding;
+    int16_t sx = x + m_progress.width - 2 * m_progress.padding;
+    int16_t sy = y + m_progress.height - 2 * m_progress.padding;
     int16_t corner = min(m_progress.corner, min(sx*0.5, sy*0.5));
     
     if (sx < minX) sx = minX;
     if (sy < minY) sy = minY;
     int16_t px = max((sx*(m_progress.progress*0.01))-2, 0);
-    Position pos;
-    pos.x = (x+sx)*0.5-(strl*0.5*m_charWidth*m_progress.textSize);
-    pos.y = (y+sy)*0.5-(0.5*m_charHeight*m_progress.textSize);
+    int16_t cx = m_progress.x+(m_progress.width*0.5)-(0.5*w1);
+    int16_t cy = m_progress.y+(m_progress.height*0.5)-(0.5*h1);
 
     m_lcd.setColor(m_progress.backgroundColor);
     m_lcd.fillRoundRect(x, y, sx, sy, corner);
@@ -263,17 +264,19 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     m_lcd.drawRoundRect(x, y, sx, sy, corner);
     m_lcd.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0));
 
-    //Serial.println(String(x) + ", " + String(y) + ": Size:" + String(sx) + ", " + String(sy) + ", String:" + String(strx) + ", " + String(stry) + ", Corner:" + String(corner));
-    for (int i = 0; i < strl; i++)
+    //Serial.println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
+    for (int16_t i = 0; i < strl; i++)
     {
-        if (pos.x > px)
+        if (cx > px)
         {
-            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.foregroundColor, m_progress.backgroundColor, m_progress.textSize, true);
+            drawChar(cx, cy, m_progress.message[i], m_progress.foregroundColor);
         }
         else
         {
-            pos = drawChar(pos.x, pos.y, m_progress.message[i], m_progress.backgroundColor, m_progress.foregroundColor, m_progress.textSize, true);
+            drawChar(cx, cy, m_progress.message[i], m_progress.backgroundColor);
         }
+        cx = m_lcd.getCursorX();
+        //Serial.println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 
     }
 }
 

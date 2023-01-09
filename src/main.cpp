@@ -135,16 +135,8 @@ void setup()
 	progress.height = 40;
 	progress.padding = 5;
 	progress.corner = 10;
-	progress.textSize = 1;
 	progress.foregroundColor = CYAN;
-	displayControl.init(1);
-	displayControl.setFont(&Teko_Medium8pt7b);
-
-	//displayControl.printLine("This is a print line1");
-	//displayControl.printLine("This is a print line2");
-	//displayControl.printString("This is a string", 4, 32);
-	//displayControl.drawString("This is a draw string.", 4, 48);
-	//displayControl.drawString("This are special char: !@#$%^&*().", 4, 64, TEXT_LEFT, 2);
+	displayControl.init(1, &Teko_Medium8pt7b);
 
 	displayControl.setProgress(progress);
 	displayControl.setFrameAnimation(SLIDE_LEFT);
@@ -249,7 +241,7 @@ void updateData()
 
 void configureWifi()
 {
-	char intialMsg[] = "Intializing Wifi module.";
+	String intialMsg = "Intializing Wifi module.";
 	Serial.println(intialMsg);
 	displayControl.drawProgress(20, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
@@ -257,16 +249,16 @@ void configureWifi()
 
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
-		char initialErr[] = "Communication with WiFi module failed!";
+		String initialErr = "Communication with WiFi module failed!";
 		Serial.println(initialErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER, 2, BLACK, RED);
+		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER, BLACK, RED);
 		// don't continue
 		while (true)
 			;
 	}
 
-	char infoMsg[] = "Waiting for connection to WiFi";
+	String infoMsg = "Waiting for connection to WiFi";
 	WiFi.begin(NAME_OF_SSID, PASSWORD_OF_SSID);
 	Serial.println(infoMsg);
 	displayControl.drawProgress(40, infoMsg);
@@ -296,7 +288,7 @@ void configureWifi()
 		sprintf(connectErr, "Wifi failed to connect to %s acces point!", NAME_OF_SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, 2, BLACK, RED);
+		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
 		// don't continue
 		while (true)
 			;
@@ -364,34 +356,39 @@ void readTemperatureHumidity()
 
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
 {
+	displayControl.setFont(&Teko_Medium24pt7b);
 	char buff[16];
 	sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[weekday()-1].c_str(), day(), month(), year());
-	displayControl.drawString(buff, 240, 140, TEXT_CENTER, 2, CYAN);
+	displayControl.drawString(buff, 240, 140, TEXT_CENTER, CYAN);
 
 	sprintf_P(buff, PSTR("%02d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
-	displayControl.drawString(buff, 240, 180, TEXT_CENTER, 2, CYAN);
+	displayControl.drawString(buff, 240, 180, TEXT_CENTER, CYAN);
 }
 
 void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 {
 	x = 240;
 	y = 40;
-	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "C" : "F");
-	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, 2, YELLOW);
+	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
+	displayControl.setFont(&Teko_Medium24pt7b);
+	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, YELLOW);
 	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(currentWeather.icon));
-	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 2, CYAN);
-	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, 1, ORANGE);
+	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, CYAN);
+	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, ORANGE);
 }
 
 void drawForecastDetails(int x, int y, int dayIndex) 
 {
 	time_t observationTimestamp = forecasts[dayIndex].observationTime;
 	int day = weekday(observationTimestamp)-1;
-	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "C" : "F");
-	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, 2, YELLOW);
+	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "°C" : "°F");
+	displayControl.setFont(&Teko_Medium24pt7b);
+	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, YELLOW);
 	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(forecasts[dayIndex].icon));
-	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, 2, CYAN);
-	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, 2, ORANGE);	
+	displayControl.setFont(&Teko_Medium16pt7b);
+	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, CYAN);
+	displayControl.setFont(&Teko_Medium8pt7b);
+	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
 }
 
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
@@ -405,13 +402,14 @@ void drawHeaderOverlay(DisplayControlState* state)
 {
 	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "C" : "F");
+	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
 
 	displayControl.getDisplay()->drawRect(0, 280, 480, 320, BLACK);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
-	displayControl.drawString(time, 120, 300, TEXT_CENTER, 2, ORANGE);
-	displayControl.drawString(temp, 360, 300, TEXT_CENTER, 2, ORANGE);
+	displayControl.setFont(&Teko_Medium16pt7b);
+	displayControl.drawString(time, 120, 300, TEXT_CENTER, ORANGE);
+	displayControl.drawString(temp, 360, 300, TEXT_CENTER, ORANGE);
+	displayControl.setFont(&FreeSmallFont);
 	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
-	
 }
