@@ -212,10 +212,10 @@ void updateSystemTime()
 
 void updateData() 
 {
-	displayControl.drawProgress(10, "Updating time...");
+	displayControl.drawProgress(25, "Updating time...");
 	updateSystemTime();
 
-	displayControl.drawProgress(30, "Updating weather...");
+	displayControl.drawProgress(50, "Updating weather...");
 	OpenWeatherMapCurrent* currentWeatherClient = new OpenWeatherMapCurrent();
 	currentWeatherClient->setMetric(IS_METRIC);
 	currentWeatherClient->setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
@@ -223,7 +223,7 @@ void updateData()
 	delete currentWeatherClient;
 	currentWeatherClient = nullptr;
 
-	displayControl.drawProgress(50, "Updating forecasts...");
+	displayControl.drawProgress(75, "Updating forecasts...");
 	OpenWeatherMapForecast* forecastClient = new OpenWeatherMapForecast();
 	forecastClient->setMetric(IS_METRIC);
 	forecastClient->setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
@@ -354,6 +354,42 @@ void readTemperatureHumidity()
 	}
 }
 
+void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
+{
+	int16_t x1, y1 = 0;
+    uint16_t w, h = 0;
+    displayControl.getDisplay()->getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
+	String temp = String(currentWeather.temp, 1);
+	if (align > 0)
+	{
+		int sw = w * (temp.length() + 2);
+        if (align == TEXT_CENTER)
+        {
+            x -= sw * 0.5;
+            y -= h * 0.5;
+        }
+        else if (align == TEXT_RIGHT)
+        {
+            x -= sw + 1;
+            //y -= h;
+        }
+	}
+
+	displayControl.drawString(temp, x, y, TEXT_LEFT, foregroundColor);
+	int radius = w * 0.4;
+	x = displayControl.getDisplay()->getCursorX() + radius;
+	displayControl.getDisplay()->drawCircle(x, y + radius, radius, foregroundColor);
+	x += radius;
+	if (isMetric)
+	{
+		displayControl.drawString("C", x, y, TEXT_LEFT, foregroundColor);
+	}
+	else
+	{
+		displayControl.drawString("F", x, y, TEXT_LEFT, foregroundColor);
+	}
+}
+
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
 {
 	displayControl.setFont(&Teko_Medium24pt7b);
@@ -369,11 +405,11 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 {
 	x = 240;
 	y = 40;
-	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
 	displayControl.setFont(&Teko_Medium24pt7b);
 	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, YELLOW);
 	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(currentWeather.icon));
-	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, CYAN);
+	drawTemperature(currentWeather.temp, IS_METRIC, x, y + 160, TEXT_CENTER, CYAN);
+	displayControl.setFont(&Teko_Medium16pt7b);
 	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, ORANGE);
 }
 
@@ -381,35 +417,34 @@ void drawForecastDetails(int x, int y, int dayIndex)
 {
 	time_t observationTimestamp = forecasts[dayIndex].observationTime;
 	int day = weekday(observationTimestamp)-1;
-	String temp = String(forecasts[dayIndex].temp, 1) + (IS_METRIC ? "°C" : "°F");
-	displayControl.setFont(&Teko_Medium24pt7b);
-	displayControl.drawString(WDAY_NAMES[day], x, y, TEXT_CENTER, YELLOW);
-	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(forecasts[dayIndex].icon));
 	displayControl.setFont(&Teko_Medium16pt7b);
-	displayControl.drawString(temp, x, y + 160, TEXT_CENTER, CYAN);
+	displayControl.drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
+	displayControl.drawPaletteBitmap(x - 50, y + 50, palette, getOpenWeatherPaletteIconFromProgmem(forecasts[dayIndex].icon));
+	drawTemperature(forecasts[dayIndex].temp, IS_METRIC, x, y + 170, TEXT_CENTER, CYAN);
 	displayControl.setFont(&Teko_Medium8pt7b);
 	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
 }
 
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
 {
-	drawForecastDetails(80, 40, 0);
-	drawForecastDetails(240, 40, 1);
-	drawForecastDetails(400, 40, 2);
+	//displayControl.setFont(&Teko_Medium24pt7b);
+	//displayControl.drawString(forecasts[0].cityName, 240, 40, TEXT_CENTER, YELLOW);
+	drawForecastDetails(80, 60, 0);
+	drawForecastDetails(240, 60, 1);
+	drawForecastDetails(400, 60, 2);	
 }
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
 	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-	String temp = String(currentWeather.temp, 1) + (IS_METRIC ? "°C" : "°F");
 
 	displayControl.getDisplay()->drawRect(0, 280, 480, 320, BLACK);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 	displayControl.setFont(&Teko_Medium16pt7b);
 	displayControl.drawString(time, 120, 300, TEXT_CENTER, ORANGE);
-	displayControl.drawString(temp, 360, 300, TEXT_CENTER, ORANGE);
+	drawTemperature(currentWeather.temp, IS_METRIC, 360, 300, TEXT_CENTER, ORANGE);
 	displayControl.setFont(&FreeSmallFont);
 	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
 }

@@ -106,7 +106,7 @@ class DisplayControl
         // Values for the Frames
         AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
         int8_t              m_lastTransitionDirection   = 1;
-        uint16_t            m_ticksPerFrame             = 150; // ~ 5000ms at 30 FPS
+        uint16_t            m_ticksPerFrame             = 15 * 30; // ~ 5000ms at 30 FPS
         uint16_t            m_ticksPerTransition        = 1;  // ~  100ms at 30 FPS
         bool                m_autoTransition = true;
         FrameCallback*      m_frameFunctions;

@@ -2,15 +2,6 @@
 
 //MCUFRIEND_kbv m_lcd;
 UTFTGLUE m_lcd(0x7796,38,39,40,41,43);
-//LCDWIKI_KBV m_lcd(ILI9488, 40, 38, 39, 43, 41); //model,cs,cd,wr,rd,reset
-//LCDWIKI_TOUCH m_touch(53, 52, 50, 51, 44); //tcs,tclk,tdout,tdin,tirq
-//LCDWIKI_KBV m_lcd(ST7796S,A3,A2,A1,A0,A4);
-//LCDWIKI_KBV m_lcd(ST7796S,40,38,39,44,41);
-//LCDWIKI_KBV m_lcd(320,480,A3,A2,A1,A0,A4);
-//LCDWIKI_KBV m_lcd(320,480,40,38,39,44,41);
-
-#define COLORBOXSIZE m_lcd.Get_Display_Width()/6
-#define PENBOXSIZE m_lcd.Get_Display_Width()/4
 
 inline GFXglyph *pgm_read_glyph_ptr(const GFXfont *gfxFont, uint8_t c) {
 #ifdef __AVR__
@@ -145,14 +136,15 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
 
 void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor)
 {	
-    //char str[2];
-    //str[0] = c;
-    //str[1] = '\0';
+    char str[2];
+    str[0] = c;
+    str[1] = '\0';
     m_lcd.setColor(foregroundColor);
     m_lcd.setTextColor(foregroundColor);
-    m_lcd.setCursor(x, y);
-    //m_lcd.print(str);
-    m_lcd.write(c);
+    // For some reason write(char) doesn't draw from the top left
+    //m_lcd.setCursor(x, y);
+    //m_lcd.write(str);
+    m_lcd.print(str, x, y);
 }
 
 void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert, boolean mode)
