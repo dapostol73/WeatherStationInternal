@@ -1,0 +1,34 @@
+Cloud (58*36)
+Sphere 1 - X:10, Y:25, R:11
+Sphere 2 - X:24, Y:12, R:12
+Sphere 3 - X:41, Y:16, R:7
+Sphere 4 - X:50, Y:28, R:8
+Rectangle - X:10 , Y:16 , W:38, H:20
+
+Sun (50*50)
+Sphere - X:25, Y:25, R:25
+
+Thunder (12*22)
+SkewRect 1 - XY1: 4,0, XY2: 0,12, XY3: 4,12, XY4: 11,0
+SkewRect 1 - XY1: 5,8, XY2: 12,8, XY3: 0,22, XY4: 0,19
+
+Rain Light (24*18)
+Circle 1 - X:6, Y:2
+Circle 1 - X:2, Y:10
+Circle 2 - X:14, Y:1
+Circle 2 - X:8, Y:15
+Circle 3 - X:20, Y:6
+Circle 3 - X:16, Y:15
+
+Rain Heavy (24*18)
+Circle 1 - X:6, Y:2
+Circle 1 - X:4, Y:6
+Circle 1 - X:2, Y:10
+Circle 2 - X:14, Y:1
+Circle 2 - X:12, Y:7
+Circle 2 - X:10, Y:9
+Circle 2 - X:8, Y:15
+Circle 3 - X:22, Y:2
+Circle 3 - X:20, Y:6
+Circle 3 - X:18, Y:10
+Circle 3 - X:16, Y:14

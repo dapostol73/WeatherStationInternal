@@ -152,7 +152,7 @@ class DisplayControl
 
         void printLine(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
         
-        void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale = 1);
+        void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center = true, int16_t scale = 1);
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 

@@ -53,36 +53,15 @@ void DisplayControl::fillScreen(uint16_t color)
     m_lcd.fillScreen(color);
 }
 
-void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, uint16_t *data, int16_t scale)
+void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center, int16_t scale)
 {
-	int16_t color;
-    //int16_t byteWidth = (sx + 3) / 4; // Bitmap scanline pad = whole byte
-	m_lcd.setAddrWindow(x, y, x + sx*scale - 1, y + sy*scale - 1); 
-	if(scale > 1)
-	{
-		for (int16_t row = 0; row < sy; row++) 
-		{
-			for (int16_t col = 0; col < sx; col++) 
-			{
-				color = pgm_read_word(&data[row * sx + col]);
-                m_lcd.setColor(color);
-				m_lcd.fillRect(x+col*scale, y+row*scale, scale, scale);
-			}
-		}
-	}
-	else 
-	{
-		for (int16_t row = 0; row < sy; row++) 
-		{
-			for (int16_t col = 0; col < sx; col++) 
-			{
-                color = pgm_read_word(&data[row * sx + col]);
-                Serial.println(color);
-                m_lcd.setColor(color);
-				m_lcd.drawPixel(x+col, y+row);
-			}
-		}
-	}
+    if(center)
+    {
+        x -= sx * scale * 0.5;
+        y -= sy * scale * 0.5;
+    }
+
+    m_lcd.drawBitmap(x, y, sx, sy, data, scale);return;
 }
 
 void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *palBmp)

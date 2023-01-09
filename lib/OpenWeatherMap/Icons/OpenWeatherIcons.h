@@ -24,6 +24,7 @@ const OpenWeatherIcon getOpenWeatherIconFromProgmem(String iconText) {
   if (iconText == "50d" || iconText == "50n") return icon_50d_2x;
   return icon_01d_2x;
 }
+
 const OpenWeatherIcon getOpenWeatherMiniIconFromProgmem(String iconText) {
   if (iconText == "01d" || iconText == "01n") return icon_01d_1x;
   if (iconText == "02d" || iconText == "02n") return icon_02d_1x;
@@ -35,6 +36,19 @@ const OpenWeatherIcon getOpenWeatherMiniIconFromProgmem(String iconText) {
   if (iconText == "13d" || iconText == "13n") return icon_13d_1x;
   if (iconText == "50d" || iconText == "50n") return icon_50d_1x;
   return icon_01d_1x;
+}
+
+const OpenWeatherIcon getOpenWeatherCropIconFromProgmem(String iconText) {
+  if (iconText == "01d" || iconText == "01n") return icon_01d_crop;
+  if (iconText == "02d" || iconText == "02n") return icon_02d_crop;
+  if (iconText == "03d" || iconText == "03n") return icon_03d_crop;
+  if (iconText == "04d" || iconText == "04n") return icon_04d_crop;
+  if (iconText == "09d" || iconText == "09n") return icon_09d_crop;
+  if (iconText == "10d" || iconText == "10n") return icon_10d_crop;
+  if (iconText == "11d" || iconText == "11n") return icon_11d_crop;
+  if (iconText == "13d" || iconText == "13n") return icon_13d_crop;
+  if (iconText == "50d" || iconText == "50n") return icon_50d_crop;
+  return icon_01d_crop;
 }
 
 // Helper function, should be part of the weather station library and should disappear soon

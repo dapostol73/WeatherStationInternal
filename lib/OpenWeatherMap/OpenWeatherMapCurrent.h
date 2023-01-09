@@ -69,7 +69,7 @@ typedef struct OpenWeatherMapCurrentData {
   String cityName;
 } OpenWeatherMapCurrentData;
 
-class OpenWeatherMapCurrent: public JsonListener {
+class OpenWeatherMapCurrent : public JsonListener {
   private:
     const String host = "api.openweathermap.org";
     const uint16_t port = 80;

@@ -66,13 +66,17 @@ typedef struct OpenWeatherMapForecastData {
   float windDeg;
   // rain: {3h: 0.055},
   float rain;
+  // "country": "CH",
+  //String country;
+  // "name": "Zurich",
+  //String cityName;
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"
   String observationTimeText;
 
 } OpenWeatherMapForecastData;
 
-class OpenWeatherMapForecast: public JsonListener {
+class OpenWeatherMapForecast : public JsonListener {
   private:
     const String host = "api.openweathermap.org";
     const uint16_t port = 80;

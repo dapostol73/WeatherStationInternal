@@ -78,12 +78,16 @@ const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 const String MONTH_NAMES[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 
 OpenWeatherMapCurrentData currentWeather;
+OpenWeatherMapCurrent currentWeatherClient;
+
 OpenWeatherMapForecastData forecasts[MAX_FORECASTS];
+OpenWeatherMapForecast forecastClient;
 
 uint16_t palette[] = {BLACK, WHITE, GOLD, DEEPSKYBLUE};
 DisplayControl displayControl;
 DisplayContolProgress progress;
 
+void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center = false, int16_t scale = 1);
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y);
@@ -101,7 +105,7 @@ int numberOfOverlays = 1;
 // Setup
 const int SENSOR_INTERVAL_SECS = 15; // Sensor query every 15 seconds
 const int TIME_INTERVAL_SECS = 10 * 60; // Check time every 10 minutes
-const int UPDATE_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
+const int UPDATE_INTERVAL_SECS = 5 * 60; // Update every 60 minutes
 
 #define TZ              -8     // (utc+) TZ in hours
 #define DST_MN          0      // use 60mn for summer time in some countries
@@ -144,15 +148,15 @@ void setup()
 	displayControl.setOverlays(overlays, numberOfOverlays);
 
 	displayControl.fillScreen(BLACK);
-	displayControl.drawPaletteBitmap(-10, 20, palette, getOpenWeatherPaletteIconFromProgmem("01d"));
-	displayControl.drawPaletteBitmap(90, 20, palette, getOpenWeatherPaletteIconFromProgmem("02d"));
-	displayControl.drawPaletteBitmap(190, 20, palette, getOpenWeatherPaletteIconFromProgmem("03d"));
-	displayControl.drawPaletteBitmap(290, 20, palette, getOpenWeatherPaletteIconFromProgmem("04d"));
-	displayControl.drawPaletteBitmap(390, 20, palette, getOpenWeatherPaletteIconFromProgmem("09d"));
-	displayControl.drawPaletteBitmap(40, 140, palette, getOpenWeatherPaletteIconFromProgmem("10d"));
-	displayControl.drawPaletteBitmap(140, 140, palette, getOpenWeatherPaletteIconFromProgmem("11d"));
-	displayControl.drawPaletteBitmap(240, 140, palette, getOpenWeatherPaletteIconFromProgmem("13d"));
-	displayControl.drawPaletteBitmap(340, 140, palette, getOpenWeatherPaletteIconFromProgmem("50d"));
+	drawWeatherIcon(40 ,  70, "01d", true);
+	drawWeatherIcon(140,  70, "02d", true);
+	drawWeatherIcon(240,  70, "03d", true);
+	drawWeatherIcon(340,  70, "04d", true);
+	drawWeatherIcon(440,  70, "09d", true);
+	drawWeatherIcon(90 , 190, "10d", true);
+	drawWeatherIcon(190, 190, "11d", true);
+	drawWeatherIcon(290, 190, "13d", true);
+	drawWeatherIcon(390, 190, "50d", true);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
@@ -216,22 +220,16 @@ void updateData()
 	updateSystemTime();
 
 	displayControl.drawProgress(50, "Updating weather...");
-	OpenWeatherMapCurrent* currentWeatherClient = new OpenWeatherMapCurrent();
-	currentWeatherClient->setMetric(IS_METRIC);
-	currentWeatherClient->setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-	currentWeatherClient->updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
-	delete currentWeatherClient;
-	currentWeatherClient = nullptr;
+	currentWeatherClient.setMetric(IS_METRIC);
+	currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+	currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
 
 	displayControl.drawProgress(75, "Updating forecasts...");
-	OpenWeatherMapForecast* forecastClient = new OpenWeatherMapForecast();
-	forecastClient->setMetric(IS_METRIC);
-	forecastClient->setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+	forecastClient.setMetric(IS_METRIC);
+	forecastClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
 	uint8_t allowedHours[] = {12};
-	forecastClient->setAllowedHours(allowedHours, sizeof(allowedHours));
-	forecastClient->updateForecastsById(forecasts, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
-	delete forecastClient;
-  	forecastClient = nullptr;
+	forecastClient.setAllowedHours(allowedHours, sizeof(allowedHours));
+	forecastClient.updateForecastsById(forecasts, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
 	
 	sprintf(lastUpdate, "%02d/%02d/%04d -- %02d:%02d:%02d", month(), day(), year(), hour(), minute(), second());
 	readyForUpdate = false;
@@ -354,6 +352,12 @@ void readTemperatureHumidity()
 	}
 }
 
+void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale)
+{
+	const OpenWeatherIcon icon = getOpenWeatherCropIconFromProgmem(iconName);
+	displayControl.drawBitmap(x, y, icon.width, icon.height, icon.data, center, scale);
+}
+
 void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
 {
 	int16_t x1, y1 = 0;
@@ -405,11 +409,11 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 {
 	x = 240;
 	y = 40;
+	drawWeatherIcon(x, y + 90, currentWeather.icon, true, 2);
 	displayControl.setFont(&Teko_Medium24pt7b);
 	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, YELLOW);
-	displayControl.drawPaletteBitmap(x - 50, y + 40, palette, getOpenWeatherPaletteIconFromProgmem(currentWeather.icon));
-	drawTemperature(currentWeather.temp, IS_METRIC, x, y + 160, TEXT_CENTER, CYAN);
 	displayControl.setFont(&Teko_Medium16pt7b);
+	drawTemperature(currentWeather.temp, IS_METRIC, x, y + 160, TEXT_CENTER, CYAN);
 	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, ORANGE);
 }
 
@@ -417,9 +421,9 @@ void drawForecastDetails(int x, int y, int dayIndex)
 {
 	time_t observationTimestamp = forecasts[dayIndex].observationTime;
 	int day = weekday(observationTimestamp)-1;
+	drawWeatherIcon(x, y + 100, forecasts[dayIndex].icon, true, 2);
 	displayControl.setFont(&Teko_Medium16pt7b);
 	displayControl.drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
-	displayControl.drawPaletteBitmap(x - 50, y + 50, palette, getOpenWeatherPaletteIconFromProgmem(forecasts[dayIndex].icon));
 	drawTemperature(forecasts[dayIndex].temp, IS_METRIC, x, y + 170, TEXT_CENTER, CYAN);
 	displayControl.setFont(&Teko_Medium8pt7b);
 	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
