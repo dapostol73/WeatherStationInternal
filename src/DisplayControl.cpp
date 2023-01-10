@@ -61,7 +61,7 @@ void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, co
         y -= sy * scale * 0.5;
     }
 
-    m_lcd.drawBitmap(x, y, sx, sy, data, scale);return;
+    m_lcd.drawBitmap(x, y, sx, sy, data, scale);
 }
 
 void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *palBmp)
@@ -272,6 +272,8 @@ void DisplayControl::drawFrame()
                 enableIndicator();
                 (m_frameFunctions[m_state.currentFrame])(&m_state, 0, 0);
                 m_currentFrameNumber = m_state.currentFrame;
+                // If we draw a frame, make sure we redraw the overlay
+                m_state.ticksSinceLastOverlaySwitch = 0;
             }
         break;
     }
@@ -279,24 +281,33 @@ void DisplayControl::drawFrame()
 
 void DisplayControl::drawOverlays()
 {
-    for (uint8_t i=0; i<m_overlayCount; i++)
+    if (m_state.ticksSinceLastOverlaySwitch == 0)
     {
-        (m_overlayFunctions[i])(&m_state);
+        for (uint8_t i=0; i < m_overlayCount; i++)
+        {
+            (m_overlayFunctions[i])(&m_state);
+        }
     }
 }
 
 void DisplayControl::tick()
 {
-    m_state.ticksSinceLastStateSwitch++;
+    m_state.ticksSinceLastFrameSwitch++;
+    m_state.ticksSinceLastOverlaySwitch++;
+
+    if (m_state.ticksSinceLastOverlaySwitch >= m_ticksPerOverlay)
+    {
+        m_state.ticksSinceLastOverlaySwitch = 0;
+    }
 
     switch (m_state.frameState)
     {
         case IN_TRANSITION:
-            if (m_state.ticksSinceLastStateSwitch >= m_ticksPerTransition)
+            if (m_state.ticksSinceLastFrameSwitch >= m_ticksPerTransition)
             {
                 m_state.frameState = FIXED;
                 m_state.currentFrame = getNextFrameNumber();
-                m_state.ticksSinceLastStateSwitch = 0;
+                m_state.ticksSinceLastFrameSwitch = 0;
                 m_nextFrameNumber = -1;
             }
             break;
@@ -307,15 +318,15 @@ void DisplayControl::tick()
                 m_state.frameTransitionDirection = m_lastTransitionDirection;
                 m_state.manuelControll = false;
             }
-            if (m_state.ticksSinceLastStateSwitch >= m_ticksPerFrame)
+            if (m_state.ticksSinceLastFrameSwitch >= m_ticksPerFrame)
             {
                 if (m_autoTransition)
                 {
                     m_state.frameState = IN_TRANSITION;
                 }
-                m_state.ticksSinceLastStateSwitch = 0;
+                m_state.ticksSinceLastFrameSwitch = 0;
             }
-        break;
+            break;
     }
 
     drawFrame();
@@ -325,7 +336,8 @@ void DisplayControl::tick()
 void DisplayControl::resetState()
 {
     m_state.lastUpdate = 0;
-    m_state.ticksSinceLastStateSwitch = 0;
+    m_state.ticksSinceLastFrameSwitch = 0;
+    m_state.ticksSinceLastOverlaySwitch = 0;
     m_state.frameState = FIXED;
     m_state.currentFrame = 0;
     m_state.isIndicatorDrawen = true;
@@ -375,7 +387,7 @@ int8_t DisplayControl::update()
     // Implement frame skipping to ensure time budget is keept
     if (m_autoTransition && m_state.lastUpdate != 0) 
     {
-        m_state.ticksSinceLastStateSwitch += ceil(-timeBudget / m_updateInterval);
+        m_state.ticksSinceLastFrameSwitch += ceil(-timeBudget / m_updateInterval);
     }
 
     m_state.lastUpdate = frameStart;

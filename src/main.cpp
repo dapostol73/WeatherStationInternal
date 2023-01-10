@@ -443,7 +443,7 @@ void drawHeaderOverlay(DisplayControlState* state)
 	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
 
-	displayControl.getDisplay()->drawRect(0, 280, 480, 320, BLACK);
+	displayControl.getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 	displayControl.setFont(&Teko_Medium16pt7b);

@@ -19,12 +19,14 @@
 #define DEEPSKYBLUE 0x05FF
 #define BLACK 0x0000
 #define BLUE 0x001F
+#define CHARCOAL 0x2945
 #define GOLD 0xFEA0
 #define GREEN 0x07E0
 #define GREENYELLOW 0xAFE5
 #define DARKCYAN 0x03EF
 #define DARKGREEN 0x03E0
-#define DARKGREY 0x7BEF
+#define DARKGREY 0xAD55
+#define DIMGREY 0xAD55
 #define LIGHTGREY 0xC618
 #define MAGENTA 0xF81F
 #define MAROON 0x7800
@@ -75,7 +77,8 @@ struct DisplayContolProgress
 struct DisplayControlState
 {
   uint64_t   lastUpdate                = 0;
-  uint16_t   ticksSinceLastStateSwitch = 0;
+  uint16_t   ticksSinceLastFrameSwitch = 0;
+  uint16_t   ticksSinceLastOverlaySwitch = 0;
 
   FrameState frameState                = FIXED;
   uint8_t    currentFrame              = 0;
@@ -106,7 +109,8 @@ class DisplayControl
         // Values for the Frames
         AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
         int8_t              m_lastTransitionDirection   = 1;
-        uint16_t            m_ticksPerFrame             = 15 * 30; // ~ 5000ms at 30 FPS
+        uint16_t            m_ticksPerOverlay           = 5 * 30; // ~ 5000ms at 30 FPS
+        uint16_t            m_ticksPerFrame             = 30 * 30; // ~ 5000ms at 30 FPS
         uint16_t            m_ticksPerTransition        = 1;  // ~  100ms at 30 FPS
         bool                m_autoTransition = true;
         FrameCallback*      m_frameFunctions;
