@@ -80,13 +80,13 @@ class OpenWeatherMapCurrent : public JsonListener {
     boolean metric = true;
     String language;
 
-    void doUpdate(OpenWeatherMapCurrentData *data, String path);
+    bool doUpdate(OpenWeatherMapCurrentData *data, String path);
     String buildPath(String appId, String locationParameter);
 
   public:
     OpenWeatherMapCurrent();
-    void updateCurrent(OpenWeatherMapCurrentData *data, String appId, String location);
-    void updateCurrentById(OpenWeatherMapCurrentData *data, String appId, String locationId);
+    bool updateCurrent(OpenWeatherMapCurrentData *data, String appId, String location);
+    bool updateCurrentById(OpenWeatherMapCurrentData *data, String appId, String locationId);
 
     void setMetric(boolean metric) {this->metric = metric;}
     boolean isMetric() { return metric; }

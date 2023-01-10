@@ -31,9 +31,9 @@ OpenWeatherMapOneCall::OpenWeatherMapOneCall()
 {
 }
 
-void OpenWeatherMapOneCall::update(OpenWeatherMapOneCallData *data, String appId, float lat, float lon)
+bool OpenWeatherMapOneCall::update(OpenWeatherMapOneCallData *data, String appId, float lat, float lon)
 {
-  doUpdate(data, buildPath(appId, lat, lon));
+  return doUpdate(data, buildPath(appId, lat, lon));
 }
 
 String OpenWeatherMapOneCall::buildPath(String appId, float lat, float lon)
@@ -42,7 +42,7 @@ String OpenWeatherMapOneCall::buildPath(String appId, float lat, float lon)
   return "/data/2.5/onecall?appid=" + appId + "&lat=" + lat + "&lon=" + lon + "&units=" + units + "&lang=" + language;
 }
 
-void OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String path)
+bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String path)
 {
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
@@ -84,10 +84,14 @@ void OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
       yield();
     }
     client.stop();
+    client.flush();
+    parser.reset();
   } else {
     Serial.println("[HTTP] failed to connect to host");
+    return false;
   }
   this->data = nullptr;
+  return true;
 }
 
 void OpenWeatherMapOneCall::whitespace(char c)

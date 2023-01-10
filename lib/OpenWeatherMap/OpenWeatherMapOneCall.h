@@ -186,12 +186,12 @@ class OpenWeatherMapOneCall: public JsonListener {
     uint8_t allowedHoursCount = 0;
     uint8_t currentForecast;
 
-    void doUpdate(OpenWeatherMapOneCallData *data, String path);
+    bool doUpdate(OpenWeatherMapOneCallData *data, String path);
     String buildPath(String appId, float lat, float lon);
 
   public:
     OpenWeatherMapOneCall();
-    void update(OpenWeatherMapOneCallData *data, String appId, float lat, float lon);
+    bool update(OpenWeatherMapOneCallData *data, String appId, float lat, float lon);
 
     void setMetric(boolean metric) {this->metric = metric;}
     boolean isMetric() { return metric; }

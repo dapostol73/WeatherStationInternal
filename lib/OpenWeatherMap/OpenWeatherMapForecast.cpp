@@ -29,12 +29,12 @@ OpenWeatherMapForecast::OpenWeatherMapForecast() {
 
 }
 
-uint8_t OpenWeatherMapForecast::updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts) {
+bool OpenWeatherMapForecast::updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts) {
   this->maxForecasts = maxForecasts;
   return doUpdate(data, buildPath(appId, "q=" + location));
 }
 
-uint8_t OpenWeatherMapForecast::updateForecastsById(OpenWeatherMapForecastData *data, String appId, String locationId, uint8_t maxForecasts) {
+bool OpenWeatherMapForecast::updateForecastsById(OpenWeatherMapForecastData *data, String appId, String locationId, uint8_t maxForecasts) {
   this->maxForecasts = maxForecasts;
   return doUpdate(data, buildPath(appId, "id=" + locationId));
 }
@@ -44,7 +44,7 @@ String OpenWeatherMapForecast::buildPath(String appId, String locationParameter)
   return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
 }
 
-uint8_t OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path) {
+bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path) {
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
@@ -61,11 +61,11 @@ uint8_t OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, Strin
     bool isBody = false;
     char c;
     Serial.println("[HTTP] connected, now GETting data");
-    client.print("GET " + path + " HTTP/1.1\r\n"
-                 "Host: " + host + "\r\n"
-                 "Connection: close\r\n\r\n");
+    client.println("GET " + path);//+ " HTTP/1.1\r\n"
+    client.println("Host: " + host);
+    client.println("Connection: close");
 
-    while (client.connected() || client.available()) {
+    while (client.connected()) {
       if (client.available()) {
         if ((millis() - lost_do) > lostTest) {
           Serial.println("[HTTP] lost in client with a timeout");
@@ -84,11 +84,14 @@ uint8_t OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, Strin
       yield();
     }
     client.stop();
+    client.flush();
+    parser.reset();
   } else {
     Serial.println("[HTTP] failed to connect to host");
+    return false;
   }
   this->data = nullptr;
-  return currentForecast;
+  return true;
 }
 
 void OpenWeatherMapForecast::whitespace(char c) {

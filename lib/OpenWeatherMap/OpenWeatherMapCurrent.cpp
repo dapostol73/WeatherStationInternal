@@ -29,12 +29,12 @@ OpenWeatherMapCurrent::OpenWeatherMapCurrent() {
 
 }
 
-void OpenWeatherMapCurrent::updateCurrent(OpenWeatherMapCurrentData *data, String appId, String location) {
-  doUpdate(data, buildPath(appId, "q=" + location));
+bool OpenWeatherMapCurrent::updateCurrent(OpenWeatherMapCurrentData *data, String appId, String location) {
+  return doUpdate(data, buildPath(appId, "q=" + location));
 }
 
-void OpenWeatherMapCurrent::updateCurrentById(OpenWeatherMapCurrentData *data, String appId, String locationId) {
-  doUpdate(data, buildPath(appId, "id=" + locationId));
+bool OpenWeatherMapCurrent::updateCurrentById(OpenWeatherMapCurrentData *data, String appId, String locationId) {
+  return doUpdate(data, buildPath(appId, "id=" + locationId));
 }
 
 String OpenWeatherMapCurrent::buildPath(String appId, String locationParameter) {
@@ -42,7 +42,7 @@ String OpenWeatherMapCurrent::buildPath(String appId, String locationParameter) 
   return "/data/2.5/weather?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
 }
 
-void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String path) {
+bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String path) {
   //unsigned long lostTest = 10000UL;
   //unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
@@ -59,9 +59,9 @@ void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
     char c;
     Serial.println("[HTTP] connected, now GETting data");
     // TODO: Figure out why Connection: close truncates client.read()
-    client.print("GET " + path + " HTTP/1.1\r\n"
-                 "Host: " + host + "\r\n"
-                 "Connection: close\r\n\r\n");
+    client.println("GET " + path);//+ " HTTP/1.1\r\n"
+    client.println("Host: " + host);
+    client.println("Connection: close");
     
     String response = client.readString();
     for (unsigned int i=0; i < response.length(); i++)
@@ -75,10 +75,14 @@ void OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
       }
     }
     client.stop();
+    client.flush();
+    parser.reset();
   } else {
     Serial.println("[HTTP] failed to connect to host");
+    return false;
   }
   this->data = nullptr;
+  return true;
 }
 
 void OpenWeatherMapCurrent::whitespace(char c) {

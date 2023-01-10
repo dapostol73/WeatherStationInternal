@@ -92,13 +92,13 @@ class OpenWeatherMapForecast : public JsonListener {
     uint8_t allowedHoursCount = 0;
     boolean isCurrentForecastAllowed = true;
 
-    uint8_t doUpdate(OpenWeatherMapForecastData *data, String path);
+    bool doUpdate(OpenWeatherMapForecastData *data, String path);
     String buildPath(String appId, String locationParameter);
 
   public:
     OpenWeatherMapForecast();
-    uint8_t updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts);
-    uint8_t updateForecastsById(OpenWeatherMapForecastData *data, String appId, String locationId, uint8_t maxForecasts);
+    bool updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts);
+    bool updateForecastsById(OpenWeatherMapForecastData *data, String appId, String locationId, uint8_t maxForecasts);
 
     void setMetric(boolean metric) { this->metric = metric; }
     boolean isMetric() { return this->metric; }
