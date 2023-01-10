@@ -23,6 +23,7 @@
 
 #include "DisplayControl.h"
 #include "DisplayFonts.h"
+#include "DisplayImages.h"
 #include "WifiInfo.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
@@ -92,12 +93,13 @@ void drawDateTime(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
+void drawFooterOverlay(DisplayControlState* state);
 
 FrameCallback frames[] = { drawForecast, drawCurrentWeather, drawDateTime };
 int numberOfFrames = 3;
 
-OverlayCallback overlays[] = { drawHeaderOverlay };
-int numberOfOverlays = 1;
+OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
+int numberOfOverlays = 2;
 
 /***************************
  * Begin Settings
@@ -140,7 +142,8 @@ void setup()
 	progress.padding = 5;
 	progress.corner = 10;
 	progress.foregroundColor = CYAN;
-	displayControl.init(1, &Teko_Medium8pt7b);
+	progress.gfxFont = &CalibriBold8pt7b;
+	displayControl.init(1, &CalibriRegular8pt7b);
 
 	displayControl.setProgress(progress);
 	displayControl.setFrameAnimation(SLIDE_LEFT);
@@ -270,15 +273,10 @@ void configureWifi()
 		delay(1000);
 		Serial.print('.');
 		displayControl.drawProgress(60, "Connecting to WiFi");
-		//displayControl.drawBitMap(46, 30, 8, 8, counter % 3 == 0 ? activeSymbole : inactiveSymbole, 1);
-		//displayControl.drawBitMap(60, 30, 8, 8, counter % 3 == 1 ? activeSymbole : inactiveSymbole, 1);
-		//displayControl.drawBitMap(74, 30, 8, 8, counter % 3 == 2 ? activeSymbole : inactiveSymbole, 1);
 		counter++;
 		++timeout;
 	}
-
 	Serial.println();
-	displayControl.printLine();
 
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
@@ -396,7 +394,7 @@ void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, Tex
 
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayControl.setFont(&Teko_Medium24pt7b);
+	displayControl.setFont(&CalibriBold24pt7b);
 	char buff[16];
 	sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[weekday()-1].c_str(), day(), month(), year());
 	displayControl.drawString(buff, 240, 140, TEXT_CENTER, CYAN);
@@ -410,9 +408,9 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 	x = 240;
 	y = 40;
 	drawWeatherIcon(x, y + 90, currentWeather.icon, true, 2);
-	displayControl.setFont(&Teko_Medium24pt7b);
-	displayControl.drawString(currentWeather.cityName, x, y, TEXT_CENTER, YELLOW);
-	displayControl.setFont(&Teko_Medium16pt7b);
+	displayControl.setFont(&CalibriBold24pt7b);
+	displayControl.drawString(currentWeather.cityName, x, y + 5, TEXT_CENTER, YELLOW);
+	displayControl.setFont(&CalibriBold16pt7b);
 	drawTemperature(currentWeather.temp, IS_METRIC, x, y + 160, TEXT_CENTER, CYAN);
 	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, ORANGE);
 }
@@ -422,16 +420,16 @@ void drawForecastDetails(int x, int y, int dayIndex)
 	time_t observationTimestamp = forecasts[dayIndex].observationTime;
 	int day = weekday(observationTimestamp)-1;
 	drawWeatherIcon(x, y + 100, forecasts[dayIndex].icon, true, 2);
-	displayControl.setFont(&Teko_Medium16pt7b);
+	displayControl.setFont(&CalibriBold16pt7b);
 	displayControl.drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
 	drawTemperature(forecasts[dayIndex].temp, IS_METRIC, x, y + 170, TEXT_CENTER, CYAN);
-	displayControl.setFont(&Teko_Medium8pt7b);
+	displayControl.setFont(&CalibriBold8pt7b);
 	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
 }
 
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
 {
-	//displayControl.setFont(&Teko_Medium24pt7b);
+	//displayControl.setFont(&CalibriBold24pt7b);
 	//displayControl.drawString(forecasts[0].cityName, 240, 40, TEXT_CENTER, YELLOW);
 	drawForecastDetails(80, 60, 0);
 	drawForecastDetails(240, 60, 1);
@@ -440,15 +438,22 @@ void drawForecast(DisplayControlState* state, int16_t x, int16_t y)
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
+	displayControl.getDisplay()->fillRect(0, 0, 480, 12, CHARCOAL);
+	displayControl.getDisplay()->drawFastHLine(0, 13, 480, CYAN);
+	displayControl.getDisplay()->drawFastHLine(0, 14, 480, CYAN);
+	displayControl.setFont(&CalibriRegular8pt7b);
+	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
+}
+
+void drawFooterOverlay(DisplayControlState* state)
+{
 	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
 
 	displayControl.getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
-	displayControl.setFont(&Teko_Medium16pt7b);
+	displayControl.setFont(&CalibriBold16pt7b);
 	displayControl.drawString(time, 120, 300, TEXT_CENTER, ORANGE);
 	drawTemperature(currentWeather.temp, IS_METRIC, 360, 300, TEXT_CENTER, ORANGE);
-	displayControl.setFont(&FreeSmallFont);
-	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
 }

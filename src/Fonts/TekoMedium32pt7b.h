@@ -1,4 +1,4 @@
-const uint8_t Teko_Medium32pt7bBitmaps[] PROGMEM = {
+const uint8_t TekoMedium32pt7bBitmaps[] PROGMEM = {
   0x00, 0xFF, 0xFF, 0xFF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFC, 0xFE, 0x7F, 0x3F,
   0x9F, 0xCF, 0xE7, 0xF3, 0xF9, 0xFC, 0xFE, 0x7F, 0x3F, 0x9F, 0xCF, 0xE7,
   0xF3, 0xF9, 0xFC, 0xFC, 0x7E, 0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -742,7 +742,7 @@ const uint8_t Teko_Medium32pt7bBitmaps[] PROGMEM = {
   0x07, 0xFF, 0xFF, 0xE0, 0x3F, 0xFE, 0xFE, 0x01, 0xFF, 0xEF, 0xE0, 0x07,
   0xF8 };
 
-const GFXglyph Teko_Medium32pt7bGlyphs[] PROGMEM = {
+const GFXglyph TekoMedium32pt7bGlyphs[] PROGMEM = {
   {     0,   1,   1,  10,    0,    0 },   // 0x20 ' '
   {     1,   9,  40,  15,    3,  -39 },   // 0x21 '!'
   {    46,  17,  15,  21,    2,  -39 },   // 0x22 '"'
@@ -839,9 +839,9 @@ const GFXglyph Teko_Medium32pt7bGlyphs[] PROGMEM = {
   {  8723,  18,  60,  19,    0,  -49 },   // 0x7D '}'
   {  8858,  28,  10,  37,    4,  -22 } }; // 0x7E '~'
 
-const GFXfont Teko_Medium32pt7b PROGMEM = {
-  (uint8_t  *)Teko_Medium32pt7bBitmaps,
-  (GFXglyph *)Teko_Medium32pt7bGlyphs,
+const GFXfont TekoMedium32pt7b PROGMEM = {
+  (uint8_t  *)TekoMedium32pt7bBitmaps,
+  (GFXglyph *)TekoMedium32pt7bGlyphs,
   0x20, 0x7E, 63 };
 
 // Approx. 9565 bytes

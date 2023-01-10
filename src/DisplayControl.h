@@ -69,6 +69,7 @@ struct DisplayContolProgress
   int16_t corner = 2;
   int16_t progress = 0; 
   String message = "";
+  const GFXfont *gfxFont;
   uint16_t foregroundColor = WHITE;
   uint16_t backgroundColor = BLACK;
 };
@@ -104,6 +105,7 @@ class DisplayControl
         uint8_t m_lineHeight = 10;
         uint8_t m_maxLines = 0;
         const GFXfont *m_gfxFont;
+        const GFXfont *m_gfxFontDefault;
         const GFXfont *m_gfxFontTemp;
         uint8_t m_updateInterval = 33;
         // Values for the Frames
@@ -157,6 +159,8 @@ class DisplayControl
         void printLine(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
         
         void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center = true, int16_t scale = 1);
+
+        void drawMaskBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint8_t *data, uint16_t color = WHITE, bool center = true);
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 

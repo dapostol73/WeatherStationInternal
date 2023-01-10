@@ -23,6 +23,7 @@ void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
 {
     m_lcd.begin(0x7796); //initialize lcd
     m_lcd.fillScreen(BLACK);
+    m_gfxFontDefault = gfxFont;
     setFont(gfxFont);
     setRotation(rotation);
 }
@@ -33,7 +34,7 @@ MCUFRIEND_kbv* DisplayControl::getDisplay()
 }
 
 void DisplayControl::setFont(const GFXfont *gfxFont) {
-  m_gfxFont = (GFXfont *)gfxFont;
+  m_gfxFont = gfxFont;
   m_lcd.setFont(m_gfxFont);
   m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
 }
@@ -51,6 +52,17 @@ void DisplayControl::setRotation(uint16_t rotation)
 void DisplayControl::fillScreen(uint16_t color)
 {
     m_lcd.fillScreen(color);
+}
+
+void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint8_t *bitmap, uint16_t color, bool center)
+{
+    if(center)
+    {
+        x -= w * 0.5;
+        y -= h * 0.5;
+    }
+
+    m_lcd.drawXBitmap(x, y, bitmap, w, h, color);
 }
 
 void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center, int16_t scale)
@@ -170,7 +182,7 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
 void DisplayControl::print(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
     m_gfxFontTemp = m_gfxFont;
-    m_lcd.setFont(&FreeSmallFont);
+    m_lcd.setFont(m_gfxFontDefault);
     int x = m_lcd.getCursorX();
     int y = m_currentLine*m_lineHeight;
     drawString(str, x, y, TEXT_LEFT, foregroudColor, backgroundColor, invert);
@@ -212,6 +224,7 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     int16_t x1, y1 = 0;
     uint16_t w1, h1 = 0;
     m_lcd.getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
+    setFont(m_progress.gfxFont);
     m_progress.progress = percent;
     m_progress.message = message;
     int16_t strl = m_progress.message.length();
