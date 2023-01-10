@@ -23,7 +23,6 @@
 
 #include "DisplayControl.h"
 #include "DisplayFonts.h"
-#include "DisplayImages.h"
 #include "WifiInfo.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
@@ -47,7 +46,6 @@ float tempTemp = 0.0; //temperature
 float tempHumi = 0.0; //humidity
 long readTime = 0;
 void readTemperatureHumidity();
-
 // ThingSpeak Settings
 WiFiClient client;
 const char *host = "api.thingspeak.com";                  //IP address of the thingspeak server
