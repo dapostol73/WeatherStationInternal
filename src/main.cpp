@@ -46,6 +46,7 @@ float tempTemp = 0.0; //temperature
 float tempHumi = 0.0; //humidity
 long readTime = 0;
 void readTemperatureHumidity();
+
 // ThingSpeak Settings
 WiFiClient client;
 const char *host = "api.thingspeak.com";                  //IP address of the thingspeak server
@@ -78,13 +79,15 @@ const String MONTH_NAMES[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "
 
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
+bool currentWeatherUpdated = false;
 
-OpenWeatherMapForecastData forecasts[MAX_FORECASTS];
-OpenWeatherMapForecast forecastClient;
+OpenWeatherMapForecastData forecastWeather[MAX_FORECASTS];
+OpenWeatherMapForecast forecastWeatherClient;
+bool forecastWeatherUpdated = false;
 
 uint16_t palette[] = {BLACK, WHITE, GOLD, DEEPSKYBLUE};
 DisplayControl displayControl;
-DisplayContolProgress progress;
+DisplayContolProgress displayProgress;
 
 void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center = false, int16_t scale = 1);
 void drawDateTime(DisplayControlState* state, int16_t x, int16_t y);
@@ -105,7 +108,7 @@ int numberOfOverlays = 2;
 // Setup
 const int SENSOR_INTERVAL_SECS = 15; // Sensor query every 15 seconds
 const int TIME_INTERVAL_SECS = 10 * 60; // Check time every 10 minutes
-const int UPDATE_INTERVAL_SECS = 5 * 60; // Update every 60 minutes
+const int UPDATE_INTERVAL_SECS = 2 * 60; // Update every 60 minutes
 
 #define TZ              -8     // (utc+) TZ in hours
 #define DST_MN          0      // use 60mn for summer time in some countries
@@ -133,17 +136,17 @@ void setup()
 	while (!Serial)
 		;
 
-	progress.x = 0;
-	progress.y = 280;
-	progress.width = 480;
-	progress.height = 40;
-	progress.padding = 5;
-	progress.corner = 10;
-	progress.foregroundColor = CYAN;
-	progress.gfxFont = &CalibriBold8pt7b;
+	displayProgress.x = 0;
+	displayProgress.y = 280;
+	displayProgress.width = 480;
+	displayProgress.height = 40;
+	displayProgress.padding = 5;
+	displayProgress.corner = 10;
+	displayProgress.foregroundColor = CYAN;
+	displayProgress.gfxFont = &CalibriBold8pt7b;
 	displayControl.init(1, &CalibriRegular8pt7b);
 
-	displayControl.setProgress(progress);
+	displayControl.setProgress(displayProgress);
 	displayControl.setFrameAnimation(SLIDE_LEFT);
 	displayControl.setFrames(frames, numberOfFrames);
 	displayControl.setOverlays(overlays, numberOfOverlays);
@@ -223,14 +226,22 @@ void updateData()
 	displayControl.drawProgress(50, "Updating weather...");
 	currentWeatherClient.setMetric(IS_METRIC);
 	currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-	currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
+	currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
+	if (!currentWeatherUpdated)
+	{
+		displayProgress.foregroundColor = RED;
+	}
 
 	displayControl.drawProgress(75, "Updating forecasts...");
-	forecastClient.setMetric(IS_METRIC);
-	forecastClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+	forecastWeatherClient.setMetric(IS_METRIC);
+	forecastWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
 	uint8_t allowedHours[] = {12};
-	forecastClient.setAllowedHours(allowedHours, sizeof(allowedHours));
-	forecastClient.updateForecastsById(forecasts, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
+	forecastWeatherClient.setAllowedHours(allowedHours, sizeof(allowedHours));
+	forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
+	if (!forecastWeatherUpdated)
+	{
+		displayProgress.foregroundColor = RED;
+	}
 	
 	sprintf(lastUpdate, "%02d/%02d/%04d -- %02d:%02d:%02d", month(), day(), year(), hour(), minute(), second());
 	readyForUpdate = false;
@@ -415,14 +426,14 @@ void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
 
 void drawForecastDetails(int x, int y, int dayIndex) 
 {
-	time_t observationTimestamp = forecasts[dayIndex].observationTime;
+	time_t observationTimestamp = forecastWeather[dayIndex].observationTime;
 	int day = weekday(observationTimestamp)-1;
-	drawWeatherIcon(x, y + 100, forecasts[dayIndex].icon, true, 2);
+	drawWeatherIcon(x, y + 100, forecastWeather[dayIndex].icon, true, 2);
 	displayControl.setFont(&CalibriBold16pt7b);
 	displayControl.drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
-	drawTemperature(forecasts[dayIndex].temp, IS_METRIC, x, y + 170, TEXT_CENTER, CYAN);
+	drawTemperature(forecastWeather[dayIndex].temp, IS_METRIC, x, y + 170, TEXT_CENTER, CYAN);
 	displayControl.setFont(&CalibriBold8pt7b);
-	displayControl.drawString(forecasts[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
+	displayControl.drawString(forecastWeather[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
 }
 
 void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
@@ -434,13 +445,49 @@ void drawForecast(DisplayControlState* state, int16_t x, int16_t y)
 	drawForecastDetails(400, 60, 2);	
 }
 
+/// @brief Default size when set to 1 is 12x12
+/// @param x 
+/// @param y 
+/// @param size 
+void drawWiFiSignal(int16_t x, int16_t y, int16_t size)
+{
+	size = max(size, 1);
+	if (WiFi.status() == WL_CONNECTED)
+	{
+		int32_t strength = WiFi.RSSI();
+		displayControl.getDisplay()->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGREY);
+		displayControl.getDisplay()->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGREY);
+		displayControl.getDisplay()->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGREY);
+		displayControl.getDisplay()->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGREY);
+	}
+	else
+	{
+		int16_t ly = y + size * 5;
+		int16_t lw = size*10;
+		for (int16_t t=0; t < size * 2; t++)
+		{
+			displayControl.getDisplay()->drawFastHLine(x+2, ly+t, lw, ORANGERED);
+		}
+		int16_t r = 6*size;
+		int16_t cx = x+r;
+		int16_t cy = y+r;
+		for (int16_t t=0; t < size * 2; t++)
+		{
+			displayControl.getDisplay()->drawCircle(cx, cy, r-t, ORANGERED);
+		}		
+	}
+}
+
 void drawHeaderOverlay(DisplayControlState* state)
 {
 	displayControl.getDisplay()->fillRect(0, 0, 480, 12, CHARCOAL);
 	displayControl.getDisplay()->drawFastHLine(0, 13, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 14, 480, CYAN);
+
 	displayControl.setFont(&CalibriRegular8pt7b);
-	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);
+	displayControl.drawChar(4, 0, 'C', currentWeatherUpdated ? GREEN : RED);
+	displayControl.drawChar(20, 0, 'F', forecastWeatherUpdated ? GREEN : RED);
+	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);	
 }
 
 void drawFooterOverlay(DisplayControlState* state)
@@ -451,6 +498,7 @@ void drawFooterOverlay(DisplayControlState* state)
 	displayControl.getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
+	drawWiFiSignal(450, 286, 2);
 	displayControl.setFont(&CalibriBold16pt7b);
 	displayControl.drawString(time, 120, 300, TEXT_CENTER, ORANGE);
 	drawTemperature(currentWeather.temp, IS_METRIC, 360, 300, TEXT_CENTER, ORANGE);

@@ -32,6 +32,7 @@
 #define MAROON 0x7800
 #define NAVY 0x000F
 #define ORANGE 0xFD20
+#define ORANGERED 0xFA20
 #define OLIVE 0x7BE0
 #define PINK 0xF81F
 #define PURPLE 0x780F
