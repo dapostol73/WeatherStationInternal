@@ -108,7 +108,7 @@ int numberOfOverlays = 2;
 // Setup
 const int SENSOR_INTERVAL_SECS = 15; // Sensor query every 15 seconds
 const int TIME_INTERVAL_SECS = 10 * 60; // Check time every 10 minutes
-const int UPDATE_INTERVAL_SECS = 2 * 60; // Update every 60 minutes
+const int UPDATE_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
 
 #define TZ              -8     // (utc+) TZ in hours
 #define DST_MN          0      // use 60mn for summer time in some countries
