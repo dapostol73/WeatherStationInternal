@@ -299,6 +299,8 @@ void configureWifi()
 			;
 	}
 
+	WiFi.sleepMode(WIFI_NONE_SLEEP);
+
 	char wifiInfo[42] = "";
 	sprintf(wifiInfo, "Connected to Wifi: %s", NAME_OF_SSID);
 	displayControl.fillScreen(BLACK);

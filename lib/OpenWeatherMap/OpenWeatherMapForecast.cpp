@@ -65,12 +65,12 @@ bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String p
     client.println("Host: " + host);
     client.println("Connection: close");
 
-    while (client.connected()) {
+    while (client.connected() || client.available()) {
       if (client.available()) {
         if ((millis() - lost_do) > lostTest) {
           Serial.println("[HTTP] lost in client with a timeout");
           client.stop();
-          WiFi.reset();
+          //WiFi.reset();
         }
         c = client.read();
         if (c == '{' || c == '[') {
