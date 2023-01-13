@@ -1,3 +1,6 @@
+#ifndef _DISPLAY_FONTS_
+#define _DISPLAY_FONTS_
+
 // Downloaded from https://www.1001freefonts.com/teko.font
 // Generated from https://rop.nl/truetype2gfx/
 #include "Fonts/CalibriBold8pt7b.h"
@@ -20,3 +23,5 @@
 #include "Fonts/TekoRegular16pt7b.h"
 #include "Fonts/TekoRegular24pt7b.h"
 #include "Fonts/TekoRegular32pt7b.h"
+
+#endif

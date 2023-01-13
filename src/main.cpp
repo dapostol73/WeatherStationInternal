@@ -21,13 +21,11 @@
 #include <DHT.h>
 #include <DHT_U.h>
 
-#include "DisplayControl.h"
-#include "DisplayFonts.h"
+#include "DisplayWeather.h"
 #include "WifiInfo.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
-#include "Icons/OpenWeatherIcons.h"
 
 #ifdef HAVE_SERIAL1
 #include "SoftwareSerial.h"
@@ -73,10 +71,11 @@ String OPEN_WEATHER_MAP_LOCATION = "6090785";
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
 const uint8_t MAX_FORECASTS = 4;
 
+/*
 // Adjust according to your language
 const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 const String MONTH_NAMES[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-
+*/
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
 bool currentWeatherUpdated = false;
@@ -85,18 +84,22 @@ OpenWeatherMapForecastData forecastWeather[MAX_FORECASTS];
 OpenWeatherMapForecast forecastWeatherClient;
 bool forecastWeatherUpdated = false;
 
+DisplayWeather displayControl;
+DisplayContolProgress displayProgress;
+/*
 uint16_t palette[] = {BLACK, WHITE, GOLD, DEEPSKYBLUE};
 DisplayControl displayControl;
 DisplayContolProgress displayProgress;
 
 void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center = false, int16_t scale = 1);
-void drawDateTime(DisplayControlState* state, int16_t x, int16_t y);
-void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y);
-void drawForecast(DisplayControlState* state, int16_t x, int16_t y);
+*/
+void drawDateTimeFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawForecast, drawCurrentWeather, drawDateTime };
+FrameCallback frames[] = { drawForecastFrame, drawCurrentWeatherFrame, drawDateTimeFrame };
 int numberOfFrames = 3;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
@@ -121,7 +124,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
 // flag changed in the ticker function every 10 minutes
 bool readyForUpdate = false;
-char lastUpdate[40] = "?Unkown";
+time_t lastUpdated;
 long timeSinceLastWUpdate = 0;
 
 void setReadyForUpdate();
@@ -144,7 +147,7 @@ void setup()
 	displayProgress.corner = 10;
 	displayProgress.foregroundColor = CYAN;
 	displayProgress.gfxFont = &CalibriBold8pt7b;
-	displayControl.init(1, &CalibriRegular8pt7b);
+	displayControl.init();
 
 	displayControl.setProgress(displayProgress);
 	displayControl.setFrameAnimation(SLIDE_LEFT);
@@ -152,15 +155,15 @@ void setup()
 	displayControl.setOverlays(overlays, numberOfOverlays);
 
 	displayControl.fillScreen(BLACK);
-	drawWeatherIcon(40 ,  70, "01d", true);
-	drawWeatherIcon(140,  70, "02d", true);
-	drawWeatherIcon(240,  70, "03d", true);
-	drawWeatherIcon(340,  70, "04d", true);
-	drawWeatherIcon(440,  70, "09d", true);
-	drawWeatherIcon(90 , 190, "10d", true);
-	drawWeatherIcon(190, 190, "11d", true);
-	drawWeatherIcon(290, 190, "13d", true);
-	drawWeatherIcon(390, 190, "50d", true);
+	displayControl.drawWeatherIcon(40 ,  70, "01d", true);
+	displayControl.drawWeatherIcon(140,  70, "02d", true);
+	displayControl.drawWeatherIcon(240,  70, "03d", true);
+	displayControl.drawWeatherIcon(340,  70, "04d", true);
+	displayControl.drawWeatherIcon(440,  70, "09d", true);
+	displayControl.drawWeatherIcon(90 , 190, "10d", true);
+	displayControl.drawWeatherIcon(190, 190, "11d", true);
+	displayControl.drawWeatherIcon(290, 190, "13d", true);
+	displayControl.drawWeatherIcon(390, 190, "50d", true);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
@@ -243,7 +246,7 @@ void updateData()
 		displayProgress.foregroundColor = RED;
 	}
 	
-	sprintf(lastUpdate, "%02d/%02d/%04d -- %02d:%02d:%02d", month(), day(), year(), hour(), minute(), second());
+	lastUpdated = now();
 	readyForUpdate = false;
 	displayControl.drawProgress(100, "Updating done!");
 	delay(1000);
@@ -361,147 +364,27 @@ void readTemperatureHumidity()
 	}
 }
 
-void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale)
+void drawDateTimeFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	const OpenWeatherIcon icon = getOpenWeatherCropIconFromProgmem(iconName);
-	displayControl.drawBitmap(x, y, icon.width, icon.height, icon.data, center, scale);
+	displayControl.drawDateTime(x, y);
 }
 
-void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
+void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	int16_t x1, y1 = 0;
-    uint16_t w, h = 0;
-    displayControl.getDisplay()->getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
-	String temp = String(currentWeather.temp, 1);
-	if (align > 0)
-	{
-		int sw = w * (temp.length() + 2);
-        if (align == TEXT_CENTER)
-        {
-            x -= sw * 0.5;
-            y -= h * 0.5;
-        }
-        else if (align == TEXT_RIGHT)
-        {
-            x -= sw + 1;
-            //y -= h;
-        }
-	}
-
-	displayControl.drawString(temp, x, y, TEXT_LEFT, foregroundColor);
-	int radius = w * 0.4;
-	x = displayControl.getDisplay()->getCursorX() + radius;
-	displayControl.getDisplay()->drawCircle(x, y + radius, radius, foregroundColor);
-	x += radius;
-	if (isMetric)
-	{
-		displayControl.drawString("C", x, y, TEXT_LEFT, foregroundColor);
-	}
-	else
-	{
-		displayControl.drawString("F", x, y, TEXT_LEFT, foregroundColor);
-	}
+	displayControl.drawCurrentWeather(&currentWeather, x, y);
 }
 
-void drawDateTime(DisplayControlState* state, int16_t x, int16_t y)
+void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayControl.setFont(&CalibriBold24pt7b);
-	char buff[16];
-	sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[weekday()-1].c_str(), day(), month(), year());
-	displayControl.drawString(buff, 240, 140, TEXT_CENTER, CYAN);
-
-	sprintf_P(buff, PSTR("%02d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
-	displayControl.drawString(buff, 240, 180, TEXT_CENTER, CYAN);
-}
-
-void drawCurrentWeather(DisplayControlState* state, int16_t x, int16_t y)
-{
-	x = 240;
-	y = 40;
-	drawWeatherIcon(x, y + 90, currentWeather.icon, true, 2);
-	displayControl.setFont(&CalibriBold24pt7b);
-	displayControl.drawString(currentWeather.cityName, x, y + 5, TEXT_CENTER, YELLOW);
-	displayControl.setFont(&CalibriBold16pt7b);
-	drawTemperature(currentWeather.temp, IS_METRIC, x, y + 160, TEXT_CENTER, CYAN);
-	displayControl.drawString(currentWeather.description, x, y + 200, TEXT_CENTER, ORANGE);
-}
-
-void drawForecastDetails(int x, int y, int dayIndex) 
-{
-	time_t observationTimestamp = forecastWeather[dayIndex].observationTime;
-	int day = weekday(observationTimestamp)-1;
-	drawWeatherIcon(x, y + 100, forecastWeather[dayIndex].icon, true, 2);
-	displayControl.setFont(&CalibriBold16pt7b);
-	displayControl.drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
-	drawTemperature(forecastWeather[dayIndex].temp, IS_METRIC, x, y + 170, TEXT_CENTER, CYAN);
-	displayControl.setFont(&CalibriBold8pt7b);
-	displayControl.drawString(forecastWeather[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
-}
-
-void drawForecast(DisplayControlState* state, int16_t x, int16_t y) 
-{
-	//displayControl.setFont(&CalibriBold24pt7b);
-	//displayControl.drawString(forecasts[0].cityName, 240, 40, TEXT_CENTER, YELLOW);
-	drawForecastDetails(80, 60, 0);
-	drawForecastDetails(240, 60, 1);
-	drawForecastDetails(400, 60, 2);	
-}
-
-/// @brief Default size when set to 1 is 12x12
-/// @param x 
-/// @param y 
-/// @param size 
-void drawWiFiSignal(int16_t x, int16_t y, int16_t size)
-{
-	size = max(size, 1);
-	if (WiFi.status() == WL_CONNECTED)
-	{
-		int32_t strength = WiFi.RSSI();
-		displayControl.getDisplay()->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGREY);
-		displayControl.getDisplay()->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGREY);
-		displayControl.getDisplay()->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGREY);
-		displayControl.getDisplay()->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGREY);
-	}
-	else
-	{
-		int16_t ly = y + size * 5;
-		int16_t lw = size*10;
-		for (int16_t t=0; t < size * 2; t++)
-		{
-			displayControl.getDisplay()->drawFastHLine(x+2, ly+t, lw, ORANGERED);
-		}
-		int16_t r = 6*size;
-		int16_t cx = x+r;
-		int16_t cy = y+r;
-		for (int16_t t=0; t < size * 2; t++)
-		{
-			displayControl.getDisplay()->drawCircle(cx, cy, r-t, ORANGERED);
-		}		
-	}
+	displayControl.drawForecast(forecastWeather, x, y);
 }
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
-	displayControl.getDisplay()->fillRect(0, 0, 480, 12, CHARCOAL);
-	displayControl.getDisplay()->drawFastHLine(0, 13, 480, CYAN);
-	displayControl.getDisplay()->drawFastHLine(0, 14, 480, CYAN);
-
-	displayControl.setFont(&CalibriRegular8pt7b);
-	displayControl.drawChar(4, 0, 'C', currentWeatherUpdated ? GREEN : RED);
-	displayControl.drawChar(20, 0, 'F', forecastWeatherUpdated ? GREEN : RED);
-	displayControl.drawString(lastUpdate, 480, 0, TEXT_RIGHT);	
+	displayControl.drawHeader(currentWeatherUpdated, forecastWeatherUpdated, lastUpdated);
 }
 
 void drawFooterOverlay(DisplayControlState* state)
 {
-	char time[10];
-	sprintf_P(time, PSTR("%02d:%02d"), timeClient.getHours(), timeClient.getMinutes());
-
-	displayControl.getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
-	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
-	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
-	drawWiFiSignal(450, 286, 2);
-	displayControl.setFont(&CalibriBold16pt7b);
-	displayControl.drawString(time, 120, 300, TEXT_CENTER, ORANGE);
-	drawTemperature(currentWeather.temp, IS_METRIC, 360, 300, TEXT_CENTER, ORANGE);
+	displayControl.drawFooter(&currentWeather);
 }

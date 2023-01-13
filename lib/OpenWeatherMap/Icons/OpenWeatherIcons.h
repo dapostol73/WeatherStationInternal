@@ -1,6 +1,8 @@
+#ifndef _OPEN_WEATHER_ICONS_
+#define _OPEN_WEATHER_ICONS_
+
 // Generate Icons using https://www.mischianti.org/images-to-byte-array-online-converter-cpp-arduino/
 // Using Horizantal - 2 bytes per pixel
-#include "OpenWeatherIcon.h"
 #include "01d.h"
 #include "02d.h"
 #include "03d.h"
@@ -64,6 +66,7 @@ const unsigned char* getOpenWeatherPaletteIconFromProgmem(String iconText) {
   if (iconText == "50d" || iconText == "50n") return palette_50d_2x;
   return palette_01d_2x;
 }
+
 const unsigned char* getOpenWeatherMiniPaletteIconFromProgmem(String iconText) {
   if (iconText == "01d" || iconText == "01n") return palette_01d_1x;
   if (iconText == "02d" || iconText == "02n") return palette_02d_1x;
@@ -76,3 +79,5 @@ const unsigned char* getOpenWeatherMiniPaletteIconFromProgmem(String iconText) {
   if (iconText == "50d" || iconText == "50n") return palette_50d_1x;
   return palette_50d_1x;
 }
+
+#endif

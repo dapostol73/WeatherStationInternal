@@ -1,3 +1,6 @@
+#ifndef _02D_H_
+#define _02D_H_
+
 #include "OpenWeatherIcon.h"
 
 // '02d, 50x50px
@@ -1153,3 +1156,5 @@ const unsigned char palette_02d_2x[] PROGMEM = {
 OpenWeatherIcon icon_02d_1x = { 50, 50, (uint16_t *)data_02d_1x };
 OpenWeatherIcon icon_02d_2x = { 100, 100, (uint16_t *)data_02d_2x };
 OpenWeatherIcon icon_02d_crop = { 65, 43, (uint16_t *)data_02d_crop };
+
+#endif
