@@ -201,8 +201,8 @@ void DisplayControl::printLine()
 
 void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
 {
-    int y = m_currentLine*m_lineHeight;
-    int x = 4;
+    int16_t y = m_currentLine*m_lineHeight;
+    int16_t x = 4;
     if (m_currentLine > m_maxLines)
     {
         m_lcd.vertScroll(0, m_lcd.height(), -m_lineHeight*(m_currentLine%m_maxLines));
@@ -214,7 +214,7 @@ void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t bac
     printLine();
 }
 
-void DisplayControl::setProgress(DisplayContolProgress progress)
+void DisplayControl::setProgress(DisplayContolProgress *progress)
 {
     m_progress = progress;
 }
@@ -224,27 +224,27 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     int16_t x1, y1 = 0;
     uint16_t w1, h1 = 0;
     m_lcd.getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
-    setFont(m_progress.gfxFont);
-    m_progress.progress = percent;
-    m_progress.message = message;
-    int16_t strl = m_progress.message.length();
-    int16_t minX = x1 - 2 * m_progress.padding;
-    int16_t minY = y1 - 2 * m_progress.padding;
-    int16_t x = m_progress.x + m_progress.padding;
-    int16_t y = m_progress.y + m_progress.padding;
-    int16_t sx = x + m_progress.width - 2 * m_progress.padding;
-    int16_t sy = y + m_progress.height - 2 * m_progress.padding;
-    int16_t corner = min(m_progress.corner, min(sx*0.5, sy*0.5));
+    setFont(m_progress->gfxFont);
+    m_progress->progress = percent;
+    m_progress->message = message;
+    int16_t strl = m_progress->message.length();
+    int16_t minX = x1 - 2 * m_progress->padding;
+    int16_t minY = y1 - 2 * m_progress->padding;
+    int16_t x = m_progress->x + m_progress->padding;
+    int16_t y = m_progress->y + m_progress->padding;
+    int16_t sx = x + m_progress->width - 2 * m_progress->padding;
+    int16_t sy = y + m_progress->height - 2 * m_progress->padding;
+    int16_t corner = min(m_progress->corner, min(sx*0.5, sy*0.5));
     
     if (sx < minX) sx = minX;
     if (sy < minY) sy = minY;
-    int16_t px = max((sx*(m_progress.progress*0.01))-2, 0);
-    int16_t cx = m_progress.x+(m_progress.width*0.5)-(0.5*w1);
-    int16_t cy = m_progress.y+(m_progress.height*0.5)-(0.5*h1);
+    int16_t px = max((sx*(m_progress->progress*0.01))-2, 0);
+    int16_t cx = m_progress->x+(m_progress->width*0.5)-(0.5*w1);
+    int16_t cy = m_progress->y+(m_progress->height*0.5)-(0.5*h1);
 
-    m_lcd.setColor(m_progress.backgroundColor);
+    m_lcd.setColor(m_progress->backgroundColor);
     m_lcd.fillRoundRect(x, y, sx, sy, corner);
-    m_lcd.setColor(m_progress.foregroundColor);
+    m_lcd.setColor(m_progress->foregroundColor);
     m_lcd.drawRoundRect(x, y, sx, sy, corner);
     m_lcd.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0));
 
@@ -253,11 +253,11 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     {
         if (cx > px)
         {
-            drawChar(cx, cy, m_progress.message[i], m_progress.foregroundColor);
+            drawChar(cx, cy, m_progress->message[i], m_progress->foregroundColor);
         }
         else
         {
-            drawChar(cx, cy, m_progress.message[i], m_progress.backgroundColor);
+            drawChar(cx, cy, m_progress->message[i], m_progress->backgroundColor);
         }
         cx = m_lcd.getCursorX();
         //Serial.println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 

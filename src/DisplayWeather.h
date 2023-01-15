@@ -27,7 +27,7 @@ class DisplayWeather : public DisplayControl
         bool m_isMetric = true;
 
         void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
-        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int x, int y, int dayIndex);
+        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
         void drawWiFiSignal(int16_t x, int16_t y, int16_t size);
     public:
         DisplayWeather();

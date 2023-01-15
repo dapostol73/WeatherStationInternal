@@ -1,5 +1,7 @@
 // Firmware for ESP8266
 // https://github.com/Edragon/esp_firmware/tree/master/Firmware/AT-other/AI-THINKER/At_firmware_bin1.54
+// need to see if we can flash to this version to fix issues https://github.com/espressif/ESP8266_NONOS_SDK/
+// This looks correct: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
 // Libraries for Screen
 // http://www.lcdwiki.com/3.95inch_Arduino_Display-Mega2560_ST7796
 // For the screen to work, you need to uncomment the following in MCUFRIEND_kbv Library
@@ -10,7 +12,6 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <WiFiEspAT.h>
-#include <WiFiClient.h>
 #include <WiFiUdp.h>
 
 // time
@@ -69,7 +70,7 @@ String OPEN_WEATHER_MAP_LOCATION = "6090785";
 // Chinese Simplified - zh_cn, Chinese Traditional - zh_tw.
 
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
-const uint8_t MAX_FORECASTS = 4;
+const uint8_t MAX_FORECASTS = 3;
 
 /*
 // Adjust according to your language
@@ -149,7 +150,7 @@ void setup()
 	displayProgress.gfxFont = &CalibriBold8pt7b;
 	displayControl.init();
 
-	displayControl.setProgress(displayProgress);
+	displayControl.setProgress(&displayProgress);
 	displayControl.setFrameAnimation(SLIDE_LEFT);
 	displayControl.setFrames(frames, numberOfFrames);
 	displayControl.setOverlays(overlays, numberOfOverlays);
@@ -234,7 +235,7 @@ void updateData()
 	{
 		displayProgress.foregroundColor = RED;
 	}
-
+	//delay(1000);
 	displayControl.drawProgress(75, "Updating forecasts...");
 	forecastWeatherClient.setMetric(IS_METRIC);
 	forecastWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);

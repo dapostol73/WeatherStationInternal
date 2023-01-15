@@ -1,8 +1,6 @@
 #ifndef _DISPLAY_CONTROL_
 #define _DISPLAY_CONTROL_
 
-#define SUPPORT_B509_7793
-
 #include <UTFTGLUE.h>
 #include <gfxfont.h>
 
@@ -126,7 +124,7 @@ class DisplayControl
         uint8_t             m_overlayCount              = 0;
 
         DisplayControlState m_state;
-        DisplayContolProgress m_progress;
+        DisplayContolProgress* m_progress;
 
         uint8_t getNextFrameNumber();
         void drawFrame();
@@ -165,7 +163,7 @@ class DisplayControl
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 
-        void setProgress(DisplayContolProgress progress);
+        void setProgress(DisplayContolProgress *progress);
 
         void drawProgress(int16_t progress = 0, String message = "");
 

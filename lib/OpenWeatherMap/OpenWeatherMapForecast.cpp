@@ -41,7 +41,7 @@ bool OpenWeatherMapForecast::updateForecastsById(OpenWeatherMapForecastData *dat
 
 String OpenWeatherMapForecast::buildPath(String appId, String locationParameter) {
   String units = metric ? "metric" : "imperial";
-  return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
+  return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language + "&cnt=" + String(this->maxForecasts*8);
 }
 
 bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path) {
