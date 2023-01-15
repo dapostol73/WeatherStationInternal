@@ -29,6 +29,10 @@ class DisplayWeather : public DisplayControl
         void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
         void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
         void drawWiFiSignal(int16_t x, int16_t y, int16_t size);
+        void drawSun(int16_t x, int16_t y, int16_t size, uint16_t color);
+        void drawCloud(int16_t x, int16_t y, int16_t size, uint16_t color);
+        void drawThunder(int16_t x, int16_t y, int16_t size, uint16_t color);
+        void drawRain(int16_t x, int16_t y, int16_t size, bool heavy, uint16_t color);
     public:
         DisplayWeather();
         void init();

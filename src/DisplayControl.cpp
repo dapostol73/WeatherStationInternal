@@ -125,6 +125,22 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
     } 
 }
 
+void DisplayControl::drawPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color)
+{
+    m_lcd.setColor(color);
+    m_lcd.drawLine(x0, y0, x1, y1);
+    m_lcd.drawLine(x1, y1, x2, y2);
+    m_lcd.drawLine(x2, y2, x3, y3);
+    m_lcd.drawLine(x3, y3, x0, y0);
+}
+
+void DisplayControl::fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color)
+{
+    m_lcd.setColor(color);
+    m_lcd.fillTriangle(x0, y0, x1, y1, x2, y2, color);
+    m_lcd.fillTriangle(x0, y0, x3, y3, x2, y2, color);
+}
+
 void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor)
 {	
     char str[2];

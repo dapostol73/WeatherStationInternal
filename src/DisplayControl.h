@@ -163,6 +163,10 @@ class DisplayControl
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 
+        void drawPolygon(int16_t x, int16_t y, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
+
+        void fillPolygon(int16_t x, int16_t y, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
+
         void setProgress(DisplayContolProgress *progress);
 
         void drawProgress(int16_t progress = 0, String message = "");

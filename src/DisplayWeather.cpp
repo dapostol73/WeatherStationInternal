@@ -11,6 +11,62 @@ void DisplayWeather::init()
     DisplayControl::init(1, &CalibriRegular8pt7b);
 }
 
+/// @brief Sun 24*24
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
+void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, uint16_t color)
+{
+	size = max(size, 1);
+	int radius = 12 * size;
+	x += radius;
+	y += radius;
+}
+
+/// @brief Cloud is 58*36 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
+void DisplayWeather::drawCloud(int16_t x, int16_t y, int16_t size, uint16_t color)
+{
+	size = max(size, 1);
+
+}
+
+/// @brief Thunder is 12*22 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
+void DisplayWeather::drawThunder(int16_t x, int16_t y, int16_t size, uint16_t color)
+{
+	size = max(size, 1);
+	fillPolygon(4 * size + x, 0 * size + y,
+				0 * size + x, 12 * size + y,
+				4 * size + x, 12 * size + y,
+				11 * size + x, 0 * size + y,
+				color);
+	fillPolygon(5 * size + x, 8 * size + y,
+				12 * size + x, 8 * size + y,
+				0 * size + x, 22 * size + y,
+				0 * size + x, 19 * size + y,
+				color);
+}
+
+/// @brief Rain Light or Heavy is 24*18 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param heavy 
+/// @param color 
+void DisplayWeather::drawRain(int16_t x, int16_t y, int16_t size, bool heavy, uint16_t color)
+{
+	size = max(size, 1);
+
+}
+
 void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale)
 {
 	const OpenWeatherIcon icon = getOpenWeatherCropIconFromProgmem(iconName);
