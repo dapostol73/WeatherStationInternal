@@ -1,7 +1,6 @@
 // Firmware for ESP8266
-// https://github.com/Edragon/esp_firmware/tree/master/Firmware/AT-other/AI-THINKER/At_firmware_bin1.54
-// need to see if we can flash to this version to fix issues https://github.com/espressif/ESP8266_NONOS_SDK/
-// This looks correct: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
+// Flash to this version: https://github.com/espressif/ESP8266_NONOS_SDK/
+// This on how to: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
 // Libraries for Screen
 // http://www.lcdwiki.com/3.95inch_Arduino_Display-Mega2560_ST7796
 // For the screen to work, you need to uncomment the following in MCUFRIEND_kbv Library
@@ -34,6 +33,8 @@ SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
 #define SERIAL_BAUD_RATE 115200
+
+WiFiConnection wifiInfo("Unknown", "Invalid");
 
 /***************************
  * Begin DHT11 Settings
@@ -70,13 +71,8 @@ String OPEN_WEATHER_MAP_LOCATION = "6090785";
 // Chinese Simplified - zh_cn, Chinese Traditional - zh_tw.
 
 String OPEN_WEATHER_MAP_LANGUAGE = "en";
-const uint8_t MAX_FORECASTS = 3;
+const uint8_t MAX_FORECASTS = 4;
 
-/*
-// Adjust according to your language
-const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
-const String MONTH_NAMES[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-*/
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
 bool currentWeatherUpdated = false;
@@ -87,13 +83,7 @@ bool forecastWeatherUpdated = false;
 
 DisplayWeather displayControl;
 DisplayContolProgress displayProgress;
-/*
-uint16_t palette[] = {BLACK, WHITE, GOLD, DEEPSKYBLUE};
-DisplayControl displayControl;
-DisplayContolProgress displayProgress;
 
-void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center = false, int16_t scale = 1);
-*/
 void drawDateTimeFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
@@ -253,11 +243,38 @@ void updateData()
 	delay(1000);
 }
 
+void resolveWifiInfo()
+{
+	int8_t numNetworks = WiFi.scanNetworks();
+
+	for (int8_t i=0; i<numNetworks; i++)
+	{
+		const char* ssid = WiFi.SSID(i);
+		//Serial.println("SSID: " + String(ssid) + ": " + String(WiFi.RSSI(i)));
+		for (unsigned int j=0; j < sizeof(WiFiConnections); j++)
+		{
+			if (strcasecmp(WiFiConnections[j].SSID, ssid) == 0)
+			{
+				//Serial.println("Found: " + String(ssid));
+				WiFiConnections[j].Avialable = true;
+				WiFiConnections[j].Strength = WiFi.RSSI(i);
+
+				if (WiFiConnections[j].Strength > wifiInfo.Strength)
+				{
+					wifiInfo = WiFiConnections[j];
+				}
+			}
+		}
+	}
+
+	
+}
+
 void configureWifi()
 {
 	String intialMsg = "Intializing Wifi module.";
 	Serial.println(intialMsg);
-	displayControl.drawProgress(20, intialMsg);
+	displayControl.drawProgress(10, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
 	WiFi.init(&Serial3);
 
@@ -272,10 +289,26 @@ void configureWifi()
 			;
 	}
 
+	String scanMsg = "Scanning for Wifi SSID.";
+	Serial.println(scanMsg);
+	displayControl.drawProgress(30, scanMsg);
+	resolveWifiInfo();
+
 	String infoMsg = "Waiting for connection to WiFi";
-	WiFi.begin(NAME_OF_SSID, PASSWORD_OF_SSID);
+	if (!wifiInfo.Avialable)
+	{
+		char connectErr[48] = "";
+		sprintf(connectErr, "No Wifi connecttion found %s!", wifiInfo.SSID);
+		Serial.println(connectErr);
+		displayControl.fillScreen(RED);
+		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
+		while (true)
+			;
+	}
+
+	WiFi.begin(wifiInfo.SSID, wifiInfo.Password);
 	Serial.println(infoMsg);
-	displayControl.drawProgress(40, infoMsg);
+	displayControl.drawProgress(50, infoMsg);
 
 	int counter = 0;
 	int timeout = 0;
@@ -285,7 +318,7 @@ void configureWifi()
 	{
 		delay(1000);
 		Serial.print('.');
-		displayControl.drawProgress(60, "Connecting to WiFi");
+		displayControl.drawProgress(70, "Connecting to WiFi");
 		counter++;
 		++timeout;
 	}
@@ -294,7 +327,7 @@ void configureWifi()
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "Wifi failed to connect to %s acces point!", NAME_OF_SSID);
+		sprintf(connectErr, "Wifi failed to connect to %s access point!", wifiInfo.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
@@ -305,10 +338,10 @@ void configureWifi()
 
 	WiFi.sleepMode(WIFI_NONE_SLEEP);
 
-	char wifiInfo[42] = "";
-	sprintf(wifiInfo, "Connected to Wifi: %s", NAME_OF_SSID);
-	displayControl.fillScreen(BLACK);
-	displayControl.drawProgress(80, wifiInfo);
+	char ssidInfo[42] = "";
+	sprintf(ssidInfo, "Connected to Wifi: %s", wifiInfo.SSID);
+	displayControl.drawProgress(90, ssidInfo);
+	delay(500);
 		
 	printConnectInfo();
 	displayControl.drawProgress(100, "Wifi initialization done!");
@@ -323,10 +356,10 @@ void printConnectInfo()
 	IPAddress ip = WiFi.localIP();
 
 	// print MAC address
-	char wifiInfo[34] = "";
-	sprintf(wifiInfo, "Wifi: %s", NAME_OF_SSID);
-	Serial.println(wifiInfo);
-	displayControl.printLine(wifiInfo, GREEN);
+	char ssidInfo[34] = "";
+	sprintf(ssidInfo, "Wifi SSID: %s", wifiInfo.SSID);
+	Serial.println(ssidInfo);
+	displayControl.printLine(ssidInfo, GREEN);
 
 	// print MAC address
 	char macInfo[34] = "";

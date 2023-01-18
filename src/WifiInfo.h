@@ -1,7 +1,24 @@
 #ifndef _WIFI_INFO_
 #define _WIFI_INFO_
 
-#define NAME_OF_SSID "wifi_name"
-#define PASSWORD_OF_SSID "wifi_password"
+struct WiFiConnection
+{
+    const char* SSID;
+    const char* Password;
+    int16_t Strength = -100;
+    bool Avialable = 0;
+
+    WiFiConnection(const char* ssid, const char* password)
+    {
+        SSID = ssid;
+        Password = password;
+    }
+};
+
+
+WiFiConnection Home("homeSSID", "homePS123");
+WiFiConnection Office("officeSSID", "officePS123");
+
+WiFiConnection WiFiConnections[] = { Home, Office };
 
 #endif
