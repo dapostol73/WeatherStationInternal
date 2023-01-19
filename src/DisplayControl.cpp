@@ -33,6 +33,25 @@ MCUFRIEND_kbv* DisplayControl::getDisplay()
     return &m_lcd;
 }
 
+uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int16_t alpha) 
+{
+    uint8_t fg_r = (fg >> 8) & 0b11111000;
+    uint8_t fg_g = (fg >> 3) & 0b11111100;
+    uint8_t fg_b = (fg << 3) & 0b11111000;
+
+    uint8_t bg_r = (bg >> 8) & 0b11111000;
+    uint8_t bg_g = (bg >> 3) & 0b11111100;
+    uint8_t bg_b = (bg << 3) & 0b11111000;
+
+    uint8_t r = (fg_r * alpha + bg_r * (255-alpha)) / 255;
+    uint8_t g = (fg_g * alpha + bg_g * (255-alpha)) / 255;
+    uint8_t b = (fg_b * alpha + bg_b * (255-alpha)) / 255;
+
+    //Serial.println(String(r) + ", " + String(g) + ", " + String(b));
+            
+    return m_lcd.color565(r, g, b);
+}
+
 void DisplayControl::setFont(const GFXfont *gfxFont) {
   m_gfxFont = gfxFont;
   m_lcd.setFont(m_gfxFont);
@@ -54,15 +73,37 @@ void DisplayControl::fillScreen(uint16_t color)
     m_lcd.fillScreen(color);
 }
 
-void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint8_t *bitmap, uint16_t color, bool center)
+void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint8_t *bitmap, uint16_t foregroundColor, uint16_t backgroundColor, bool center, int16_t scale)
 {
     if(center)
     {
-        x -= w * 0.5;
-        y -= h * 0.5;
+        x -= w * scale * 0.5;
+        y -= h * scale * 0.5;
     }
 
-    m_lcd.drawXBitmap(x, y, bitmap, w, h, color);
+    int16_t i, j, byteWidth = (w + 7) / 8;
+    uint8_t b = 0;
+    uint16_t color = foregroundColor;
+    int16_t alpha = 0;
+    for(j=0; j<h; j++) {
+        for(i=0; i<w; i++ ) {
+            if (i & 7)
+                b <<= 1;
+            else
+                b = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
+            Serial.println(b);
+            if (b & 0x80)
+            {
+                //color = colorLerp(foregroundColor, backgroundColor, b);
+                if (scale > 1) {
+                    getDisplay()->fillRect(x+i*scale, y+j*scale, scale, scale, color);
+                }
+                else {
+                    getDisplay()->drawPixel(x+i, y+j, color);
+                }
+            }
+        }
+    }
 }
 
 void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center, int16_t scale)
@@ -141,6 +182,44 @@ void DisplayControl::fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     m_lcd.fillTriangle(x0, y0, x3, y3, x2, y2, color);
 }
 
+void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t wd, uint16_t color)
+{
+    int dx = abs(x1-x0), sx = x0 < x1 ? 1 : -1; 
+    int dy = abs(y1-y0), sy = y0 < y1 ? 1 : -1; 
+    int err = dx-dy, e2, x2, y2;                          /* error value e_xy */
+    float ed = dx+dy == 0 ? 1 : sqrt((float)dx*dx+(float)dy*dy);
+
+    if (wd > 2)
+    {
+        m_lcd.setColor(color);
+        m_lcd.fillCircle(x0, y0, (wd+1)/2);
+        m_lcd.fillCircle(x1, y1, (wd+1)/2);
+    }
+
+    for (wd = (wd+1)/2; ; ) {                                   /* pixel loop */
+        m_lcd.writePixel(x0,y0,color);//max(0,255*(abs(err-dx+dy)/ed-wd+1)));
+        e2 = err; x2 = x0;
+        if (2*e2 >= -dx) {                                           /* x step */
+            for (e2 += dy, y2 = y0; e2 < ed*wd && (y1 != y2 || dx > dy); e2 += dx) {
+                m_lcd.writePixel(x0, y2 += sy,color);// max(0,255*(abs(e2)/ed-wd+1)));
+            }
+            if (x0 == x1) {
+                break;
+            }
+            e2 = err; err -= dy; x0 += sx; 
+        } 
+        if (2*e2 <= dy) {                                            /* y step */
+            for (e2 = dx-e2; e2 < ed*wd && (x1 != x2 || dx < dy); e2 += dy) {
+                m_lcd.writePixel(x2 += sx, y0,color);// max(0,255*(abs(e2)/ed-wd+1)));
+            }
+            if (y0 == y1) {
+                break;
+            }
+            err += dx; y0 += sy; 
+        }
+    }
+}
+
 void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor)
 {	
     char str[2];
@@ -195,13 +274,13 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
     }
 }
 
-void DisplayControl::print(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
+void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert)
 {
     m_gfxFontTemp = m_gfxFont;
     m_lcd.setFont(m_gfxFontDefault);
     int x = m_lcd.getCursorX();
     int y = m_currentLine*m_lineHeight;
-    drawString(str, x, y, TEXT_LEFT, foregroudColor, backgroundColor, invert);
+    drawString(str, x, y, TEXT_LEFT, foregroundColor, backgroundColor, invert);
     // check if the text cursor over flowed and by how many lines
     while (m_lcd.getCursorY() < m_currentLine*m_lineHeight - 2)
     {
@@ -215,7 +294,7 @@ void DisplayControl::printLine()
     m_currentLine++;
 }
 
-void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t backgroundColor, boolean invert)
+void DisplayControl::printLine(String str, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert)
 {
     int16_t y = m_currentLine*m_lineHeight;
     int16_t x = 4;
@@ -226,7 +305,7 @@ void DisplayControl::printLine(String str, uint16_t foregroudColor, uint16_t bac
     }
 
     m_lcd.setCursor(x, y);
-    print(str, foregroudColor, backgroundColor, invert);
+    print(str, foregroundColor, backgroundColor, invert);
     printLine();
 }
 
@@ -291,7 +370,7 @@ void DisplayControl::drawFrame()
     {
         case IN_TRANSITION: 
         {
-            m_lcd.fillScreen(BLACK);
+            //m_lcd.fillScreen(BLACK);
             break;
         }
         case FIXED:

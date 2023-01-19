@@ -32,6 +32,7 @@
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
+//#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 
 WiFiConnection wifiInfo("Unknown", "Invalid");
@@ -114,15 +115,42 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
 // flag changed in the ticker function every 10 minutes
-bool readyForUpdate = false;
+bool readyForUpdate = true;
 time_t lastUpdated;
 long timeSinceLastWUpdate = 0;
 
 void setReadyForUpdate();
 void updateSystemTime();
-void updateData();
+bool updateData();
 void configureWifi();
 void printConnectInfo();
+
+#ifdef DEBUG
+
+void setup()
+{
+	Serial.begin(SERIAL_BAUD_RATE);
+	while (!Serial)
+		;
+
+	displayControl.init();
+	int16_t size = 2;
+	int16_t x = 60;
+	int16_t y = 20;
+	displayControl.drawSun(30*size+x, 0+y, 16, size);
+	displayControl.drawCloud(0+x, 5*size+y, size);
+	//displayControl.drawThunder(20*size+x, 33*size+y, size);
+	//displayControl.drawRainLight(12*size+x, 42*size+y, size);
+	//displayControl.drawRainHeavy(14*size+x, 42*size+y, size);
+	displayControl.drawSnow(12*size+x, 60*size+y, size);
+}
+
+void loop()
+{
+	
+}
+
+#else
 
 void setup()
 {
@@ -160,8 +188,8 @@ void setup()
 
 	configureWifi();
 	timeClient.begin();
-	updateData();
-	displayControl.fillScreen(BLACK);
+	//updateData();
+	//displayControl.fillScreen(BLACK);
 }
 
 void loop()
@@ -177,8 +205,10 @@ void loop()
 		timeSinceLastWUpdate = millis();
 	}
 
-	if (readyForUpdate) 
+	if (readyForUpdate && !updateData()) 
 	{
+		Serial.println("Update failed, try again with reseting the WiFi.");
+		WiFi.reset();
 		updateData();
 	}
 
@@ -192,6 +222,8 @@ void loop()
 		delay(remainingTimeBudget);
 	}
 }
+
+#endif
 
 float roundUpDecimal(float value, int decimals = 1) 
 {
@@ -212,7 +244,7 @@ void updateSystemTime()
 	setTime((time_t)timeClient.getEpochTime());
 }
 
-void updateData() 
+bool updateData() 
 {
 	displayControl.drawProgress(25, "Updating time...");
 	updateSystemTime();
@@ -225,7 +257,7 @@ void updateData()
 	{
 		displayProgress.foregroundColor = RED;
 	}
-	//delay(1000);
+
 	displayControl.drawProgress(75, "Updating forecasts...");
 	forecastWeatherClient.setMetric(IS_METRIC);
 	forecastWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
@@ -241,6 +273,7 @@ void updateData()
 	readyForUpdate = false;
 	displayControl.drawProgress(100, "Updating done!");
 	delay(1000);
+	return currentWeatherUpdated && forecastWeatherUpdated;
 }
 
 void resolveWifiInfo()
@@ -276,7 +309,9 @@ void configureWifi()
 	Serial.println(intialMsg);
 	displayControl.drawProgress(10, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
+	
 	WiFi.init(&Serial3);
+	WiFi.setAutoConnect(true);
 
 	if (WiFi.status() == WL_NO_SHIELD)
 	{

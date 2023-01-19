@@ -29,10 +29,8 @@ class DisplayWeather : public DisplayControl
         void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
         void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
         void drawWiFiSignal(int16_t x, int16_t y, int16_t size);
-        void drawSun(int16_t x, int16_t y, int16_t size, uint16_t color);
-        void drawCloud(int16_t x, int16_t y, int16_t size, uint16_t color);
-        void drawThunder(int16_t x, int16_t y, int16_t size, uint16_t color);
-        void drawRain(int16_t x, int16_t y, int16_t size, bool heavy, uint16_t color);
+        void drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color);
+        void drawSnowflake(int16_t x, int16_t y, int16_t size, uint16_t color);
     public:
         DisplayWeather();
         void init();
@@ -42,6 +40,13 @@ class DisplayWeather : public DisplayControl
         void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
         void drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated);
         void drawFooter(OpenWeatherMapCurrentData *currentWeather);
+        // TEMP
+        void drawSun(int16_t x, int16_t y, int16_t radius = 12, int16_t size = 1, uint16_t color = ORANGERED);
+        void drawCloud(int16_t x, int16_t y, int16_t size = 1, uint16_t color = WHITE);
+        void drawThunder(int16_t x, int16_t y, int16_t size = 1, uint16_t color = ORANGE);
+        void drawRainLight(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DODGERBLUE);
+        void drawRainHeavy(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DODGERBLUE);
+        void drawSnow(int16_t x, int16_t y, int16_t size = 1, uint16_t color = WHITE);
 };
 
 #endif

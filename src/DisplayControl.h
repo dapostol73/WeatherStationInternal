@@ -11,6 +11,7 @@
 
 // Using window system colors and converter
 // https://learn.microsoft.com/en-us/dotnet/api/system.windows.media.colors?view=windowsdesktop-7.0&viewFallbackFrom=netcore-3.1
+// https://learn.microsoft.com/en-us/dotnet/media/art-color-table.png?view=windowsdesktop-7.0
 // http://www.rinkydinkelectronics.com/calc_rgb565.php
 
 #define CYAN 0x07FF
@@ -25,6 +26,7 @@
 #define DARKGREEN 0x03E0
 #define DARKGREY 0xAD55
 #define DIMGREY 0xAD55
+#define DODGERBLUE 0x1C9F
 #define LIGHTGREY 0xC618
 #define MAGENTA 0xF81F
 #define MAROON 0x7800
@@ -127,6 +129,7 @@ class DisplayControl
         DisplayContolProgress* m_progress;
 
         uint8_t getNextFrameNumber();
+        uint16_t colorLerp(uint16_t fg, uint16_t bg, int16_t alpha);
         void drawFrame();
         void drawOverlays();
         void tick();
@@ -147,25 +150,29 @@ class DisplayControl
 
         void fillScreen(uint16_t color);
 
-        void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroudColor = WHITE);
+        void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor = WHITE);
 
-        void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
+        void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 
-        void print(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
+        void print(String str, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
 
         void printLine();
 
-        void printLine(String str, uint16_t foregroudColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
+        void printLine(String str, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
         
         void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center = true, int16_t scale = 1);
 
-        void drawMaskBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint8_t *data, uint16_t color = WHITE, bool center = true);
+        void drawMaskBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint8_t *data, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, bool center = true, int16_t scale = 1);
 
         void drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *data);
 
-        void drawPolygon(int16_t x, int16_t y, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
+        void drawPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
 
-        void fillPolygon(int16_t x, int16_t y, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
+        void fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
+
+        void drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t wd, uint16_t color);
+
+        void drawFatCircle(int16_t x, int16_t y, int16_t r, int16_t wd, uint16_t color);
 
         void setProgress(DisplayContolProgress *progress);
 
