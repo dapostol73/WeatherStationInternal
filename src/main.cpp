@@ -137,12 +137,13 @@ void setup()
 	int16_t size = 2;
 	int16_t x = 60;
 	int16_t y = 20;
-	displayControl.drawSun(30*size+x, 0+y, 16, size);
-	displayControl.drawCloud(0+x, 5*size+y, size);
+	//displayControl.drawSun(30*size+x, 0+y, 16, size);
+	//displayControl.drawCloud(0+x, 5*size+y, size);
 	//displayControl.drawThunder(20*size+x, 33*size+y, size);
 	//displayControl.drawRainLight(12*size+x, 42*size+y, size);
 	//displayControl.drawRainHeavy(14*size+x, 42*size+y, size);
-	displayControl.drawSnow(12*size+x, 60*size+y, size);
+	//displayControl.drawSnow(12*size+x, 44*size+y, size);
+	displayControl.drawFog(size+x, size+y, size);
 }
 
 void loop()

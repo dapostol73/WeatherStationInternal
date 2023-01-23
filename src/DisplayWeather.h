@@ -47,6 +47,7 @@ class DisplayWeather : public DisplayControl
         void drawRainLight(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DODGERBLUE);
         void drawRainHeavy(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DODGERBLUE);
         void drawSnow(int16_t x, int16_t y, int16_t size = 1, uint16_t color = WHITE);
+        void drawFog(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DIMGRAY);
 };
 
 #endif

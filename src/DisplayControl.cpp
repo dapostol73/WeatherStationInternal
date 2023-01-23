@@ -33,7 +33,7 @@ MCUFRIEND_kbv* DisplayControl::getDisplay()
     return &m_lcd;
 }
 
-uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int16_t alpha) 
+uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha) 
 {
     uint8_t fg_r = (fg >> 8) & 0b11111000;
     uint8_t fg_g = (fg >> 3) & 0b11111100;
@@ -81,26 +81,21 @@ void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, 
         y -= h * scale * 0.5;
     }
 
-    int16_t i, j, byteWidth = (w + 7) / 8;
-    uint8_t b = 0;
-    uint16_t color = foregroundColor;
-    int16_t alpha = 0;
-    for(j=0; j<h; j++) {
-        for(i=0; i<w; i++ ) {
-            if (i & 7)
-                b <<= 1;
-            else
-                b = pgm_read_byte(&bitmap[j * byteWidth + i / 8]);
-            Serial.println(b);
-            if (b & 0x80)
+    uint16_t color = BLACK;
+    uint8_t alpha = 0;
+    for (int16_t j = 0; j < h; j++) {
+        for (int16_t i = 0; i < w; i++) {
+            alpha = (uint8_t)pgm_read_word(&bitmap[j * w + i]);
+            // skip pure black, should this be an option?
+            if (alpha == 0) continue;
+            color = colorLerp(foregroundColor, backgroundColor, alpha);
+            if (scale > 1)
             {
-                //color = colorLerp(foregroundColor, backgroundColor, b);
-                if (scale > 1) {
-                    getDisplay()->fillRect(x+i*scale, y+j*scale, scale, scale, color);
-                }
-                else {
-                    getDisplay()->drawPixel(x+i, y+j, color);
-                }
+                getDisplay()->fillRect(x + i * scale, y + j * scale, scale, scale, color);
+            }
+            else
+            {
+                getDisplay()->drawPixel(x + i, y + j, color);
             }
         }
     }

@@ -24,10 +24,10 @@
 #define GREENYELLOW 0xAFE5
 #define DARKCYAN 0x03EF
 #define DARKGREEN 0x03E0
-#define DARKGREY 0xAD55
-#define DIMGREY 0xAD55
+#define DARKGRAY 0xAD55
+#define DIMGRAY 0xAD55
 #define DODGERBLUE 0x1C9F
-#define LIGHTGREY 0xC618
+#define LIGHTGRAY 0xC618
 #define MAGENTA 0xF81F
 #define MAROON 0x7800
 #define NAVY 0x000F
@@ -129,7 +129,7 @@ class DisplayControl
         DisplayContolProgress* m_progress;
 
         uint8_t getNextFrameNumber();
-        uint16_t colorLerp(uint16_t fg, uint16_t bg, int16_t alpha);
+        uint16_t colorLerp(uint16_t fg, uint16_t bg, int8_t alpha);
         void drawFrame();
         void drawOverlays();
         void tick();
