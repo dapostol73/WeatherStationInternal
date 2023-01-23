@@ -20,5 +20,6 @@ WiFiConnection Home("homeSSID", "homePS123");
 WiFiConnection Office("officeSSID", "officePS123");
 
 WiFiConnection WiFiConnections[] = { Home, Office };
+uint8_t WiFiConnectionsCount = 2;
 
 #endif

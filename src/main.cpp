@@ -134,16 +134,6 @@ void setup()
 		;
 
 	displayControl.init();
-	int16_t size = 2;
-	int16_t x = 60;
-	int16_t y = 20;
-	//displayControl.drawSun(30*size+x, 0+y, 16, size);
-	//displayControl.drawCloud(0+x, 5*size+y, size);
-	//displayControl.drawThunder(20*size+x, 33*size+y, size);
-	//displayControl.drawRainLight(12*size+x, 42*size+y, size);
-	//displayControl.drawRainHeavy(14*size+x, 42*size+y, size);
-	//displayControl.drawSnow(12*size+x, 44*size+y, size);
-	displayControl.drawFog(size+x, size+y, size);
 }
 
 void loop()
@@ -281,11 +271,11 @@ void resolveWifiInfo()
 {
 	int8_t numNetworks = WiFi.scanNetworks();
 
-	for (int8_t i=0; i<numNetworks; i++)
+	for (uint8_t i=0; i<numNetworks; i++)
 	{
 		const char* ssid = WiFi.SSID(i);
 		//Serial.println("SSID: " + String(ssid) + ": " + String(WiFi.RSSI(i)));
-		for (unsigned int j=0; j < sizeof(WiFiConnections); j++)
+		for (uint8_t j=0; j < WiFiConnectionsCount; j++)
 		{
 			if (strcasecmp(WiFiConnections[j].SSID, ssid) == 0)
 			{

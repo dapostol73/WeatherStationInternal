@@ -77,7 +77,7 @@ const unsigned char* getOpenWeatherMiniPaletteIconFromProgmem(String iconText) {
   if (iconText == "11d" || iconText == "11n") return palette_11d_1x;
   if (iconText == "13d" || iconText == "13n") return palette_13d_1x;
   if (iconText == "50d" || iconText == "50n") return palette_50d_1x;
-  return palette_50d_1x;
+  return palette_01d_1x;
 }
 
 #endif

@@ -170,7 +170,7 @@ void DisplayWeather::drawRainLight(int16_t x, int16_t y, int16_t size, uint16_t 
 	drawRainDrop(28*size+x, 4*size+y,  size, color);//r4.d0
 }
 
-/// @brief Rain Heavy is 34*24 at size 1
+/// @brief Rain Heavy is 34*20 at size 1
 /// @param x 
 /// @param y 
 /// @param size 
@@ -187,7 +187,7 @@ void DisplayWeather::drawRainHeavy(int16_t x, int16_t y, int16_t size, uint16_t 
 
 	drawRainDrop(16*size+x, 4*size+y, size, color);//r2.d0
 	drawRainDrop(14*size+x, 12*size+y, size, color);//r2.d1
-	drawRainDrop(12*size+x, 20*size+y, size, color);//r2.d2
+	//drawRainDrop(12*size+x, 20*size+y, size, color);//r2.d2
 	
 	drawRainDrop(24*size+x, 0*size+y, size, color);//r3.d0
 	drawRainDrop(22*size+x, 8*size+y, size, color);//r3.d1
@@ -197,6 +197,11 @@ void DisplayWeather::drawRainHeavy(int16_t x, int16_t y, int16_t size, uint16_t 
 	drawRainDrop(28*size+x, 12*size+y, size, color);//r4.d1
 }
 
+/// @brief Snowflake is 9*10 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
 void DisplayWeather::drawSnowflake(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	if (size > 2)
@@ -213,6 +218,11 @@ void DisplayWeather::drawSnowflake(int16_t x, int16_t y, int16_t size, uint16_t 
 	}	
 }
 
+/// @brief Snow is 32*18 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
 void DisplayWeather::drawSnow(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	drawSnowflake(x+0*size, y+2*size, size, color);
@@ -221,21 +231,113 @@ void DisplayWeather::drawSnow(int16_t x, int16_t y, int16_t size, uint16_t color
 	//drawSnowflake(x+30*size, y+10*size, size, color);
 }
 
+/// @brief Fog is 26*18 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
 void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	int16_t height = max((2*size)-1, 2);
-	getDisplay()->fillRoundRect(x+6*size, y+0*size,  8*size,  height, 1*size, color);
-	getDisplay()->fillRoundRect(x+2*size, y+3*size,  16*size, height, 1*size, color);
-	getDisplay()->fillRoundRect(x+6*size, y+6*size,  20*size, height, 1*size, color);
-	getDisplay()->fillRoundRect(x+0*size, y+9*size,  20*size, height, 1*size, color);
-	getDisplay()->fillRoundRect(x+4*size, y+12*size, 20*size, height, 1*size, color);
-	getDisplay()->fillRoundRect(x+6*size, y+15*size, 12*size, height, 1*size, color);
+	int16_t height = (4*size)-1;
+	getDisplay()->fillRoundRect(x+12*size, y+0*size,  16*size,  height, 2*size, color);
+	getDisplay()->fillRoundRect(x+4*size,  y+6*size,  32*size, height, 2*size, color);
+	getDisplay()->fillRoundRect(x+12*size, y+12*size, 40*size, height, 2*size, color);
+	getDisplay()->fillRoundRect(x+0*size,  y+18*size, 40*size, height, 2*size, color);
+	getDisplay()->fillRoundRect(x+8*size,  y+24*size, 40*size, height, 2*size, color);
+	getDisplay()->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
 }
 
-void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale)
+void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 {
-	const OpenWeatherIcon icon = getOpenWeatherCropIconFromProgmem(iconName);
-	DisplayControl::drawBitmap(x, y, icon.width, icon.height, icon.data, center, scale);
+	x -= 29*size;
+	y -= 18*size;
+	drawCloud(x, y, size);
+}
+
+void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size)
+{
+	int16_t radius = 24;
+	drawSun(x-radius*size, y-radius*size, radius, size);
+}
+
+void DisplayWeather::draw02FewClouds(int16_t x, int16_t y, int16_t size)
+{
+	x -= 31*size;
+	y -= 21*size;
+	drawSun(30*size+x, y, 16, size);
+	drawCloud(x, 6*size+y, size);
+}
+
+void DisplayWeather::draw03ScatteredClouds(int16_t x, int16_t y, int16_t size)
+{
+	x -= 29*size;
+	y -= 18*size;
+	drawCloud(x, y, size);
+}
+
+void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size)
+{
+	x -= 30*size;
+	y -= 21*size;
+	drawCloud(12*size+x, y, size, DIMGRAY);
+	drawCloud(x, 6*size+y, size);
+}
+
+void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size)
+{
+	x -= 30*size;
+	y -= 34*size;
+	drawCloud(12*size+x, y, size, DIMGRAY);
+	drawCloud(x, 6*size+y, size);
+	drawRainHeavy(12*size+x, 40*size+y, size);
+}
+
+void DisplayWeather::draw10Rain(int16_t x, int16_t y, int16_t size)
+{
+	x -= 30*size;
+	y -= 30*size;
+	drawSun(30*size+x, y, 16, size);
+	drawCloud(x, 6*size+y, size);
+	drawRainLight(12*size+x, 42*size+y, size);
+}
+
+void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size)
+{
+	x -= 30*size;
+	y -= 29*size;
+	drawCloud(12*size+x, y, size, DIMGRAY);
+	drawCloud(x, 6*size+y, size);
+	drawThunder(18*size+x, 34*size+y, size);
+}
+
+void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size)
+{
+	x -= 30*size;
+	y -= 30*size;
+	drawCloud(12*size+x, y, size, DIMGRAY);
+	drawCloud(x, 6*size+y, size);
+	drawSnow(12*size+x, 42*size+y, size);
+}
+
+void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size)
+{
+	x -= 13*size;
+	y -= 9*size;
+	drawFog(x, y, size);
+}
+
+void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t size)
+{
+	if (iconName == "01d" || iconName == "01n") draw01Clear(x, y, size);
+	else if (iconName == "02d" || iconName == "02n") draw02FewClouds(x, y, size);
+	else if (iconName == "03d" || iconName == "03n") draw03ScatteredClouds(x, y, size);
+	else if (iconName == "04d" || iconName == "04n") draw04BrokenClouds(x, y, size);
+	else if (iconName == "09d" || iconName == "09n") draw09ShowerRain(x, y, size);
+	else if (iconName == "10d" || iconName == "10n") draw10Rain(x, y, size);
+	else if (iconName == "11d" || iconName == "11n") draw11ThunderStorm(x, y, size);
+	else if (iconName == "13d" || iconName == "13n") draw13Snow(x, y, size);
+	else if (iconName == "50d" || iconName == "50n") draw50Mist(x, y, size);
+	else draw00Unknown(x, y, size);
 }
 
 void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
