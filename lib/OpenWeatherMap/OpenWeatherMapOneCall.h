@@ -188,6 +188,7 @@ class OpenWeatherMapOneCall: public JsonListener {
 
     bool doUpdate(OpenWeatherMapOneCallData *data, String path);
     String buildPath(String appId, float lat, float lon);
+    String toPascalCase(String buffer);
 
   public:
     OpenWeatherMapOneCall();

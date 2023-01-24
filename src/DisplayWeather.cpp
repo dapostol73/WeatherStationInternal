@@ -381,11 +381,11 @@ void DisplayWeather::drawDateTime(int16_t x, int16_t y)
 {
 	fillScreen(BLACK);
 	DisplayControl::setFont(&CalibriBold24pt7b);
-	char buff[16];
-	sprintf_P(buff, PSTR("%s, %02d/%02d/%04d"), WDAY_NAMES[weekday()-1].c_str(), day(), month(), year());
+	char buff[20];
+	sprintf_P(buff, PSTR("%s, %d %s %d"), WDAY_NAMES[weekday()-1].c_str(), day(), MONTH_NAMES[month()-1].c_str(), year());
 	DisplayControl::drawString(buff, 240, 140, TEXT_CENTER, CYAN);
 
-	sprintf_P(buff, PSTR("%02d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
+	sprintf_P(buff, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
 	DisplayControl::drawString(buff, 240, 180, TEXT_CENTER, CYAN);
 }
 

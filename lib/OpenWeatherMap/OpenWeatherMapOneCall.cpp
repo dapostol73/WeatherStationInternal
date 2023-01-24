@@ -94,6 +94,24 @@ bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
   return true;
 }
 
+String OpenWeatherMapOneCall::toPascalCase(String buffer)
+{
+	if (!buffer) return;
+  bool upper = true;
+  char c;
+	for (uint16_t i = 0; i < buffer.length(); i++) {
+    if (upper) {
+		  c = toupper(buffer.charAt(i));
+      Serial.println(c);
+      buffer.setCharAt(i, c);
+    }
+    upper = false;
+    if (buffer.charAt(i) == ' ')
+      upper = true;
+	}
+  return buffer;
+}
+
 void OpenWeatherMapOneCall::whitespace(char c)
 {
   Serial.println("whitespace");
@@ -175,7 +193,7 @@ void OpenWeatherMapOneCall::value(String value)
         this->data->current.weatherMain = value;
       }
       if (currentKey == "description") {
-        this->data->current.weatherDescription = value;
+        this->data->current.weatherDescription = toPascalCase(value);
       }
       if (currentKey == "icon") {
         this->data->current.weatherIcon = value;

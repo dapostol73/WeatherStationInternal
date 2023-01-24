@@ -85,6 +85,24 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
   return true;
 }
 
+String OpenWeatherMapCurrent::toPascalCase(String buffer)
+{
+	if (!buffer) return;
+  bool upper = true;
+  char c;
+	for (uint16_t i = 0; i < buffer.length(); i++) {
+    if (upper) {
+		  c = toupper(buffer.charAt(i));
+      Serial.println(c);
+      buffer.setCharAt(i, c);
+    }
+    upper = false;
+    if (buffer.charAt(i) == ' ')
+      upper = true;
+	}
+  return buffer;
+}
+
 void OpenWeatherMapCurrent::whitespace(char c) {
   Serial.println("whitespace");
 }
@@ -118,7 +136,7 @@ void OpenWeatherMapCurrent::value(String value) {
     }
     // "description": "shower rain", String description;
     if (currentKey == "description") {
-      this->data->description = value;
+      this->data->description = toPascalCase(value);
     }
     // "icon": "09d" String icon;
    //String iconMeteoCon;

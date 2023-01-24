@@ -22,7 +22,7 @@
 #include <DHT_U.h>
 
 #include "DisplayWeather.h"
-#include "WifiInfo.h"
+#include "WiFiInfo.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
@@ -35,7 +35,7 @@ SoftwareSerial Serial1(6, 7) //RX, TX
 //#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 
-WiFiConnection wifiInfo("Unknown", "Invalid");
+WiFiConnection wiFiInfo("Unknown", "Invalid");
 
 /***************************
  * Begin DHT11 Settings
@@ -122,7 +122,7 @@ long timeSinceLastWUpdate = 0;
 void setReadyForUpdate();
 void updateSystemTime();
 bool updateData();
-void configureWifi();
+void configureWiFi();
 void printConnectInfo();
 
 #ifdef DEBUG
@@ -177,7 +177,7 @@ void setup()
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
-	configureWifi();
+	configureWiFi();
 	timeClient.begin();
 	//updateData();
 	//displayControl.fillScreen(BLACK);
@@ -267,7 +267,7 @@ bool updateData()
 	return currentWeatherUpdated && forecastWeatherUpdated;
 }
 
-void resolveWifiInfo()
+void resolveWiFiInfo()
 {
 	int8_t numNetworks = WiFi.scanNetworks();
 
@@ -283,9 +283,9 @@ void resolveWifiInfo()
 				WiFiConnections[j].Avialable = true;
 				WiFiConnections[j].Strength = WiFi.RSSI(i);
 
-				if (WiFiConnections[j].Strength > wifiInfo.Strength)
+				if (WiFiConnections[j].Strength > wiFiInfo.Strength)
 				{
-					wifiInfo = WiFiConnections[j];
+					wiFiInfo = WiFiConnections[j];
 				}
 			}
 		}
@@ -294,9 +294,9 @@ void resolveWifiInfo()
 	
 }
 
-void configureWifi()
+void configureWiFi()
 {
-	String intialMsg = "Intializing Wifi module.";
+	String intialMsg = "Intializing WiFi module.";
 	Serial.println(intialMsg);
 	displayControl.drawProgress(10, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
@@ -315,16 +315,16 @@ void configureWifi()
 			;
 	}
 
-	String scanMsg = "Scanning for Wifi SSID.";
+	String scanMsg = "Scanning for WiFi SSID.";
 	Serial.println(scanMsg);
 	displayControl.drawProgress(30, scanMsg);
-	resolveWifiInfo();
+	resolveWiFiInfo();
 
 	String infoMsg = "Waiting for connection to WiFi";
-	if (!wifiInfo.Avialable)
+	if (!wiFiInfo.Avialable)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "No Wifi connecttion found %s!", wifiInfo.SSID);
+		sprintf(connectErr, "No WiFi connecttion found %s!", wiFiInfo.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
@@ -332,7 +332,7 @@ void configureWifi()
 			;
 	}
 
-	WiFi.begin(wifiInfo.SSID, wifiInfo.Password);
+	WiFi.begin(wiFiInfo.SSID, wiFiInfo.Password);
 	Serial.println(infoMsg);
 	displayControl.drawProgress(50, infoMsg);
 
@@ -353,7 +353,7 @@ void configureWifi()
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "Wifi failed to connect to %s access point!", wifiInfo.SSID);
+		sprintf(connectErr, "WiFi failed to connect to %s access point!", wiFiInfo.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
@@ -365,12 +365,12 @@ void configureWifi()
 	WiFi.sleepMode(WIFI_NONE_SLEEP);
 
 	char ssidInfo[42] = "";
-	sprintf(ssidInfo, "Connected to Wifi: %s", wifiInfo.SSID);
+	sprintf(ssidInfo, "Connected to WiFi: %s", wiFiInfo.SSID);
 	displayControl.drawProgress(90, ssidInfo);
 	delay(500);
 		
 	printConnectInfo();
-	displayControl.drawProgress(100, "Wifi initialization done!");
+	displayControl.drawProgress(100, "WiFi initialization done!");
 	delay(1000);
 }
 
@@ -383,7 +383,7 @@ void printConnectInfo()
 
 	// print MAC address
 	char ssidInfo[34] = "";
-	sprintf(ssidInfo, "Wifi SSID: %s", wifiInfo.SSID);
+	sprintf(ssidInfo, "WiFi SSID: %s", wiFiInfo.SSID);
 	Serial.println(ssidInfo);
 	displayControl.printLine(ssidInfo, GREEN);
 

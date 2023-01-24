@@ -94,6 +94,7 @@ class OpenWeatherMapForecast : public JsonListener {
 
     bool doUpdate(OpenWeatherMapForecastData *data, String path);
     String buildPath(String appId, String locationParameter);
+    String toPascalCase(String value);
 
   public:
     OpenWeatherMapForecast();

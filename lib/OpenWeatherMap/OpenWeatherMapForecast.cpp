@@ -94,6 +94,24 @@ bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String p
   return true;
 }
 
+String OpenWeatherMapForecast::toPascalCase(String buffer)
+{
+	if (!buffer) return;
+  bool upper = true;
+  char c;
+	for (uint16_t i = 0; i < buffer.length(); i++) {
+    if (upper) {
+		  c = toupper(buffer.charAt(i));
+      Serial.println(c);
+      buffer.setCharAt(i, c);
+    }
+    upper = false;
+    if (buffer.charAt(i) == ' ')
+      upper = true;
+	}
+  return buffer;
+}
+
 void OpenWeatherMapForecast::whitespace(char c) {
   Serial.println("whitespace");
 }
@@ -182,7 +200,7 @@ void OpenWeatherMapForecast::value(String value) {
     }
     //   "description":"scattered clouds",String description;
     if (currentKey == "description") {
-      data[currentForecast].description = value;
+      data[currentForecast].description = toPascalCase(value);
     }
     //   "icon":"03d" String icon; String iconMeteoCon;
     if (currentKey == "icon") {
