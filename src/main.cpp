@@ -39,12 +39,12 @@ WiFiConnection wiFiInfo("Unknown", "Invalid");
 /***************************
  * Begin DHT22 Settings
  **************************/
-#define DHTPIN 9     // Digital pin connected to the DHT sensor 
+#define DHTPIN 13     // Digital pin connected to the DHT sensor 
 // Uncomment the type of sensor in use:
 //#define DHTTYPE    DHT11     // DHT 11
 #define DHTTYPE    DHT22     // DHT 22 (AM2302)
 //#define DHTTYPE    DHT21     // DHT 21 (AM2301)
-DHT_Unified dht(DHTPIN, DHTTYPE);
+DHT_Unified dht22(DHTPIN, DHTTYPE);
 float tempTemp = 0.0; //temperature
 float tempHumi = 0.0; //humidity
 long readTime = 0;
@@ -135,7 +135,7 @@ void setup()
 	while (!Serial)
 		;
 
-	dht.begin();
+	dht22.begin();
 }
 
 void loop()
@@ -192,7 +192,7 @@ void setup()
 
 	configureWiFi();
 	timeClient.begin();
-	dht.begin();
+	dht22.begin();
 	//updateData();
 	//displayControl.fillScreen(BLACK);
 }
@@ -201,7 +201,7 @@ void loop()
 {	
 	//Read sensor values base on Upload interval seconds
 	if(millis() - readTime > SENSOR_INTERVAL_SECS){
-		//readTemperatureHumidity();
+		readTemperatureHumidity();
 		readTime = millis();
 	}
 
@@ -431,7 +431,7 @@ void printConnectInfo()
 void readTemperatureHumidity()
 {
 	sensors_event_t event;
-	dht.temperature().getEvent(&event);
+	dht22.temperature().getEvent(&event);
 	if (isnan(event.temperature))
 	{
 		Serial.println(F("Error reading temperature!"));
@@ -439,9 +439,12 @@ void readTemperatureHumidity()
 	else
 	{
 		tempTemp = roundUpDecimal(event.temperature);
+		Serial.print(F("Temperature: "));
+		Serial.print(tempTemp);
+		Serial.println(F("°C"));
 	}
 
-	dht.humidity().getEvent(&event);
+	dht22.humidity().getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
 		Serial.println(F("Error reading humidity!"));
@@ -449,6 +452,9 @@ void readTemperatureHumidity()
 	else
 	{
 		tempHumi = roundUpDecimal(event.relative_humidity);
+		Serial.print(F("Humidity: "));
+		Serial.print(tempHumi);
+		Serial.println(F("%"));
 	}
 }
 
