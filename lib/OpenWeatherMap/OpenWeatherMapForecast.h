@@ -33,17 +33,17 @@ typedef struct OpenWeatherMapForecastData {
   //   "temp":17.35,
   float temp;
   //   "feels_like": 16.99,
-  float feelsLike;
+  //float feelsLike;
   //   "temp_min":16.89,
-  float tempMin;
+  //float tempMin;
   //   "temp_max":17.35,
-  float tempMax;
+  //float tempMax;
   //   "pressure":970.8,
   float pressure;
   //   "sea_level":1030.62,
-  float pressureSeaLevel;
+  //float pressureSeaLevel;
   //   "grnd_level":970.8,
-  float pressureGroundLevel;
+  //float pressureGroundLevel;
   //   "humidity":97,
   uint8_t humidity;
   //   "temp_kf":0.46
@@ -56,16 +56,15 @@ typedef struct OpenWeatherMapForecastData {
   String description;
   //   "icon":"03d"
   String icon;
-  String iconMeteoCon;
   // }],"clouds":{"all":44},
-  uint8_t clouds;
+  //uint8_t clouds;
   // "wind":{
   //   "speed":1.77,
-  float windSpeed;
+  //float windSpeed;
   //   "deg":207.501
-  float windDeg;
+  //float windDeg;
   // rain: {3h: 0.055},
-  float rain;
+  //float rain;
   // "country": "CH",
   //String country;
   // "name": "Zurich",

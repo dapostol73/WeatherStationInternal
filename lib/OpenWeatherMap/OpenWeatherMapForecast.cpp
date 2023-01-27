@@ -155,31 +155,11 @@ void OpenWeatherMapForecast::value(String value) {
   if (currentKey == "temp") {
     data[currentForecast].temp = value.toFloat();
     // initialize potentially empty values:
-    data[currentForecast].rain = 0;;
-  }
-  //   "feels_like": 16.99, float feelsLike;
-  if (currentKey == "feels_like") {
-    data[currentForecast].feelsLike = value.toFloat();
-  }
-  //   "temp_min":16.89, float tempMin;
-  if (currentKey == "temp_min") {
-    data[currentForecast].tempMin = value.toFloat();
-  }
-  //   "temp_max":17.35,float tempMax;
-  if (currentKey == "temp_max") {
-    data[currentForecast].tempMax = value.toFloat();
+    //data[currentForecast].rain = 0;;
   }
   //   "pressure":970.8,float pressure;
   if (currentKey == "pressure") {
     data[currentForecast].pressure = value.toFloat();
-  }
-  //   "sea_level":1030.62,float pressureSeaLevel;
-  if (currentKey == "sea_level") {
-    data[currentForecast].pressureSeaLevel = value.toFloat();
-  }
-  //   "grnd_level":970.8,float pressureGroundLevel;
-  if (currentKey == "grnd_level") {
-    data[currentForecast].pressureGroundLevel = value.toFloat();
   }
   //   "":97,uint8_t humidity;
   if (currentKey == "humidity") {
@@ -207,6 +187,27 @@ void OpenWeatherMapForecast::value(String value) {
       data[currentForecast].icon = value;
     }
   }
+  /*
+  //   "feels_like": 16.99, float feelsLike;
+  if (currentKey == "feels_like") {
+    data[currentForecast].feelsLike = value.toFloat();
+  }
+  //   "temp_min":16.89, float tempMin;
+  if (currentKey == "temp_min") {
+    data[currentForecast].tempMin = value.toFloat();
+  }
+  //   "temp_max":17.35,float tempMax;
+  if (currentKey == "temp_max") {
+    data[currentForecast].tempMax = value.toFloat();
+  }
+  //   "sea_level":1030.62,float pressureSeaLevel;
+  if (currentKey == "sea_level") {
+    data[currentForecast].pressureSeaLevel = value.toFloat();
+  }
+  //   "grnd_level":970.8,float pressureGroundLevel;
+  if (currentKey == "grnd_level") {
+    data[currentForecast].pressureGroundLevel = value.toFloat();
+  }
   // }],"clouds":{"all":44},uint8_t clouds;
   if (currentKey == "all") {
     data[currentForecast].clouds = value.toInt();
@@ -224,6 +225,7 @@ void OpenWeatherMapForecast::value(String value) {
   if (currentKey == "3h") {
     data[currentForecast].rain = value.toFloat();
   }
+  */
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"   String observationTimeText;
   if (currentKey == "dt_txt") {

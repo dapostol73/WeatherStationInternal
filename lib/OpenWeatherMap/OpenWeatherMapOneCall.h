@@ -140,7 +140,6 @@ typedef struct OpenWeatherMapOneCallDailyData {
   String weatherDescription;
   // "icon": "09d"
   String weatherIcon;
-  String weatherIconMeteoCon;
   // "clouds": 0
   uint8_t clouds;
   // "rain": 5.97
