@@ -27,22 +27,24 @@
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
 
+//#define DEBUG
+#define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
 #include "SoftwareSerial.h"
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
-//#define DEBUG
-#define SERIAL_BAUD_RATE 115200
-
 WiFiConnection wiFiInfo("Unknown", "Invalid");
 
 /***************************
- * Begin DHT11 Settings
+ * Begin DHT22 Settings
  **************************/
-#define DHTTYP DHT22 // DHT 22 (AM2302)
-#define DHTPIN 8    // Digital pin connected to the DHT sensor
-DHT_Unified dht22(DHTPIN, DHTTYP);
+#define DHTPIN 9     // Digital pin connected to the DHT sensor 
+// Uncomment the type of sensor in use:
+//#define DHTTYPE    DHT11     // DHT 11
+#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+DHT_Unified dht(DHTPIN, DHTTYPE);
 float tempTemp = 0.0; //temperature
 float tempHumi = 0.0; //humidity
 long readTime = 0;
@@ -133,12 +135,23 @@ void setup()
 	while (!Serial)
 		;
 
-	displayControl.init();
+	dht.begin();
 }
 
 void loop()
 {
-	
+	if(millis() - readTime > SENSOR_INTERVAL_SECS){
+		readTemperatureHumidity();
+		readTime = millis();
+	}
+
+	char currentTemp[20] = "";
+	sprintf_P(currentTemp, PSTR("Temperature : %d"), tempTemp);
+	Serial.println(currentTemp);
+
+	char currentHumi[20] = "";
+	sprintf_P(currentHumi, PSTR("Humidity: %d"), tempHumi);
+	Serial.println(currentHumi);
 }
 
 #else
@@ -165,20 +178,21 @@ void setup()
 	displayControl.setOverlays(overlays, numberOfOverlays);
 
 	displayControl.fillScreen(BLACK);
-	displayControl.drawWeatherIcon(40 ,  70, "01d", true);
-	displayControl.drawWeatherIcon(140,  70, "02d", true);
-	displayControl.drawWeatherIcon(240,  70, "03d", true);
-	displayControl.drawWeatherIcon(340,  70, "04d", true);
-	displayControl.drawWeatherIcon(440,  70, "09d", true);
-	displayControl.drawWeatherIcon(90 , 190, "10d", true);
-	displayControl.drawWeatherIcon(190, 190, "11d", true);
-	displayControl.drawWeatherIcon(290, 190, "13d", true);
-	displayControl.drawWeatherIcon(390, 190, "50d", true);
+	displayControl.drawWeatherIcon(40 ,  80, "01d", true);
+	displayControl.drawWeatherIcon(140,  80, "02d", true);
+	displayControl.drawWeatherIcon(240,  80, "03d", true);
+	displayControl.drawWeatherIcon(340,  80, "04d", true);
+	displayControl.drawWeatherIcon(440,  80, "09d", true);
+	displayControl.drawWeatherIcon(90 , 200, "10d", true);
+	displayControl.drawWeatherIcon(190, 200, "11d", true);
+	displayControl.drawWeatherIcon(290, 200, "13d", true);
+	displayControl.drawWeatherIcon(390, 200, "50d", true);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
 	configureWiFi();
 	timeClient.begin();
+	dht.begin();
 	//updateData();
 	//displayControl.fillScreen(BLACK);
 }
@@ -198,8 +212,22 @@ void loop()
 
 	if (readyForUpdate && !updateData()) 
 	{
-		Serial.println("Update failed, try again with reseting the WiFi.");
-		WiFi.reset();
+		Serial.println("Update failed, refreshing WiFi connection.");
+		WiFi.disconnect();
+		delay(3000);
+		WiFi.begin(wiFiInfo.SSID, wiFiInfo.Password);
+
+		int timeout = 0;
+		int timeoutMax = 30;
+		Serial.print("Connecting to WiFi");
+		while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
+		{
+			delay(1000);
+			Serial.print('.');
+			++timeout;
+		}
+		Serial.println();
+
 		updateData();
 	}
 
@@ -302,7 +330,6 @@ void configureWiFi()
 	Serial3.begin(SERIAL_BAUD_RATE);
 	
 	WiFi.init(&Serial3);
-	WiFi.setAutoConnect(true);
 
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
@@ -332,6 +359,7 @@ void configureWiFi()
 			;
 	}
 
+	WiFi.setAutoConnect(true);
 	WiFi.begin(wiFiInfo.SSID, wiFiInfo.Password);
 	Serial.println(infoMsg);
 	displayControl.drawProgress(50, infoMsg);
@@ -403,7 +431,7 @@ void printConnectInfo()
 void readTemperatureHumidity()
 {
 	sensors_event_t event;
-	dht22.temperature().getEvent(&event);
+	dht.temperature().getEvent(&event);
 	if (isnan(event.temperature))
 	{
 		Serial.println(F("Error reading temperature!"));
@@ -413,7 +441,7 @@ void readTemperatureHumidity()
 		tempTemp = roundUpDecimal(event.temperature);
 	}
 
-	dht22.humidity().getEvent(&event);
+	dht.humidity().getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
 		Serial.println(F("Error reading humidity!"));

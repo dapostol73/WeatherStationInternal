@@ -22,10 +22,13 @@ DisplayControl::DisplayControl()
 void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
 {
     m_lcd.begin(0x7796); //initialize lcd
-    m_lcd.fillScreen(BLACK);
     m_gfxFontDefault = gfxFont;
     setFont(gfxFont);
     setRotation(rotation);
+    m_lcd.fillScreen(BLACK);
+    m_lcd.setBackColor(BLACK);
+    m_lcd.setColor(WHITE);
+    m_lcd.setTextColor(WHITE);
 }
 
 MCUFRIEND_kbv* DisplayControl::getDisplay()
@@ -52,10 +55,11 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
     return m_lcd.color565(r, g, b);
 }
 
-void DisplayControl::setFont(const GFXfont *gfxFont) {
-  m_gfxFont = gfxFont;
-  m_lcd.setFont(m_gfxFont);
-  m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
+void DisplayControl::setFont(const GFXfont *gfxFont)
+{
+    m_gfxFont = gfxFont;
+    m_lcd.setFont(m_gfxFont);
+    m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
 }
 
 void DisplayControl::setRotation(uint16_t rotation)

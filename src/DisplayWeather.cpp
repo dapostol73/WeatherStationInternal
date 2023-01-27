@@ -105,7 +105,7 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 {
 	size = max(size, 1);
 	radius *= size;
-	DisplayControl::getDisplay()->fillCircle(x+radius, y+radius, radius, color);
+	getDisplay()->fillCircle(x+radius, y+radius, radius, color);
 }
 
 /// @brief Cloud is 58*36 at size 1
@@ -116,13 +116,13 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 void DisplayWeather::drawCloud(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	size = max(size, 1);
-	DisplayControl::getDisplay()->fillCircle(10*size+x, 25*size+y, 11*size, color);
-	DisplayControl::getDisplay()->fillCircle(24*size+x, 12*size+y, 12*size, color);
-	DisplayControl::getDisplay()->fillCircle(41*size+x, 16*size+y, 7*size,  color);
-	DisplayControl::getDisplay()->fillCircle(50*size+x, 28*size+y, 8*size,  color);
-	DisplayControl::getDisplay()->fillRoundRect(30*size+x, 10*size+y, 19*size, 16*size, 7*size, color);
-	DisplayControl::getDisplay()->fillRoundRect(10*size+x, 26*size+y, 40*size, 11*size, 2*size, color);
-	DisplayControl::getDisplay()->fillRect(20*size+x, 20*size+y, 20*size, 6*size, color);
+	getDisplay()->fillCircle(10*size+x, 25*size+y, 11*size, color);
+	getDisplay()->fillCircle(24*size+x, 12*size+y, 12*size, color);
+	getDisplay()->fillCircle(41*size+x, 16*size+y, 7*size,  color);
+	getDisplay()->fillCircle(50*size+x, 28*size+y, 8*size,  color);
+	getDisplay()->fillRoundRect(30*size+x, 10*size+y, 19*size, 16*size, 7*size, color);
+	getDisplay()->fillRoundRect(10*size+x, 26*size+y, 40*size, 11*size, 2*size, color);
+	getDisplay()->fillRect(20*size+x, 20*size+y, 20*size, 6*size, color);
 }
 
 /// @brief Thunder is 12*22 at size 1
@@ -148,8 +148,8 @@ void DisplayWeather::drawThunder(int16_t x, int16_t y, int16_t size, uint16_t co
 
 void DisplayWeather::drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	DisplayControl::getDisplay()->fillTriangle(0*size+x, 2*size+y, 2*size+x, 0*size+y, 3*size+x, 3*size+y, color);
-	DisplayControl::getDisplay()->fillCircle(1*size+x,  4*size+y, size*2, color);
+	getDisplay()->fillTriangle(0*size+x, 2*size+y, 2*size+x, 0*size+y, 3*size+x, 3*size+y, color);
+	getDisplay()->fillCircle(1*size+x,  4*size+y, size*2, color);
 }
 
 /// @brief Rain Heavy is 26*18 at size 1
@@ -313,10 +313,10 @@ void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size)
 void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size)
 {
 	x -= 30*size;
-	y -= 30*size;
+	y -= 31*size;
 	drawCloud(12*size+x, y, size, DIMGRAY);
 	drawCloud(x, 6*size+y, size);
-	drawSnow(12*size+x, 42*size+y, size);
+	drawSnow(12*size+x, 44*size+y, size);
 }
 
 void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size)
@@ -344,7 +344,7 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 {
 	int16_t x1, y1 = 0;
     uint16_t w, h = 0;
-    DisplayControl::getDisplay()->getTextBounds("8", 0, 0, &x1, &y1, &w, &h);
+    getDisplay()->getTextBounds("8", 0, 0, &x1, &y1, &w, &h);
 	String temp = String(temperature, 1);
 	if (align > 0)
 	{
@@ -361,32 +361,32 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
         }
 	}
 
-	DisplayControl::drawString(temp, x, y, TEXT_LEFT, foregroundColor);
+	drawString(temp, x, y, TEXT_LEFT, foregroundColor);
 	int16_t radius = w * 0.5;
-	x = DisplayControl::getDisplay()->getCursorX() + radius;
-	DisplayControl::getDisplay()->drawCircle(x, y + radius-1, radius-1, foregroundColor);
-	DisplayControl::getDisplay()->drawCircle(x, y + radius-1, radius-2, foregroundColor);
+	x = getDisplay()->getCursorX() + radius;
+	getDisplay()->drawCircle(x, y + radius-1, radius-1, foregroundColor);
+	getDisplay()->drawCircle(x, y + radius-1, radius-2, foregroundColor);
 	x += radius;
 	if (isMetric)
 	{
-		DisplayControl::drawString("C", x, y, TEXT_LEFT, foregroundColor);
+		drawString("C", x, y, TEXT_LEFT, foregroundColor);
 	}
 	else
 	{
-		DisplayControl::drawString("F", x, y, TEXT_LEFT, foregroundColor);
+		drawString("F", x, y, TEXT_LEFT, foregroundColor);
 	}
 }
 
 void DisplayWeather::drawDateTime(int16_t x, int16_t y)
 {
 	fillScreen(BLACK);
-	DisplayControl::setFont(&CalibriBold24pt7b);
+	setFont(&CalibriBold24pt7b);
 	char buff[20];
 	sprintf_P(buff, PSTR("%s, %d %s %d"), WDAY_NAMES[weekday()-1].c_str(), day(), MONTH_NAMES[month()-1].c_str(), year());
-	DisplayControl::drawString(buff, 240, 140, TEXT_CENTER, CYAN);
+	drawString(buff, 240, 140, TEXT_CENTER, CYAN);
 
 	sprintf_P(buff, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
-	DisplayControl::drawString(buff, 240, 180, TEXT_CENTER, CYAN);
+	drawString(buff, 240, 180, TEXT_CENTER, CYAN);
 }
 
 void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y)
@@ -395,11 +395,11 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	y = 40;
 	fillScreen(BLACK);
 	drawWeatherIcon(x, y + 90, currentWeather->icon, true, 2);
-	DisplayControl::setFont(&CalibriBold24pt7b);
-	DisplayControl::drawString(currentWeather->cityName, x, y + 5, TEXT_CENTER, YELLOW);
-	DisplayControl::setFont(&CalibriBold16pt7b);
+	setFont(&CalibriBold24pt7b);
+	drawString(currentWeather->cityName, x, y + 5, TEXT_CENTER, YELLOW);
+	setFont(&CalibriBold16pt7b);
 	drawTemperature(currentWeather->temp, m_isMetric, x, y + 160, TEXT_CENTER, CYAN);
-	DisplayControl::drawString(currentWeather->description, x, y + 200, TEXT_CENTER, ORANGE);
+	drawString(currentWeather->description, x, y + 200, TEXT_CENTER, ORANGE);
 }
 
 void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex) 
@@ -407,21 +407,21 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	time_t observationTimestamp = forecastWeather[dayIndex].observationTime;
 	int16_t day = weekday(observationTimestamp)-1;
 	drawWeatherIcon(x, y + 100, forecastWeather[dayIndex].icon, true, 2);
-	DisplayControl::setFont(&CalibriBold16pt7b);
-	DisplayControl::drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
-	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x, y + 170, TEXT_CENTER, CYAN);
-	DisplayControl::setFont(&CalibriBold8pt7b);
-	DisplayControl::drawString(forecastWeather[dayIndex].description, x, y + 200, TEXT_CENTER, ORANGE);	
+	setFont(&CalibriBold16pt7b);
+	drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
+	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x, y + 180, TEXT_CENTER, CYAN);
+	setFont(&CalibriBold8pt7b);
+	drawString(forecastWeather[dayIndex].description, x, y + 210, TEXT_CENTER, ORANGE);	
 }
 
 void DisplayWeather::drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
 {
 	fillScreen(BLACK);
-	//DisplayControl::setFont(&CalibriBold24pt7b);
-	//DisplayControl::drawString(forecastWeather[0].cityName, 240, 40, TEXT_CENTER, YELLOW);
-	drawForecastDetails(forecastWeather, 80, 60, 0);
-	drawForecastDetails(forecastWeather, 240, 60, 1);
-	drawForecastDetails(forecastWeather, 400, 60, 2);	
+	//setFont(&CalibriBold24pt7b);
+	//drawString(forecastWeather[0].cityName, 240, 40, TEXT_CENTER, YELLOW);
+	drawForecastDetails(forecastWeather, 80,  40, 0);
+	drawForecastDetails(forecastWeather, 240, 40, 1);
+	drawForecastDetails(forecastWeather, 400, 40, 2);	
 }
 
 /// @brief Default size when set to 1 is 12x12
@@ -434,10 +434,10 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 	if (WiFi.status() == WL_CONNECTED)
 	{
 		int32_t strength = WiFi.RSSI();
-		DisplayControl::getDisplay()->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGRAY);
-		DisplayControl::getDisplay()->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGRAY);
-		DisplayControl::getDisplay()->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGRAY);
-		DisplayControl::getDisplay()->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGRAY);
+		getDisplay()->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGRAY);
+		getDisplay()->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGRAY);
+		getDisplay()->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGRAY);
+		getDisplay()->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGRAY);
 	}
 	else
 	{
@@ -445,31 +445,31 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 		int16_t lw = size*10;
 		for (int16_t t=0; t < size * 2; t++)
 		{
-			DisplayControl::getDisplay()->drawFastHLine(x+2, ly+t, lw, ORANGERED);
+			getDisplay()->drawFastHLine(x+2, ly+t, lw, ORANGERED);
 		}
 		int16_t r = 6*size;
 		int16_t cx = x+r;
 		int16_t cy = y+r;
 		for (int16_t t=0; t < size * 2; t++)
 		{
-			DisplayControl::getDisplay()->drawCircle(cx, cy, r-t, ORANGERED);
+			getDisplay()->drawCircle(cx, cy, r-t, ORANGERED);
 		}		
 	}
 }
 
 void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated)
 {
-	DisplayControl::getDisplay()->fillRect(0, 0, 480, 12, CHARCOAL);
-	DisplayControl::getDisplay()->drawFastHLine(0, 13, 480, CYAN);
-	DisplayControl::getDisplay()->drawFastHLine(0, 14, 480, CYAN);
+	getDisplay()->fillRect(0, 0, 480, 12, CHARCOAL);
+	getDisplay()->drawFastHLine(0, 13, 480, CYAN);
+	getDisplay()->drawFastHLine(0, 14, 480, CYAN);
 
-	DisplayControl::setFont(&CalibriBold8pt7b);
-	DisplayControl::drawChar(4, 0, 'C', currentWeathersUpdated ? GREEN : RED);
-	DisplayControl::drawChar(20, 0, 'F', forecastWeathersUpdated ? GREEN : RED);
+	setFont(&CalibriBold8pt7b);
+	drawChar(4, 0, 'C', currentWeathersUpdated ? GREEN : RED);
+	drawChar(20, 0, 'F', forecastWeathersUpdated ? GREEN : RED);
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
-	DisplayControl::drawString(m_lastTimeUpdated, 480, 0, TEXT_RIGHT);	
+	drawString(m_lastTimeUpdated, 480, 0, TEXT_RIGHT);	
 }
 
 void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
@@ -477,12 +477,13 @@ void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
 	char time[10];
 	sprintf_P(time, PSTR("%02d:%02d"), hour(), minute());
 
-	DisplayControl::getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
-	DisplayControl::getDisplay()->drawFastHLine(0, 278, 480, CYAN);
-	DisplayControl::getDisplay()->drawFastHLine(0, 279, 480, CYAN);
-	drawWiFiSignal(450, 286, 2);
-	DisplayControl::setFont(&CalibriBold16pt7b);
-	DisplayControl::drawString(time, 120, 300, TEXT_CENTER, ORANGE);
+	getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
+	getDisplay()->drawFastHLine(0, 278, 480, CYAN);
+	getDisplay()->drawFastHLine(0, 279, 480, CYAN);
+	setFont(&CalibriBold16pt7b);
+	
+	drawString(time, 120, 300, TEXT_CENTER, ORANGE);
 	//Serial.println(String(currentWeather->temp));
 	drawTemperature(currentWeather->temp, m_isMetric, 360, 300, TEXT_CENTER, ORANGE);
+	drawWiFiSignal(450, 286, 2);
 }
