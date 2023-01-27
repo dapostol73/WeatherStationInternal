@@ -1,5 +1,4 @@
 #include "DisplayWeather.h"
-#include "Icons/OpenWeatherIcons.h"
 
 // 'snowflake_mask_sml', 9x10px
 const uint8_t snowflake_mask_sml [] PROGMEM = {
@@ -252,6 +251,8 @@ void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 	x -= 29*size;
 	y -= 18*size;
 	drawCloud(x, y, size);
+	getDisplay()->fillRoundRect(x+26*size, y+6*size, 6*size, 20*size, 3*size, RED);
+	getDisplay()->fillCircle(x+29*size, y+30*size, 3*size, RED);
 }
 
 void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size)

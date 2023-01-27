@@ -183,10 +183,11 @@ void setup()
 	displayControl.drawWeatherIcon(240,  80, "03d", true);
 	displayControl.drawWeatherIcon(340,  80, "04d", true);
 	displayControl.drawWeatherIcon(440,  80, "09d", true);
-	displayControl.drawWeatherIcon(90 , 200, "10d", true);
-	displayControl.drawWeatherIcon(190, 200, "11d", true);
-	displayControl.drawWeatherIcon(290, 200, "13d", true);
-	displayControl.drawWeatherIcon(390, 200, "50d", true);
+	displayControl.drawWeatherIcon(40 , 200, "10d", true);
+	displayControl.drawWeatherIcon(140, 200, "11d", true);
+	displayControl.drawWeatherIcon(240, 200, "13d", true);
+	displayControl.drawWeatherIcon(340, 200, "50d", true);
+	displayControl.drawWeatherIcon(440, 200, "00d", true);
 	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
