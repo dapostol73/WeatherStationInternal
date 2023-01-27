@@ -81,7 +81,7 @@ class OpenWeatherMapCurrent : public JsonListener {
 
     bool doUpdate(OpenWeatherMapCurrentData *data, String path);
     String buildPath(String appId, String locationParameter);
-    String toPascalCase(String buffer);
+    String toPascalCase(String value);
 
   public:
     OpenWeatherMapCurrent();

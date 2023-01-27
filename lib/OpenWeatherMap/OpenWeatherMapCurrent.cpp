@@ -85,22 +85,21 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
   return true;
 }
 
-String OpenWeatherMapCurrent::toPascalCase(String buffer)
+String OpenWeatherMapCurrent::toPascalCase(String value)
 {
-	if (!buffer) return;
   bool upper = true;
   char c;
-	for (uint16_t i = 0; i < buffer.length(); i++) {
+	for (uint16_t i = 0; i < value.length(); i++) {
     if (upper) {
-		  c = toupper(buffer.charAt(i));
+		  c = toupper(value.charAt(i));
       Serial.println(c);
-      buffer.setCharAt(i, c);
+      value.setCharAt(i, c);
     }
     upper = false;
-    if (buffer.charAt(i) == ' ')
+    if (value.charAt(i) == ' ')
       upper = true;
 	}
-  return buffer;
+  return value;
 }
 
 void OpenWeatherMapCurrent::whitespace(char c) {
