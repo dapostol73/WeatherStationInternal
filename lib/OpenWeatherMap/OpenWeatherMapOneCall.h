@@ -198,8 +198,6 @@ class OpenWeatherMapOneCall: public JsonListener {
     boolean isMetric() { return metric; }
     void setLanguage(String language) { this->language = language; }
     String getLanguage() { return language; }
-    
-    String getMeteoconIcon(String icon);
 
     virtual void whitespace(char c);
     virtual void startDocument();
