@@ -26,7 +26,6 @@
 #include "OpenWeatherMapForecast.h"
 
 OpenWeatherMapForecast::OpenWeatherMapForecast() {
-
 }
 
 bool OpenWeatherMapForecast::updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts) {
@@ -45,6 +44,7 @@ String OpenWeatherMapForecast::buildPath(String appId, String locationParameter)
 }
 
 bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path) {
+  bool success = true;
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
@@ -59,49 +59,55 @@ bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String p
   WiFiClient client;
   if(client.connect(host.c_str(), port)) {
     bool isBody = false;
+    uint8_t eof = 0;
     char c;
     Serial.println("[HTTP] connected, now GETting data");
-    client.println("GET " + path);//+ " HTTP/1.1\r\n"
+    // TODO: Figure out why Connection: close truncates client.read()
+    client.println("GET " + path + " HTTP/1.1");
     client.println("Host: " + host);
-    client.println("Connection: close");
-
+    client.println("Connection: keep-alive");
+    client.println();
+    
     while (client.connected() || client.available()) {
-      if (client.available()) {
-        if ((millis() - lost_do) > lostTest) {
-          Serial.println("[HTTP] lost in client with a timeout");
-          client.stop();
-          //WiFi.reset();
-        }
-        c = client.read();
-        if (c == '{' || c == '[') {
-          isBody = true;
-        }
-        if (isBody) {
-          parser.parse(c);
-        }
+      if ((millis() - lost_do) > lostTest) {
+        Serial.println("[HTTP] lost in client with a timeout");
+        success = false;
+        break;
+      }
+      if (client.available() == 0 && eof < 100) {
+        eof++;
+        delay(25);
+        if (eof >= 100) break;//HACK: assume if you get 100+ zero, we are done
+        continue;
+      }
+      c = client.read();
+      if (c == '{' || c == '[') {
+        isBody = true;
+      }
+      if (isBody) {
+        parser.parse(c);
       }
       // give WiFi and TCP/IP libraries a chance to handle pending events
       yield();
     }
+
     client.stop();
     client.flush();
     parser.reset();
   } else {
     Serial.println("[HTTP] failed to connect to host");
-    return false;
+    success = false;
   }
   this->data = nullptr;
-  return true;
+  return success;
 }
 
-String OpenWeatherMapForecast::toPascalCase(String value)
-{
+String OpenWeatherMapForecast::toPascalCase(String value) {
   bool upper = true;
   char c;
 	for (uint16_t i = 0; i < value.length(); i++) {
     if (upper) {
 		  c = toupper(value.charAt(i));
-      Serial.println(c);
       value.setCharAt(i, c);
     }
     upper = false;
@@ -116,7 +122,7 @@ void OpenWeatherMapForecast::whitespace(char c) {
 }
 
 void OpenWeatherMapForecast::startDocument() {
-  Serial.println("start document");
+  Serial.println("start of document");
 }
 
 void OpenWeatherMapForecast::key(String key) {
@@ -238,7 +244,6 @@ void OpenWeatherMapForecast::endArray() {
 
 }
 
-
 void OpenWeatherMapForecast::startObject() {
   currentParent = currentKey;
 }
@@ -251,7 +256,7 @@ void OpenWeatherMapForecast::endObject() {
 }
 
 void OpenWeatherMapForecast::endDocument() {
-
+  Serial.println("end of document");
 }
 
 void OpenWeatherMapForecast::startArray() {

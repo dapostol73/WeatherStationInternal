@@ -27,23 +27,20 @@
 
 String PATH_SEPERATOR = "/";
 
-OpenWeatherMapOneCall::OpenWeatherMapOneCall()
-{
+OpenWeatherMapOneCall::OpenWeatherMapOneCall() {
 }
 
-bool OpenWeatherMapOneCall::update(OpenWeatherMapOneCallData *data, String appId, float lat, float lon)
-{
+bool OpenWeatherMapOneCall::update(OpenWeatherMapOneCallData *data, String appId, float lat, float lon) {
   return doUpdate(data, buildPath(appId, lat, lon));
 }
 
-String OpenWeatherMapOneCall::buildPath(String appId, float lat, float lon)
-{
+String OpenWeatherMapOneCall::buildPath(String appId, float lat, float lon) {
   String units = metric ? "metric" : "imperial";
   return "/data/2.5/onecall?appid=" + appId + "&lat=" + lat + "&lon=" + lon + "&units=" + units + "&lang=" + language;
 }
 
-bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String path)
-{
+bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String path) {
+  bool success = true;
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
@@ -59,49 +56,55 @@ bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
   WiFiClient client;
   if (client.connect(host.c_str(), port)) {
     bool isBody = false;
+    uint8_t eof = 0;
     char c;
     Serial.println("[HTTP] connected, now GETting data");
-    client.print("GET " + path + " HTTP/1.1\r\n"
-                 "Host: " + host + "\r\n"
-                 "Connection: close\r\n\r\n");
-
+    // TODO: Figure out why Connection: close truncates client.read()
+    client.println("GET " + path + " HTTP/1.1");
+    client.println("Host: " + host);
+    client.println("Connection: keep-alive");
+    client.println();
+    
     while (client.connected() || client.available()) {
-      if (client.available()) {
-        if ((millis() - lost_do) > lostTest) {
-          Serial.println("[HTTP] lost in client with a timeout");
-          client.stop();
-          //WiFi.reset();
-        }
-        c = client.read();
-        if (c == '{' || c == '[') {
-          isBody = true;
-        }
-        if (isBody) {
-          parser.parse(c);
-        }
+      if ((millis() - lost_do) > lostTest) {
+        Serial.println("[HTTP] lost in client with a timeout");
+        success = false;
+        break;
+      }
+      if (client.available() == 0 && eof < 100) {
+        eof++;
+        delay(25);
+        if (eof >= 100) break;//HACK: assume if you get 100+ zero, we are done
+        continue;
+      }
+      c = client.read();
+      if (c == '{' || c == '[') {
+        isBody = true;
+      }
+      if (isBody) {
+        parser.parse(c);
       }
       // give WiFi and TCP/IP libraries a chance to handle pending events
       yield();
     }
+
     client.stop();
     client.flush();
     parser.reset();
   } else {
     Serial.println("[HTTP] failed to connect to host");
-    return false;
+    success = false;
   }
   this->data = nullptr;
-  return true;
+  return success;
 }
 
-String OpenWeatherMapOneCall::toPascalCase(String value)
-{
+String OpenWeatherMapOneCall::toPascalCase(String value) {
   bool upper = true;
   char c;
 	for (uint16_t i = 0; i < value.length(); i++) {
     if (upper) {
 		  c = toupper(value.charAt(i));
-      Serial.println(c);
       value.setCharAt(i, c);
     }
     upper = false;
@@ -111,23 +114,19 @@ String OpenWeatherMapOneCall::toPascalCase(String value)
   return value;
 }
 
-void OpenWeatherMapOneCall::whitespace(char c)
-{
+void OpenWeatherMapOneCall::whitespace(char c) {
   Serial.println("whitespace");
 }
 
-void OpenWeatherMapOneCall::startDocument()
-{
-  Serial.println("start document");
+void OpenWeatherMapOneCall::startDocument() {
+  Serial.println("start of document");
 }
 
-void OpenWeatherMapOneCall::key(String key)
-{
+void OpenWeatherMapOneCall::key(String key) {
   currentKey = key;
 }
 
-void OpenWeatherMapOneCall::value(String value)
-{
+void OpenWeatherMapOneCall::value(String value) {
   // "lon": 8.54, float lon;
   if (currentKey == "lon") {
     this->data->lon = value.toFloat();
@@ -339,22 +338,19 @@ void OpenWeatherMapOneCall::value(String value)
   }
 }
 
-void OpenWeatherMapOneCall::endArray()
-{
+void OpenWeatherMapOneCall::endArray() {
   currentKey = "";
   currentParent= currentParent.substring(0, currentParent.lastIndexOf(PATH_SEPERATOR));
 }
 
-void OpenWeatherMapOneCall::startObject()
-{
+void OpenWeatherMapOneCall::startObject() {
   if(currentKey == "") {
     currentKey = "_obj";
   }
   currentParent += PATH_SEPERATOR + currentKey;
 }
 
-void OpenWeatherMapOneCall::endObject()
-{
+void OpenWeatherMapOneCall::endObject() {
   if (currentParent == "/ROOT/current/weather[]/_obj" || currentParent == "/ROOT/daily[]/_obj/weather[]/_obj" || currentParent == "/ROOT/daily[]/_obj/weather[]/_obj"  ) {
     weatherItemCounter++;
   }
@@ -368,12 +364,11 @@ void OpenWeatherMapOneCall::endObject()
   currentParent= currentParent.substring(0, currentParent.lastIndexOf(PATH_SEPERATOR));
 }
 
-void OpenWeatherMapOneCall::endDocument()
-{
+void OpenWeatherMapOneCall::endDocument() {
+  Serial.println("end of document");
 }
 
-void OpenWeatherMapOneCall::startArray()
-{
+void OpenWeatherMapOneCall::startArray() {
   weatherItemCounter = 0;
   
   currentParent += PATH_SEPERATOR + currentKey + "[]";
