@@ -16,6 +16,7 @@
 // Adjust according to your language
 const String WDAY_NAMES[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 const String MONTH_NAMES[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+const String WIND_DIR[] = {"N", "NNE", "NE", "NEE", "E", "SEE", "SE", "SSE", "S", "SSW", "SW", "SWW", "W", "NWW", "NW", "NNW"};
 
 class DisplayWeather : public DisplayControl
 {
@@ -38,6 +39,8 @@ class DisplayWeather : public DisplayControl
         void drawCloud(int16_t x, int16_t y, int16_t size = 1, uint16_t color = WHITE);
         void drawThunder(int16_t x, int16_t y, int16_t size = 1, uint16_t color = ORANGE);
         void drawFog(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DIMGRAY);
+        void drawWind(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DIMGRAY);
+        void drawVisibility(int16_t x, int16_t y, int16_t size = 1);
         void draw00Unknown(int16_t x, int16_t y, int16_t size = 1);
         void draw01Clear(int16_t x, int16_t y, int16_t size = 1);
         void draw02FewClouds(int16_t x, int16_t y, int16_t size = 1);

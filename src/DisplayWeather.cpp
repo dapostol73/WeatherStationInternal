@@ -246,6 +246,28 @@ void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 	getDisplay()->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
 }
 
+/// @brief Wind is 58*42 at size 1
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
+void DisplayWeather::drawWind(int16_t x, int16_t y, int16_t size, uint16_t color)
+{
+	getDisplay()->fillRoundRect(x+6*size, y+10*size, 44*size, 4*size, 2*size, color);
+	fillArc(x+48*size, y+6*size, 315, 75, 6*size, 6*size, 2*size, color);
+	getDisplay()->fillRoundRect(x, y+18*size, 58*size, 4*size, 2*size, color);
+	getDisplay()->fillRoundRect(x+12*size, y+26*size, 34*size, 4*size, 2*size, color);
+	fillArc(x+46*size, y+32*size, 0, 75, 6*size, 6*size, 2*size, color);
+}
+
+void DisplayWeather::drawVisibility(int16_t x, int16_t y, int16_t size)
+{
+	fillArc(x+24, y+16, 270, 60, 24, 16, 16, WHITE);
+	fillArc(x+24, y+16, 90, 60, 24, 16, 16, WHITE);
+	getDisplay()->fillCircle(x+24, y+16, 14, BLUE);
+	getDisplay()->fillCircle(x+24, y+16, 8, BLACK);
+}
+
 void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 {
 	x -= 29*size;
@@ -392,15 +414,26 @@ void DisplayWeather::drawDateTime(int16_t x, int16_t y)
 
 void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y)
 {
-	x = 240;
 	y = 40;
+	char num[8] = "";
+	char info[20] = "";
 	fillScreen(BLACK);
-	drawWeatherIcon(x, y + 90, currentWeather->icon, true, 2);
+	drawWeatherIcon(120, y + 90, currentWeather->icon, true, 2);
 	setFont(&CalibriBold24pt7b);
-	drawString(currentWeather->cityName, x, y + 5, TEXT_CENTER, YELLOW);
+	drawString(currentWeather->cityName, 240, y + 5, TEXT_CENTER, YELLOW);
 	setFont(&CalibriBold16pt7b);
-	drawTemperature(currentWeather->temp, m_isMetric, x, y + 160, TEXT_CENTER, CYAN);
-	drawString(currentWeather->description, x, y + 200, TEXT_CENTER, ORANGE);
+	drawVisibility(360 - 24, y + 50 - 16);
+	dtostrf(0.001*currentWeather->visibility, 5, 2, num);
+	sprintf(info, "%skm", num);
+	drawString(info, 360, y + 90, TEXT_CENTER, ORANGE);
+	drawWind(360-25, y + 120 - 15, 1);
+	dtostrf(currentWeather->windSpeed*0.001, 5, 2, num);
+	sprintf(info, "%skm/s", num);
+	drawString(info, 360, y + 170, TEXT_CENTER, ORANGE);
+	int dir = roundf(currentWeather->windDeg/22.5)%16;
+	drawString(WIND_DIR[dir].c_str(), 360, y + 210, TEXT_CENTER, ORANGE);
+	drawTemperature(currentWeather->temp, m_isMetric, 120, y + 160, TEXT_CENTER, CYAN);
+	drawString(currentWeather->description, 120, y + 200, TEXT_CENTER, ORANGE);
 }
 
 void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex) 

@@ -93,7 +93,7 @@ void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawForecastFrame, drawCurrentWeatherFrame, drawDateTimeFrame };
+FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawDateTimeFrame };
 int numberOfFrames = 3;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
@@ -167,7 +167,7 @@ void setup()
 	displayProgress.width = 480;
 	displayProgress.height = 40;
 	displayProgress.padding = 5;
-	displayProgress.corner = 10;
+	displayProgress.corner = 20;
 	displayProgress.foregroundColor = CYAN;
 	displayProgress.gfxFont = &CalibriBold8pt7b;
 	displayControl.init();
@@ -192,10 +192,8 @@ void setup()
 	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
 	configureWiFi();
-	timeClient.begin();
 	dht22.begin();
-	//updateData();
-	//displayControl.fillScreen(BLACK);
+	timeClient.begin();
 }
 
 void loop()
@@ -320,7 +318,7 @@ void resolveWiFiInfo()
 		}
 	}
 
-	
+	Serial.println("Using WiFi " + String(wiFiInfo.SSID));	
 }
 
 void configureWiFi()
@@ -440,9 +438,9 @@ void readTemperatureHumidity()
 	else
 	{
 		tempTemp = roundUpDecimal(event.temperature);
-		Serial.print(F("Temperature: "));
-		Serial.print(tempTemp);
-		Serial.println(F("°C"));
+		//Serial.print(F("Temperature: "));
+		//Serial.print(tempTemp);
+		//Serial.println(F("°C"));
 	}
 
 	dht22.humidity().getEvent(&event);
@@ -453,9 +451,9 @@ void readTemperatureHumidity()
 	else
 	{
 		tempHumi = roundUpDecimal(event.relative_humidity);
-		Serial.print(F("Humidity: "));
-		Serial.print(tempHumi);
-		Serial.println(F("%"));
+		//Serial.print(F("Humidity: "));
+		//Serial.print(tempHumi);
+		//Serial.println(F("%"));
 	}
 }
 

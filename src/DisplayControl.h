@@ -170,6 +170,8 @@ class DisplayControl
 
         void fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color);
 
+        void fillArc(int16_t x, int16_t y, int16_t start_angle, int16_t seg_count, int16_t rx, int16_t ry, int16_t w, uint16_t colour);
+
         void drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t wd, uint16_t color);
 
         void drawFatCircle(int16_t x, int16_t y, int16_t r, int16_t wd, uint16_t color);
