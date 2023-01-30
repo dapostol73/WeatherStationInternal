@@ -163,11 +163,11 @@ void OpenWeatherMapCurrent::value(String value) {
   }
   // "pressure": 1013, uint16_t pressure;
   if (currentKey == "pressure") {
-    this->data->pressure = value.toInt();
+    this->data->pressure = value.toFloat();
   }
   // "humidity": 87, uint8_t humidity;
   if (currentKey == "humidity") {
-    this->data->humidity = value.toInt();
+    this->data->humidity = value.toFloat();
   }
   // "temp_min": 289.15, float tempMin;
   if (currentKey == "temp_min") {

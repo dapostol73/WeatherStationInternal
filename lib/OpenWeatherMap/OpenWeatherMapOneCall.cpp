@@ -159,10 +159,10 @@ void OpenWeatherMapOneCall::value(String value) {
       this->data->current.feels_like = value.toFloat();
     }
     if (currentKey == "pressure") {
-      this->data->current.pressure = value.toInt();
+      this->data->current.pressure = value.toFloat();
     }
     if (currentKey == "humidity") {
-      this->data->current.humidity = value.toInt();
+      this->data->current.humidity = value.toFloat();
     }
     if (currentKey == "dew_point") {
       this->data->current.dew_point = value.toFloat();

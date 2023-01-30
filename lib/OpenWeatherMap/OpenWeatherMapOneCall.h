@@ -37,9 +37,9 @@ typedef struct OpenWeatherMapOneCallCurrentData {
   // "feels_like": 290.56
   float feels_like;
   // "pressure": 290.56
-  uint16_t pressure;
+  float pressure;
   // "humidity": 87
-  uint8_t humidity;
+  float humidity;
   //"dew_point": -3.24
   float dew_point;
   // "uvi": 4.5

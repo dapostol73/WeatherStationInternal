@@ -27,9 +27,6 @@ class DisplayWeather : public DisplayControl
         char m_lastTimeUpdated[40] = "?Unkown";
         bool m_isMetric = true;
 
-        void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
-        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
-        void drawWiFiSignal(int16_t x, int16_t y, int16_t size);
         void drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color);
         void drawRainLight(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DODGERBLUE);
         void drawRainHeavy(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DODGERBLUE);
@@ -52,6 +49,10 @@ class DisplayWeather : public DisplayControl
         void draw11ThunderStorm(int16_t x, int16_t y, int16_t size = 1);
         void draw13Snow(int16_t x, int16_t y, int16_t size = 1);
         void draw50Mist(int16_t x, int16_t y, int16_t size = 1);
+        void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
+        void drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
+        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
+        void drawWiFiSignal(int16_t x, int16_t y, int16_t size);        
     public:
         DisplayWeather();
         void init();

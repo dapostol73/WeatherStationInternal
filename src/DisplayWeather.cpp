@@ -285,14 +285,15 @@ void DisplayWeather::drawCompassArrow(int16_t x, int16_t y, int16_t direction, i
 	float cx = 0.5;
 	float cy = 0.5;
 	float x0 = 0.5;
-	float y0 = 0.0;
+	float y0 = 0.1;
 	float x1 = 0.5;
 	float y1 = 0.7;
 	float x2 = 0.3;
 	float y2 = 0.85;
 	float x3 = 0.7;
 	float y3 = 0.85;
-	uint16_t diam = 10*size;
+	uint16_t radius = 5*size;
+	uint16_t diam = 2*radius;
 	x -= diam*0.5;
 	y -= diam*0.5;
 	uint16_t cx0 = diam*(cx + (x0 - cx) * cosAngle - (y0 - cy) * sinAngle);
@@ -304,7 +305,10 @@ void DisplayWeather::drawCompassArrow(int16_t x, int16_t y, int16_t direction, i
 	uint16_t cx3 = diam*(cx + (x3 - cx) * cosAngle - (y3 - cy) * sinAngle);
 	uint16_t cy3 = diam*(cy + (x3 - cx) * sinAngle + (y3 - cy) * cosAngle);
 
-	//Serial.println(String(cx0) + ", " + String(cy0) + ", " + String(cx1) + ", " + String(cy1) + ", " + String(cx2) + ", " + String(cy2) + ", " + String(cx3) + ", "  + String(cy3));
+	for (int i = 0; i < min(size, 2); i++)
+	{
+		m_mcuFriend->drawCircle(x+radius, y+radius, radius-i, WHITE);
+	}
 	m_utufGlue.fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx2, y+cy2, RED);
 	m_utufGlue.fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx3, y+cy3, RED);
 }
@@ -441,6 +445,12 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 	}
 }
 
+void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
+{
+	String humi = String(humidity, 1) + "%";
+	drawString(humi, x, y, align, foregroundColor);
+}
+
 void DisplayWeather::drawDateTime(int16_t x, int16_t y)
 {
 	fillScreen(BLACK);
@@ -463,7 +473,8 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	setFont(&CalibriBold24pt7b);
 	drawString(currentWeather->cityName, 240, y + 5, TEXT_CENTER, YELLOW);
 	setFont(&CalibriBold16pt7b);
-	drawTemperature(currentWeather->temp, m_isMetric, 120, y + 160, TEXT_CENTER, CYAN);
+	drawTemperature(currentWeather->temp, m_isMetric, 60, y + 160, TEXT_CENTER, CYAN);
+	drawHumidity(currentWeather->humidity, 180, y + 160, TEXT_CENTER, CYAN);
 	drawString(currentWeather->description, 120, y + 200, TEXT_CENTER, ORANGE);
 	// Visibility
 	drawVisibility(360 - 24, y + 50 - 16);

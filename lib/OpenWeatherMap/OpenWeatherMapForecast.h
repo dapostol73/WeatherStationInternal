@@ -45,7 +45,7 @@ typedef struct OpenWeatherMapForecastData {
   //   "grnd_level":970.8,
   //float pressureGroundLevel;
   //   "humidity":97,
-  uint8_t humidity;
+  float humidity;
   //   "temp_kf":0.46
   // },"weather":[{
   //   "id":802,

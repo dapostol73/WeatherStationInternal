@@ -41,9 +41,9 @@ typedef struct OpenWeatherMapCurrentData {
   // "temp": 290.56,
   float temp;
   // "pressure": 1013,
-  uint16_t pressure;
+  float pressure;
   // "humidity": 87,
-  uint8_t humidity;
+  float humidity;
   // "temp_min": 289.15,
   float tempMin;
   // "temp_max": 292.15

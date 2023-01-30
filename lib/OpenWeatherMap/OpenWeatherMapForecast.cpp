@@ -168,7 +168,7 @@ void OpenWeatherMapForecast::value(String value) {
   }
   //   "":97,uint8_t humidity;
   if (currentKey == "humidity") {
-    data[currentForecast].humidity = value.toInt();
+    data[currentForecast].humidity = value.toFloat();
   }
   //   "temp_kf":0.46
   // },"weather":[{
