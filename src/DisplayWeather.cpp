@@ -451,16 +451,12 @@ void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlig
 	drawString(humi, x, y, align, foregroundColor);
 }
 
-void DisplayWeather::drawDateTime(int16_t x, int16_t y)
+void DisplayWeather::drawTempratureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd)
 {
 	fillScreen(BLACK);
 	setFont(&CalibriBold24pt7b);
-	char buff[20];
-	sprintf_P(buff, PSTR("%s, %d %s %d"), WDAY_NAMES[weekday()-1].c_str(), day(), MONTH_NAMES[month()-1].c_str(), year());
-	drawString(buff, 240, 140, TEXT_CENTER_MIDDLE, CYAN);
-
-	sprintf_P(buff, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
-	drawString(buff, 240, 180, TEXT_CENTER_MIDDLE, CYAN);
+	drawTemperature(internalTemp, m_isMetric, 120, 160, TEXT_CENTER_MIDDLE, CYAN);
+	drawHumidity(internalHmd, 360, 160, TEXT_CENTER_MIDDLE, CYAN);
 }
 
 void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y)

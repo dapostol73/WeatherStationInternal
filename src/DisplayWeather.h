@@ -57,7 +57,7 @@ class DisplayWeather : public DisplayControl
         DisplayWeather();
         void init();
         void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale = 1);
-        void drawDateTime(int16_t x, int16_t y);
+        void drawTempratureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd);
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
         void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
         void drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated);

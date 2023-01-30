@@ -46,7 +46,7 @@ WiFiConnection wiFiInfo("Unknown", "Invalid");
 //#define DHTTYPE    DHT21     // DHT 21 (AM2301)
 DHT_Unified dht22(DHTPIN, DHTTYPE);
 float tempTemp = 0.0; //temperature
-float tempHumi = 0.0; //humidity
+float tempHmd = 0.0; //humidity
 long readTime = 0;
 void readTemperatureHumidity();
 
@@ -87,13 +87,13 @@ bool forecastWeatherUpdated = false;
 DisplayWeather displayControl;
 DisplayContolProgress displayProgress;
 
-void drawDateTimeFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawTempratureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawDateTimeFrame };
+FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawTempratureHumidityFrame };
 int numberOfFrames = 3;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
@@ -439,16 +439,16 @@ void readTemperatureHumidity()
 	}
 	else
 	{
-		tempHumi = roundUpDecimal(event.relative_humidity);
+		tempHmd = roundUpDecimal(event.relative_humidity);
 		//Serial.print(F("Humidity: "));
-		//Serial.print(tempHumi);
+		//Serial.print(tempHmd);
 		//Serial.println(F("%"));
 	}
 }
 
-void drawDateTimeFrame(DisplayControlState* state, int16_t x, int16_t y)
+void drawTempratureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayControl.drawDateTime(x, y);
+	displayControl.drawTempratureHumidity(x, y, tempTemp, tempHmd, 0.0, 0.0);
 }
 
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
