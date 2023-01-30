@@ -265,18 +265,41 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
 {
     int16_t x1, y1 = 0;
     uint16_t w, h = 0;
-    if (mode || align > TEXT_LEFT)
+    if (mode || align > TEXT_LEFT_TOP)
     {
         m_utufGlue.getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-        if (align == TEXT_CENTER)
+        switch (align)
         {
-            x -= w * 0.5;
-            y -= h * 0.5;
-        }
-        else if (align == TEXT_RIGHT)
-        {
-            x -= w + 1;
-            //y -= h;
+            case TEXT_LEFT_MIDDLE:
+                y -= h * 0.5;
+                break;
+            case TEXT_LEFT_BOTTOM:
+                y -= h;
+                break;
+            case TEXT_CENTER_TOP:
+                x -= w * 0.5;
+                break;
+            case TEXT_CENTER_MIDDLE:
+                x -= w * 0.5;
+                y -= h * 0.5;
+                break;
+            case TEXT_CENTER_BOTTOM:
+                x -= w * 0.5;
+                y -= h;
+                break;
+            case TEXT_RIGHT_TOP:
+                x -= w + 1;
+                break;
+            case TEXT_RIGHT_MIDDLE:
+                x -= w + 1;
+                y -= h * 0.5;
+                break;
+            case TEXT_RIGHT_BOTTOM:
+                x -= w + 1;
+                y -= h;
+                break;
+            default:
+                break;
         }
     }
 
@@ -308,7 +331,7 @@ void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgr
     m_utufGlue.setFont(m_gfxFontDefault);
     int x = m_utufGlue.getCursorX();
     int y = m_currentLine*m_lineHeight;
-    drawString(str, x, y, TEXT_LEFT, foregroundColor, backgroundColor, invert);
+    drawString(str, x, y, TEXT_LEFT_TOP, foregroundColor, backgroundColor, invert);
     // check if the text cursor over flowed and by how many lines
     while (m_utufGlue.getCursorY() < m_currentLine*m_lineHeight - 2)
     {

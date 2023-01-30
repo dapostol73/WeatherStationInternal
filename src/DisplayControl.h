@@ -48,9 +48,15 @@ enum FrameState
 
 enum TextAlignment
 {
-  TEXT_LEFT,
-  TEXT_CENTER,
-  TEXT_RIGHT
+  TEXT_LEFT_TOP,
+  TEXT_LEFT_MIDDLE,
+  TEXT_LEFT_BOTTOM,
+  TEXT_CENTER_TOP,
+  TEXT_CENTER_MIDDLE,
+  TEXT_CENTER_BOTTOM,
+  TEXT_RIGHT_TOP,
+  TEXT_RIGHT_MIDDLE,
+  TEXT_RIGHT_BOTTOM
 };
 
 struct DisplayContolProgress
@@ -149,7 +155,7 @@ class DisplayControl
 
         void drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor = WHITE);
 
-        void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
+        void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT_TOP, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 
         void print(String str, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false);
 

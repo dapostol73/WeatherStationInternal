@@ -324,7 +324,7 @@ void configureWiFi()
 		String initialErr = "Communication with WiFi module failed!";
 		Serial.println(initialErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER, BLACK, RED);
+		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
 		while (true)
 			;
@@ -342,7 +342,7 @@ void configureWiFi()
 		sprintf(connectErr, "No WiFi connecttion found %s!", wiFiInfo.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
+		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		while (true)
 			;
 	}
@@ -372,7 +372,7 @@ void configureWiFi()
 		sprintf(connectErr, "WiFi failed to connect to %s access point!", wiFiInfo.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER, BLACK, RED);
+		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
 		while (true)
 			;

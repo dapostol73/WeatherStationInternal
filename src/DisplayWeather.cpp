@@ -417,19 +417,19 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 	if (align > 0)
 	{
 		int16_t sw = w * (temp.length() + 2);
-        if (align == TEXT_CENTER)
+        if (align == TEXT_CENTER_MIDDLE)
         {
             x -= sw * 0.5;
             y -= h * 0.5;
         }
-        else if (align == TEXT_RIGHT)
+        else if (align == TEXT_RIGHT_TOP)
         {
             x -= sw + 1;
             //y -= h;
         }
 	}
 
-	drawString(temp, x, y, TEXT_LEFT, foregroundColor);
+	drawString(temp, x, y, TEXT_LEFT_TOP, foregroundColor);
 	int16_t radius = w * 0.5;
 	x = m_mcuFriend->getCursorX() + radius;
 	m_mcuFriend->drawCircle(x, y + radius-1, radius-1, foregroundColor);
@@ -437,11 +437,11 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 	x += radius;
 	if (isMetric)
 	{
-		drawString("C", x, y, TEXT_LEFT, foregroundColor);
+		drawString("C", x, y, TEXT_LEFT_TOP, foregroundColor);
 	}
 	else
 	{
-		drawString("F", x, y, TEXT_LEFT, foregroundColor);
+		drawString("F", x, y, TEXT_LEFT_TOP, foregroundColor);
 	}
 }
 
@@ -457,10 +457,10 @@ void DisplayWeather::drawDateTime(int16_t x, int16_t y)
 	setFont(&CalibriBold24pt7b);
 	char buff[20];
 	sprintf_P(buff, PSTR("%s, %d %s %d"), WDAY_NAMES[weekday()-1].c_str(), day(), MONTH_NAMES[month()-1].c_str(), year());
-	drawString(buff, 240, 140, TEXT_CENTER, CYAN);
+	drawString(buff, 240, 140, TEXT_CENTER_MIDDLE, CYAN);
 
 	sprintf_P(buff, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
-	drawString(buff, 240, 180, TEXT_CENTER, CYAN);
+	drawString(buff, 240, 180, TEXT_CENTER_MIDDLE, CYAN);
 }
 
 void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y)
@@ -471,11 +471,11 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	fillScreen(BLACK);
 	drawWeatherIcon(120, y + 90, currentWeather->icon, true, 2);
 	setFont(&CalibriBold24pt7b);
-	drawString(currentWeather->cityName, 240, y + 5, TEXT_CENTER, YELLOW);
+	drawString(currentWeather->cityName, 240, y + 5, TEXT_CENTER_MIDDLE, YELLOW);
 	setFont(&CalibriBold16pt7b);
-	drawTemperature(currentWeather->temp, m_isMetric, 60, y + 160, TEXT_CENTER, CYAN);
-	drawHumidity(currentWeather->humidity, 180, y + 160, TEXT_CENTER, CYAN);
-	drawString(currentWeather->description, 120, y + 200, TEXT_CENTER, ORANGE);
+	drawTemperature(currentWeather->temp, m_isMetric, 60, y + 160, TEXT_CENTER_MIDDLE, CYAN);
+	drawHumidity(currentWeather->humidity, 180, y + 160, TEXT_CENTER_MIDDLE, CYAN);
+	drawString(currentWeather->description, 120, y + 200, TEXT_CENTER_MIDDLE, ORANGE);
 	// Visibility
 	drawVisibility(360 - 24, y + 50 - 16);
 	if (currentWeather->visibility < 1000)
@@ -488,7 +488,7 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 		sprintf(info, "%s km", num);
 	}
 
-	drawString(info, 360, y + 90, TEXT_CENTER, ORANGE);
+	drawString(info, 360, y + 90, TEXT_CENTER_MIDDLE, ORANGE);
 
 	// Wind speed
 	drawWind(360-25, y + 120 - 15, 1);
@@ -502,11 +502,11 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 		dtostrf(currentWeather->windSpeed*0.001, 5, 2, num);
 		sprintf(info, "%s km/s", num);
 	}
-	drawString(info, 360, y + 170, TEXT_CENTER, ORANGE);
+	drawString(info, 360, y + 170, TEXT_CENTER_MIDDLE, ORANGE);
 	// Wind direction
 	int dir = roundf(currentWeather->windDeg/22.5)%16;
 	drawCompassArrow(330, y + 210, currentWeather->windDeg, 3);
-	drawString(WIND_DIR[dir].c_str(), 400, y + 210, TEXT_CENTER, ORANGE);
+	drawString(WIND_DIR[dir].c_str(), 360, y + 210, TEXT_LEFT_MIDDLE, ORANGE);
 }
 
 void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex) 
@@ -515,17 +515,17 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	int16_t day = weekday(observationTimestamp)-1;
 	drawWeatherIcon(x, y + 100, forecastWeather[dayIndex].icon, true, 2);
 	setFont(&CalibriBold16pt7b);
-	drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER, YELLOW);
-	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x, y + 180, TEXT_CENTER, CYAN);
+	drawString(WDAY_NAMES[day], x, y + 10, TEXT_CENTER_MIDDLE, YELLOW);
+	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x, y + 180, TEXT_CENTER_MIDDLE, CYAN);
 	setFont(&CalibriBold8pt7b);
-	drawString(forecastWeather[dayIndex].description, x, y + 210, TEXT_CENTER, ORANGE);	
+	drawString(forecastWeather[dayIndex].description, x, y + 210, TEXT_CENTER_MIDDLE, ORANGE);	
 }
 
 void DisplayWeather::drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
 {
 	fillScreen(BLACK);
 	//setFont(&CalibriBold24pt7b);
-	//drawString(forecastWeather[0].cityName, 240, 40, TEXT_CENTER, YELLOW);
+	//drawString(forecastWeather[0].cityName, 240, 40, TEXT_CENTER_MIDDLE, YELLOW);
 	drawForecastDetails(forecastWeather, 80,  40, 0);
 	drawForecastDetails(forecastWeather, 240, 40, 1);
 	drawForecastDetails(forecastWeather, 400, 40, 2);	
@@ -576,23 +576,23 @@ void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathe
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
-	drawString(m_lastTimeUpdated, 480, 0, TEXT_RIGHT);	
+	drawString(m_lastTimeUpdated, 480, 0, TEXT_RIGHT_TOP);	
 }
 
 void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
 {
 	char date[20];
 	char time[10];
-	sprintf_P(date, PSTR("%d %s %d"), day(), MONTH_NAMES[month()-1].c_str(), year());
+	sprintf_P(date, PSTR("%s %d, %d"), MONTH_NAMES[month()-1].c_str(), day(), year());
 	sprintf_P(time, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
 
-	m_mcuFriend->fillRect(0, 280, 480, 320, CHARCOAL);
+	m_mcuFriend->fillRect(0, 280, 480, 320, CHARCOAL); 
 	m_mcuFriend->drawFastHLine(0, 278, 480, CYAN);
 	m_mcuFriend->drawFastHLine(0, 279, 480, CYAN);
 	setFont(&CalibriBold16pt7b);
 	
-	drawString(date, 240, 300, TEXT_CENTER, ORANGE);
-	drawString(time, 75, 300, TEXT_CENTER, ORANGE);
-	drawTemperature(currentWeather->temp, m_isMetric, 390, 300, TEXT_CENTER, ORANGE);
+	drawString(time, 20, 290, TEXT_LEFT_TOP, ORANGE);
+	drawString(date, 240, 290, TEXT_CENTER_TOP, ORANGE);
+	drawTemperature(currentWeather->temp, m_isMetric, 440, 290, TEXT_RIGHT_TOP, ORANGE);
 	drawWiFiSignal(450, 286, 2);
 }
