@@ -8,6 +8,7 @@
 // In utility\mcufriend_special.h uncomment #define USE_MEGA_8BIT_PORTC_SHIELD
 
 #include <Arduino.h>
+#include <limits.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <WiFiEspAT.h>
@@ -20,6 +21,7 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include <TFT_Touch.h>
 
 #include "DisplayWeather.h"
 #include "WiFiInfo.h"
@@ -36,9 +38,9 @@ SoftwareSerial Serial1(6, 7) //RX, TX
 
 WiFiConnection wiFiInfo("Unknown", "Invalid");
 
-/***************************
- * Begin DHT22 Settings
- **************************/
+//************************//
+// Begin DHT22 Settings   //
+//************************//
 #define DHTPIN 13     // Digital pin connected to the DHT sensor 
 // Uncomment the type of sensor in use:
 //#define DHTTYPE    DHT11     // DHT 11
@@ -47,8 +49,27 @@ WiFiConnection wiFiInfo("Unknown", "Invalid");
 DHT_Unified dht22(DHTPIN, DHTTYPE);
 float tempTemp = 0.0; //temperature
 float tempHmd = 0.0; //humidity
-long readTime = 0;
+long readTempHmdTime = LONG_MIN;
 void readTemperatureHumidity();
+
+//**************************//
+// Begin TFT_Touch Settings //
+//**************************//
+// LCDWIKI_TOUCH my_touch(53,52,50,51,44); // tcs, tclk, tdout, tdin, tirq
+//Set the pins to the correct ones for your development shield or breakout board.
+//This demo use the BREAKOUT BOARD only and use these 8bit data lines to the LCD,
+//pin usage as follow:
+//             CS  CD  WR  RD  RST  D0  D1  D2  D3  D4  D5  D6  D7  D8  D9  D10  D11  D12  D13  D14  D15 
+//Arduino Mega 40  38  39  43  41   /   /   /   /   /   /   /   /   22  23  24   25   26   27   28   29
+//             TP_IRQ  MOSI  MISO  TP_CS  EX_CLK
+//Arduino Mega   44     51    50    53      52
+#define TP_CS  53  /* Chip select pin (T_CS) of touch screen */
+#define TP_CLK 52  /* Clock pin (T_CLK) of touch screen */
+#define TP_IN  51  /* Data in pin (T_DIN) of touch screen */
+#define TP_OUT 50  /* Data out pin (T_DO) of touch screen */
+#define TP_IRQ 44  /* Interupt pin (T_IRQ) of touch screen */
+TFT_Touch touch(TP_CS, TP_CLK, TP_IN, TP_OUT);
+long lastTouchTime = LONG_MIN;
 
 // ThingSpeak Settings
 WiFiClient client;
@@ -103,7 +124,7 @@ int numberOfOverlays = 2;
  * Begin Settings
  **************************/
 // Setup
-const int SENSOR_INTERVAL_SECS = 15; // Sensor query every 15 seconds
+const int SENSOR_INTERVAL_SECS = 60; // Sensor query every 15 seconds
 const int TIME_INTERVAL_SECS = 10 * 60; // Check time every 10 minutes
 const int UPDATE_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
 
@@ -119,7 +140,7 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 // flag changed in the ticker function every 10 minutes
 bool readyForUpdate = true;
 time_t lastUpdated;
-long timeSinceLastWUpdate = 0;
+long timeSinceLastUpdate = LONG_MIN;
 
 void setReadyForUpdate();
 void updateSystemTime();
@@ -177,25 +198,43 @@ void setup()
 	displayControl.drawWeatherIcon(240, 200, "13d", true);
 	displayControl.drawWeatherIcon(340, 200, "50d", true);
 	displayControl.drawWeatherIcon(440, 200, "00d", true);
-	displayControl.getDisplay()->drawFastHLine(0, 278, 480, CYAN);
-	displayControl.getDisplay()->drawFastHLine(0, 279, 480, CYAN);
 
+	touch.setRotation(1);
+	touch.setResolution(480, 320);
 	configureWiFi();
 	dht22.begin();
 	timeClient.begin();
 }
 
 void loop()
-{	
-	//Read sensor values base on Upload interval seconds
-	if(millis() - readTime > SENSOR_INTERVAL_SECS){
-		readTemperatureHumidity();
-		readTime = millis();
+{
+	if (touch.Pressed() && millis() - lastTouchTime > 100)
+	{
+		unsigned int X_Raw = touch.RawX();
+		//unsigned int Y_Raw = touch.RawY();
+
+		if (X_Raw > 2048)
+		{
+			displayControl.navigateForwardFrame();
+		}
+		else
+		{
+			displayControl.navigateBackwardFrame();			
+		}
+		lastTouchTime = millis();
 	}
 
-	if (millis() - timeSinceLastWUpdate > (1000L*UPDATE_INTERVAL_SECS)) {
+	//Read sensor values base on Upload interval seconds
+	if(millis() - readTempHmdTime > (1000L*SENSOR_INTERVAL_SECS))
+	{
+		readTemperatureHumidity();
+		readTempHmdTime = millis();
+	}
+
+	if (millis() - timeSinceLastUpdate > (1000L*UPDATE_INTERVAL_SECS))
+	{
 		setReadyForUpdate();
-		timeSinceLastWUpdate = millis();
+		timeSinceLastUpdate = millis();
 	}
 
 	if (readyForUpdate && !updateData()) 

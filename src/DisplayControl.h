@@ -89,7 +89,7 @@ struct DisplayControlState
 	// Normal = 1, Inverse = -1;
 	int8_t     frameTransitionDirection  = 1;
 
-	bool       manuelControll            = false;
+	bool       manuelControl             = false;
 
 	// Custom data that can be used by the user
 	void*      userData                  = NULL;
@@ -132,6 +132,7 @@ class DisplayControl
 		void drawOverlays();
 		void tick();
 		void resetState();
+		DisplayControlState* getUiState();
 
     protected:
 		//MCUFRIEND_kbv m_lcd;
@@ -143,8 +144,6 @@ class DisplayControl
 		/// @brief 
 		/// @param rotation 0,1,2,3 = (0,90,180,270)
 		void init(uint16_t rotation, const GFXfont *gfxFont);
-
-		MCUFRIEND_kbv* getDisplay();
 
 		void setFont(const GFXfont *font);
 
@@ -183,16 +182,14 @@ class DisplayControl
 		void drawProgress(int16_t progress = 0, String message = "");
 
 		void enableIndicator();
-		/**
-		 * Add frame drawing functions
-		 */
+
 		void setFrames(FrameCallback* frameFunctions, uint8_t frameCount);
-		/**
-		 * Add overlays drawing functions that are draw independent of the Frames
-		 */
+
 		void setOverlays(OverlayCallback* overlayFunctions, uint8_t overlayCount);
 
-		DisplayControlState* getUiState();
+		void navigateForwardFrame();
+
+		void navigateBackwardFrame();
 
 		int8_t update();
 

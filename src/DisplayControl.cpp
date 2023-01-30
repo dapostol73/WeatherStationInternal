@@ -16,11 +16,6 @@ void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
     m_utufGlue.setTextColor(WHITE);
 }
 
-MCUFRIEND_kbv* DisplayControl::getDisplay()
-{
-    return m_mcuFriend;
-}
-
 uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha) 
 {
     uint8_t fg_r = (fg >> 8) & 0b11111000;
@@ -471,11 +466,11 @@ void DisplayControl::tick()
             }
             break;
         case FIXED:
-            // Revert manuelControll
-            if (m_state.manuelControll)
+            // Revert manuelControl
+            if (m_state.manuelControl)
             {
                 m_state.frameTransitionDirection = m_lastTransitionDirection;
-                m_state.manuelControll = false;
+                m_state.manuelControl = false;
             }
             if (m_state.ticksSinceLastFrameSwitch >= m_ticksPerFrame)
             {
@@ -525,6 +520,28 @@ void DisplayControl::setOverlays(OverlayCallback* overlayFunctions, uint8_t over
 {
     m_overlayFunctions = overlayFunctions;
     m_overlayCount     = overlayCount;
+}
+
+void DisplayControl::navigateForwardFrame()
+{
+    if (m_state.frameState != IN_TRANSITION) {
+        m_state.manuelControl = true;
+        m_state.frameState = IN_TRANSITION;
+        m_state.ticksSinceLastFrameSwitch = 0;
+        m_lastTransitionDirection = m_state.frameTransitionDirection;
+        m_state.frameTransitionDirection = 1;
+    }
+}
+
+void DisplayControl::navigateBackwardFrame()
+{
+    if (m_state.frameState != IN_TRANSITION) {
+        m_state.manuelControl = true;
+        m_state.frameState = IN_TRANSITION;
+        m_state.ticksSinceLastFrameSwitch = 0;
+        m_lastTransitionDirection = m_state.frameTransitionDirection;
+        m_state.frameTransitionDirection = -1;
+    }
 }
 
 DisplayControlState* DisplayControl::getUiState()
