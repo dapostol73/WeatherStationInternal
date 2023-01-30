@@ -40,13 +40,6 @@
 #define WHITE 0xFFFF
 #define YELLOW 0xFFE0
 
-enum AnimationDirection {
-  SLIDE_UP,
-  SLIDE_DOWN,
-  SLIDE_LEFT,
-  SLIDE_RIGHT
-};
-
 enum FrameState
 {
   IN_TRANSITION,
@@ -110,7 +103,6 @@ class DisplayControl
         const GFXfont *m_gfxFontTemp;
         uint8_t m_updateInterval = 33;
         // Values for the Frames
-        AnimationDirection  m_frameAnimationDirection   = SLIDE_RIGHT;
         int8_t              m_lastTransitionDirection   = 1;
         uint16_t            m_ticksPerOverlay           = 5 * 30; // ~ 5000ms at 30 FPS
         uint16_t            m_ticksPerFrame             = 30 * 30; // ~ 5000ms at 30 FPS
@@ -134,6 +126,11 @@ class DisplayControl
         void drawOverlays();
         void tick();
         void resetState();
+
+    protected:
+        //MCUFRIEND_kbv m_lcd;
+        UTFTGLUE m_utufGlue = UTFTGLUE(0x7796, 38, 39, 40, 41, 43);
+		MCUFRIEND_kbv* m_mcuFriend = &m_utufGlue;
 
     public:
 
@@ -181,10 +178,6 @@ class DisplayControl
         void drawProgress(int16_t progress = 0, String message = "");
 
         void enableIndicator();
-        /**
-         * Configure what animation is used to transition from one frame to another
-         */
-        void setFrameAnimation(AnimationDirection dir);
         /**
          * Add frame drawing functions
          */

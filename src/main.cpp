@@ -135,23 +135,13 @@ void setup()
 	while (!Serial)
 		;
 
-	dht22.begin();
+	displayControl.init();
+	displayControl.drawCompassArrow(240, 160, 45, 5);
 }
 
 void loop()
 {
-	if(millis() - readTime > SENSOR_INTERVAL_SECS){
-		readTemperatureHumidity();
-		readTime = millis();
-	}
 
-	char currentTemp[20] = "";
-	sprintf_P(currentTemp, PSTR("Temperature : %d"), tempTemp);
-	Serial.println(currentTemp);
-
-	char currentHumi[20] = "";
-	sprintf_P(currentHumi, PSTR("Humidity: %d"), tempHumi);
-	Serial.println(currentHumi);
 }
 
 #else
@@ -173,7 +163,6 @@ void setup()
 	displayControl.init();
 
 	displayControl.setProgress(&displayProgress);
-	displayControl.setFrameAnimation(SLIDE_LEFT);
 	displayControl.setFrames(frames, numberOfFrames);
 	displayControl.setOverlays(overlays, numberOfOverlays);
 

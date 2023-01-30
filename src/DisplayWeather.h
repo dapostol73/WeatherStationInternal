@@ -41,6 +41,7 @@ class DisplayWeather : public DisplayControl
         void drawFog(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DIMGRAY);
         void drawWind(int16_t x, int16_t y, int16_t size = 1, uint16_t color = DIMGRAY);
         void drawVisibility(int16_t x, int16_t y, int16_t size = 1);
+        void drawCompassArrow(int16_t x, int16_t y, int16_t start_angle, int16_t size = 1);
         void draw00Unknown(int16_t x, int16_t y, int16_t size = 1);
         void draw01Clear(int16_t x, int16_t y, int16_t size = 1);
         void draw02FewClouds(int16_t x, int16_t y, int16_t size = 1);

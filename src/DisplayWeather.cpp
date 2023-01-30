@@ -104,7 +104,7 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 {
 	size = max(size, 1);
 	radius *= size;
-	getDisplay()->fillCircle(x+radius, y+radius, radius, color);
+	m_mcuFriend->fillCircle(x+radius, y+radius, radius, color);
 }
 
 /// @brief Cloud is 58*36 at size 1
@@ -115,13 +115,13 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 void DisplayWeather::drawCloud(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	size = max(size, 1);
-	getDisplay()->fillCircle(10*size+x, 25*size+y, 11*size, color);
-	getDisplay()->fillCircle(24*size+x, 12*size+y, 12*size, color);
-	getDisplay()->fillCircle(41*size+x, 16*size+y, 7*size,  color);
-	getDisplay()->fillCircle(50*size+x, 28*size+y, 8*size,  color);
-	getDisplay()->fillRoundRect(30*size+x, 10*size+y, 19*size, 16*size, 7*size, color);
-	getDisplay()->fillRoundRect(10*size+x, 26*size+y, 40*size, 11*size, 2*size, color);
-	getDisplay()->fillRect(20*size+x, 20*size+y, 20*size, 6*size, color);
+	m_mcuFriend->fillCircle(10*size+x, 25*size+y, 11*size, color);
+	m_mcuFriend->fillCircle(24*size+x, 12*size+y, 12*size, color);
+	m_mcuFriend->fillCircle(41*size+x, 16*size+y, 7*size,  color);
+	m_mcuFriend->fillCircle(50*size+x, 28*size+y, 8*size,  color);
+	m_mcuFriend->fillRoundRect(30*size+x, 10*size+y, 19*size, 16*size, 7*size, color);
+	m_mcuFriend->fillRoundRect(10*size+x, 26*size+y, 40*size, 11*size, 2*size, color);
+	m_mcuFriend->fillRect(20*size+x, 20*size+y, 20*size, 6*size, color);
 }
 
 /// @brief Thunder is 12*22 at size 1
@@ -147,8 +147,8 @@ void DisplayWeather::drawThunder(int16_t x, int16_t y, int16_t size, uint16_t co
 
 void DisplayWeather::drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	getDisplay()->fillTriangle(0*size+x, 2*size+y, 2*size+x, 0*size+y, 3*size+x, 3*size+y, color);
-	getDisplay()->fillCircle(1*size+x,  4*size+y, size*2, color);
+	m_mcuFriend->fillTriangle(0*size+x, 2*size+y, 2*size+x, 0*size+y, 3*size+x, 3*size+y, color);
+	m_mcuFriend->fillCircle(1*size+x,  4*size+y, size*2, color);
 }
 
 /// @brief Rain Heavy is 26*18 at size 1
@@ -238,12 +238,12 @@ void DisplayWeather::drawSnow(int16_t x, int16_t y, int16_t size, uint16_t color
 void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	int16_t height = (4*size)-1;
-	getDisplay()->fillRoundRect(x+12*size, y+0*size,  16*size,  height, 2*size, color);
-	getDisplay()->fillRoundRect(x+4*size,  y+6*size,  32*size, height, 2*size, color);
-	getDisplay()->fillRoundRect(x+12*size, y+12*size, 40*size, height, 2*size, color);
-	getDisplay()->fillRoundRect(x+0*size,  y+18*size, 40*size, height, 2*size, color);
-	getDisplay()->fillRoundRect(x+8*size,  y+24*size, 40*size, height, 2*size, color);
-	getDisplay()->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+12*size, y+0*size,  16*size,  height, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+4*size,  y+6*size,  32*size, height, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+12*size, y+12*size, 40*size, height, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+0*size,  y+18*size, 40*size, height, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+8*size,  y+24*size, 40*size, height, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
 }
 
 /// @brief Wind is 58*42 at size 1
@@ -253,19 +253,60 @@ void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 /// @param color 
 void DisplayWeather::drawWind(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	getDisplay()->fillRoundRect(x+6*size, y+10*size, 44*size, 4*size, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+6*size, y+10*size, 44*size, 4*size, 2*size, color);
 	fillArc(x+48*size, y+6*size, 315, 75, 6*size, 6*size, 2*size, color);
-	getDisplay()->fillRoundRect(x, y+18*size, 58*size, 4*size, 2*size, color);
-	getDisplay()->fillRoundRect(x+12*size, y+26*size, 34*size, 4*size, 2*size, color);
+	m_mcuFriend->fillRoundRect(x, y+18*size, 58*size, 4*size, 2*size, color);
+	m_mcuFriend->fillRoundRect(x+12*size, y+26*size, 34*size, 4*size, 2*size, color);
 	fillArc(x+46*size, y+32*size, 0, 75, 6*size, 6*size, 2*size, color);
 }
 
+/// @brief TODO: deal with size and make more eye like
+/// @param x 
+/// @param y 
+/// @param size 
 void DisplayWeather::drawVisibility(int16_t x, int16_t y, int16_t size)
 {
-	fillArc(x+24, y+16, 270, 60, 24, 16, 16, WHITE);
-	fillArc(x+24, y+16, 90, 60, 24, 16, 16, WHITE);
-	getDisplay()->fillCircle(x+24, y+16, 14, BLUE);
-	getDisplay()->fillCircle(x+24, y+16, 8, BLACK);
+	fillArc(x+24, y+32, 300, 40, 32, 32, 16, WHITE);
+	fillArc(x+24, y,    120, 40, 32, 32, 16, WHITE);
+	m_mcuFriend->fillCircle(x+24, y+16, 14, BLUE);
+	m_mcuFriend->fillCircle(x+24, y+16, 6, BLACK);
+}
+
+/// @brief Assume 10*10
+/// @param x 
+/// @param y 
+/// @param direction = 0 - 359 
+/// @param size 
+void DisplayWeather::drawCompassArrow(int16_t x, int16_t y, int16_t direction, int16_t size)
+{
+	float angle = direction * DEG_TO_RAD;
+	float cosAngle = cos(angle);
+	float sinAngle = sin(angle);
+	float cx = 0.5;
+	float cy = 0.5;
+	float x0 = 0.5;
+	float y0 = 0.0;
+	float x1 = 0.5;
+	float y1 = 0.7;
+	float x2 = 0.3;
+	float y2 = 0.85;
+	float x3 = 0.7;
+	float y3 = 0.85;
+	uint16_t diam = 10*size;
+	x -= diam*0.5;
+	y -= diam*0.5;
+	uint16_t cx0 = diam*(cx + (x0 - cx) * cosAngle - (y0 - cy) * sinAngle);
+	uint16_t cy0 = diam*(cy + (x0 - cx) * sinAngle + (y0 - cy) * cosAngle);
+	uint16_t cx1 = diam*(cx + (x1 - cx) * cosAngle - (y1 - cy) * sinAngle);
+	uint16_t cy1 = diam*(cy + (x1 - cx) * sinAngle + (y1 - cy) * cosAngle);
+	uint16_t cx2 = diam*(cx + (x2 - cx) * cosAngle - (y2 - cy) * sinAngle);
+	uint16_t cy2 = diam*(cy + (x2 - cx) * sinAngle + (y2 - cy) * cosAngle);
+	uint16_t cx3 = diam*(cx + (x3 - cx) * cosAngle - (y3 - cy) * sinAngle);
+	uint16_t cy3 = diam*(cy + (x3 - cx) * sinAngle + (y3 - cy) * cosAngle);
+
+	//Serial.println(String(cx0) + ", " + String(cy0) + ", " + String(cx1) + ", " + String(cy1) + ", " + String(cx2) + ", " + String(cy2) + ", " + String(cx3) + ", "  + String(cy3));
+	m_utufGlue.fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx2, y+cy2, RED);
+	m_utufGlue.fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx3, y+cy3, RED);
 }
 
 void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
@@ -273,8 +314,8 @@ void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 	x -= 29*size;
 	y -= 18*size;
 	drawCloud(x, y, size);
-	getDisplay()->fillRoundRect(x+26*size, y+6*size, 6*size, 20*size, 3*size, RED);
-	getDisplay()->fillCircle(x+29*size, y+30*size, 3*size, RED);
+	m_mcuFriend->fillRoundRect(x+26*size, y+6*size, 6*size, 20*size, 3*size, RED);
+	m_mcuFriend->fillCircle(x+29*size, y+30*size, 3*size, RED);
 }
 
 void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size)
@@ -367,7 +408,7 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 {
 	int16_t x1, y1 = 0;
     uint16_t w, h = 0;
-    getDisplay()->getTextBounds("8", 0, 0, &x1, &y1, &w, &h);
+    m_mcuFriend->getTextBounds("8", 0, 0, &x1, &y1, &w, &h);
 	String temp = String(temperature, 1);
 	if (align > 0)
 	{
@@ -386,9 +427,9 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 
 	drawString(temp, x, y, TEXT_LEFT, foregroundColor);
 	int16_t radius = w * 0.5;
-	x = getDisplay()->getCursorX() + radius;
-	getDisplay()->drawCircle(x, y + radius-1, radius-1, foregroundColor);
-	getDisplay()->drawCircle(x, y + radius-1, radius-2, foregroundColor);
+	x = m_mcuFriend->getCursorX() + radius;
+	m_mcuFriend->drawCircle(x, y + radius-1, radius-1, foregroundColor);
+	m_mcuFriend->drawCircle(x, y + radius-1, radius-2, foregroundColor);
 	x += radius;
 	if (isMetric)
 	{
@@ -422,18 +463,39 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	setFont(&CalibriBold24pt7b);
 	drawString(currentWeather->cityName, 240, y + 5, TEXT_CENTER, YELLOW);
 	setFont(&CalibriBold16pt7b);
-	drawVisibility(360 - 24, y + 50 - 16);
-	dtostrf(0.001*currentWeather->visibility, 5, 2, num);
-	sprintf(info, "%skm", num);
-	drawString(info, 360, y + 90, TEXT_CENTER, ORANGE);
-	drawWind(360-25, y + 120 - 15, 1);
-	dtostrf(currentWeather->windSpeed*0.001, 5, 2, num);
-	sprintf(info, "%skm/s", num);
-	drawString(info, 360, y + 170, TEXT_CENTER, ORANGE);
-	int dir = roundf(currentWeather->windDeg/22.5)%16;
-	drawString(WIND_DIR[dir].c_str(), 360, y + 210, TEXT_CENTER, ORANGE);
 	drawTemperature(currentWeather->temp, m_isMetric, 120, y + 160, TEXT_CENTER, CYAN);
 	drawString(currentWeather->description, 120, y + 200, TEXT_CENTER, ORANGE);
+	// Visibility
+	drawVisibility(360 - 24, y + 50 - 16);
+	if (currentWeather->visibility < 1000)
+	{
+		sprintf(info, "%d m", currentWeather->visibility);
+	}
+	else
+	{
+		dtostrf(0.001*currentWeather->visibility, 5, 1, num);
+		sprintf(info, "%s km", num);
+	}
+
+	drawString(info, 360, y + 90, TEXT_CENTER, ORANGE);
+
+	// Wind speed
+	drawWind(360-25, y + 120 - 15, 1);
+	if (currentWeather->windSpeed < 1000)
+	{
+		dtostrf(currentWeather->windSpeed, 5, 0, num);
+		sprintf(info, "%s m/s", num);
+	}
+	else
+	{
+		dtostrf(currentWeather->windSpeed*0.001, 5, 2, num);
+		sprintf(info, "%s km/s", num);
+	}
+	drawString(info, 360, y + 170, TEXT_CENTER, ORANGE);
+	// Wind direction
+	int dir = roundf(currentWeather->windDeg/22.5)%16;
+	drawCompassArrow(330, y + 210, currentWeather->windDeg, 3);
+	drawString(WIND_DIR[dir].c_str(), 400, y + 210, TEXT_CENTER, ORANGE);
 }
 
 void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex) 
@@ -468,10 +530,10 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 	if (WiFi.status() == WL_CONNECTED)
 	{
 		int32_t strength = WiFi.RSSI();
-		getDisplay()->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGRAY);
-		getDisplay()->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGRAY);
-		getDisplay()->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGRAY);
-		getDisplay()->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGRAY);
+		m_mcuFriend->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGRAY);
+		m_mcuFriend->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGRAY);
+		m_mcuFriend->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGRAY);
+		m_mcuFriend->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGRAY);
 	}
 	else
 	{
@@ -479,23 +541,23 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 		int16_t lw = size*10;
 		for (int16_t t=0; t < size * 2; t++)
 		{
-			getDisplay()->drawFastHLine(x+2, ly+t, lw, ORANGERED);
+			m_mcuFriend->drawFastHLine(x+2, ly+t, lw, ORANGERED);
 		}
 		int16_t r = 6*size;
 		int16_t cx = x+r;
 		int16_t cy = y+r;
 		for (int16_t t=0; t < size * 2; t++)
 		{
-			getDisplay()->drawCircle(cx, cy, r-t, ORANGERED);
+			m_mcuFriend->drawCircle(cx, cy, r-t, ORANGERED);
 		}		
 	}
 }
 
 void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated)
 {
-	getDisplay()->fillRect(0, 0, 480, 12, CHARCOAL);
-	getDisplay()->drawFastHLine(0, 13, 480, CYAN);
-	getDisplay()->drawFastHLine(0, 14, 480, CYAN);
+	m_mcuFriend->fillRect(0, 0, 480, 12, CHARCOAL);
+	m_mcuFriend->drawFastHLine(0, 13, 480, CYAN);
+	m_mcuFriend->drawFastHLine(0, 14, 480, CYAN);
 
 	setFont(&CalibriBold8pt7b);
 	drawChar(4, 0, 'C', currentWeathersUpdated ? GREEN : RED);
@@ -508,16 +570,18 @@ void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathe
 
 void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
 {
+	char date[20];
 	char time[10];
-	sprintf_P(time, PSTR("%02d:%02d"), hour(), minute());
+	sprintf_P(date, PSTR("%d %s %d"), day(), MONTH_NAMES[month()-1].c_str(), year());
+	sprintf_P(time, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
 
-	getDisplay()->fillRect(0, 280, 480, 320, CHARCOAL);
-	getDisplay()->drawFastHLine(0, 278, 480, CYAN);
-	getDisplay()->drawFastHLine(0, 279, 480, CYAN);
+	m_mcuFriend->fillRect(0, 280, 480, 320, CHARCOAL);
+	m_mcuFriend->drawFastHLine(0, 278, 480, CYAN);
+	m_mcuFriend->drawFastHLine(0, 279, 480, CYAN);
 	setFont(&CalibriBold16pt7b);
 	
-	drawString(time, 120, 300, TEXT_CENTER, ORANGE);
-	//Serial.println(String(currentWeather->temp));
-	drawTemperature(currentWeather->temp, m_isMetric, 360, 300, TEXT_CENTER, ORANGE);
+	drawString(date, 240, 300, TEXT_CENTER, ORANGE);
+	drawString(time, 75, 300, TEXT_CENTER, ORANGE);
+	drawTemperature(currentWeather->temp, m_isMetric, 390, 300, TEXT_CENTER, ORANGE);
 	drawWiFiSignal(450, 286, 2);
 }
