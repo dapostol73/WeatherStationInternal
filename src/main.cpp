@@ -149,6 +149,13 @@ void configureWiFi();
 void printConnectInfo();
 
 #ifdef DEBUG
+#define IRQ_PIN 44
+volatile bool test = false;
+void interruptServiceRoutine()
+{
+  // code to be executed when the interrupt occurs
+  test = true;
+}
 
 void setup()
 {
@@ -157,12 +164,23 @@ void setup()
 		;
 
 	displayControl.init();
-	displayControl.drawCompassArrow(240, 160, 45, 5);
+	displayControl.fillScreen(BLACK);
+	touch.setRotation(1);
+	touch.setResolution(480, 320);
+
+	pinMode(IRQ_PIN, INPUT);
+	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
 }
 
 void loop()
 {
-
+	if (test)
+	{
+		displayControl.drawString("Success!", 240, 160, TEXT_CENTER_MIDDLE, ORANGE);
+		test = false;
+		delay(2500);
+		displayControl.fillScreen(BLACK);
+	}
 }
 
 #else
@@ -276,6 +294,11 @@ float roundUpDecimal(float value, int decimals = 1)
 	float multiplier = powf(10.0, decimals);
 	value = roundf(value * multiplier) / multiplier;
 	return value;
+}
+
+float map(float x, float in_min, float in_max, float out_min, float out_max)
+{
+	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 void setReadyForUpdate() 
@@ -465,7 +488,7 @@ void readTemperatureHumidity()
 	}
 	else
 	{
-		tempTemp = roundUpDecimal(event.temperature);
+		tempTemp = roundUpDecimal(event.temperature-4.8);
 		//Serial.print(F("Temperature: "));
 		//Serial.print(tempTemp);
 		//Serial.println(F("°C"));
@@ -478,7 +501,9 @@ void readTemperatureHumidity()
 	}
 	else
 	{
-		tempHmd = roundUpDecimal(event.relative_humidity);
+		//tempHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
+		tempHmd = map(event.relative_humidity, 20.6, 69.5, 40.0, 75.0);
+		tempHmd = roundUpDecimal(tempHmd);
 		//Serial.print(F("Humidity: "));
 		//Serial.print(tempHmd);
 		//Serial.println(F("%"));
