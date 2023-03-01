@@ -160,12 +160,16 @@ void DisplayWeather::drawRainLight(int16_t x, int16_t y, int16_t size, uint16_t 
 {
 	size = max(size, 1);
 	drawRainDrop(0*size+x,  4*size+y,  size, color);//r0.d0
+	
 	drawRainDrop(8*size+x,  0*size+y,  size, color);//r1.d0
 	drawRainDrop(5*size+x,  11*size+y, size, color);//r1.d1
-	drawRainDrop(14*size+x, 4*size+y, size, color);//r2.d2
+	
+	drawRainDrop(14*size+x, 4*size+y, size, color);//r2.d0
 	drawRainDrop(12*size+x, 15*size+y, size, color);//r2.d1
+	
 	drawRainDrop(22*size+x, 0*size+y, size, color);//r3.d0
 	drawRainDrop(20*size+x, 11*size+y, size, color);//r3.d1
+	
 	drawRainDrop(28*size+x, 4*size+y,  size, color);//r4.d0
 }
 

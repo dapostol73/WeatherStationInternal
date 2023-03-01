@@ -126,7 +126,8 @@ int numberOfOverlays = 2;
 // Setup
 const int SENSOR_INTERVAL_SECS = 60; // Sensor query every 15 seconds
 const int TIME_INTERVAL_SECS = 10 * 60; // Check time every 10 minutes
-const int UPDATE_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
+const int CURRENT_INTERVAL_SECS = 10 * 60; // Update every 60 minutes
+const int FORECAST_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
 
 #define TZ              -8     // (utc+) TZ in hours
 #define DST_MN          0      // use 60mn for summer time in some countries
@@ -138,11 +139,12 @@ WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
 // flag changed in the ticker function every 10 minutes
-bool readyForUpdate = true;
 time_t lastUpdated;
-long timeSinceLastUpdate = LONG_MIN;
+bool updateCurrentWeather = true;
+bool updateForecastWeather = true;
+long timeSinceCurrentUpdate = LONG_MIN;
+long timeSinceForecastUpdate = LONG_MIN;
 
-void setReadyForUpdate();
 void updateSystemTime();
 bool updateData();
 void configureWiFi();
@@ -249,13 +251,21 @@ void loop()
 		readTempHmdTime = millis();
 	}
 
-	if (millis() - timeSinceLastUpdate > (1000L*UPDATE_INTERVAL_SECS))
+	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
 	{
-		setReadyForUpdate();
-		timeSinceLastUpdate = millis();
+		Serial.println("Setting updateCurrentWeather to true");
+		updateCurrentWeather = true;
+		timeSinceCurrentUpdate = millis();
 	}
 
-	if (readyForUpdate && !updateData()) 
+	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
+	{
+		Serial.println("Setting updateForecastWeather to true");
+		updateForecastWeather = true;
+		timeSinceForecastUpdate = millis();
+	}
+
+	if ((updateCurrentWeather || updateForecastWeather) && !updateData()) 
 	{
 		Serial.println("Update failed, refreshing WiFi connection.");
 		WiFi.disconnect();
@@ -301,12 +311,6 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void setReadyForUpdate() 
-{
-	Serial.println("Setting readyForUpdate to true");
-	readyForUpdate = true;
-}
-
 void updateSystemTime()
 {
 	timeClient.forceUpdate();
@@ -315,31 +319,39 @@ void updateSystemTime()
 
 bool updateData() 
 {
+	displayProgress.foregroundColor = CYAN;
 	displayControl.drawProgress(25, "Updating time...");
 	updateSystemTime();
 
-	displayControl.drawProgress(50, "Updating weather...");
-	currentWeatherClient.setMetric(IS_METRIC);
-	currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-	currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
-	if (!currentWeatherUpdated)
+	if (updateCurrentWeather)
 	{
-		displayProgress.foregroundColor = RED;
+		displayControl.drawProgress(50, "Updating weather...");
+		currentWeatherClient.setMetric(IS_METRIC);
+		currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
+		if (!currentWeatherUpdated)
+		{
+			displayProgress.foregroundColor = RED;
+		}
+		updateCurrentWeather = !currentWeatherUpdated; 
 	}
 
-	displayControl.drawProgress(75, "Updating forecasts...");
-	forecastWeatherClient.setMetric(IS_METRIC);
-	forecastWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-	uint8_t allowedHours[] = {12};
-	forecastWeatherClient.setAllowedHours(allowedHours, sizeof(allowedHours));
-	forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
-	if (!forecastWeatherUpdated)
+	if (updateForecastWeather)
 	{
-		displayProgress.foregroundColor = RED;
+		displayControl.drawProgress(75, "Updating forecasts...");
+		forecastWeatherClient.setMetric(IS_METRIC);
+		forecastWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+		uint8_t allowedHours[] = {12};
+		forecastWeatherClient.setAllowedHours(allowedHours, sizeof(allowedHours));
+		forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
+		if (!forecastWeatherUpdated)
+		{
+			displayProgress.foregroundColor = RED;
+		}
+		updateForecastWeather = !forecastWeatherUpdated;
 	}
-	
+
 	lastUpdated = now();
-	readyForUpdate = false;
 	displayControl.drawProgress(100, "Updating done!");
 	delay(1000);
 	return currentWeatherUpdated && forecastWeatherUpdated;
