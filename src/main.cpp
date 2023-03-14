@@ -125,8 +125,8 @@ int numberOfOverlays = 2;
  **************************/
 // Setup
 const int SENSOR_INTERVAL_SECS = 60; // Sensor query every 15 seconds
-const int TIME_INTERVAL_SECS = 10 * 60; // Check time every 10 minutes
-const int CURRENT_INTERVAL_SECS = 10 * 60; // Update every 60 minutes
+const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
+const int CURRENT_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
 const int FORECAST_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
 
 #define TZ              -8     // (utc+) TZ in hours
@@ -251,18 +251,18 @@ void loop()
 		readTempHmdTime = millis();
 	}
 
-	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
-	{
-		Serial.println("Setting updateCurrentWeather to true");
-		updateCurrentWeather = true;
-		timeSinceCurrentUpdate = millis();
-	}
-
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
 	{
 		Serial.println("Setting updateForecastWeather to true");
 		updateForecastWeather = true;
 		timeSinceForecastUpdate = millis();
+	}
+
+	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
+	{
+		Serial.println("Setting updateCurrentWeather to true");
+		updateCurrentWeather = true;
+		timeSinceCurrentUpdate = millis();
 	}
 
 	if ((updateCurrentWeather || updateForecastWeather) && !updateData()) 
@@ -313,8 +313,34 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
 
 void updateSystemTime()
 {
-	timeClient.forceUpdate();
+	timeClient.update();
 	setTime((time_t)timeClient.getEpochTime());
+	int m = month();
+	int d = day();
+	int w = weekday();
+	int h = hour();
+
+	// Check to see if we are in Daylight Saving Time (DST)
+	bool inDST = false;
+	// Between April to October 
+	if (m > 3 && m < 11) 
+	{
+		inDST = true;
+  	}
+	// After second Sunday in March
+	if (m == 3 && (h + 24UL * d) >= (3 + 24UL * (14 - w))) 
+	{
+		inDST = true;
+	}
+	// After first Sunday in November
+	if (m == 11 && (h + 24UL * d) < (1 + 24UL * (7 - w))) {
+		inDST = true;
+	}
+
+	if (inDST)
+	{
+		adjustTime(3600);
+	}
 }
 
 bool updateData() 
