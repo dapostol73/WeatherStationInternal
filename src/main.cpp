@@ -23,8 +23,8 @@
 #include <DHT_U.h>
 #include <TFT_Touch.h>
 
+#include "ApplicationSettings.h"
 #include "DisplayWeather.h"
-#include "WiFiInfo.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
@@ -36,7 +36,7 @@
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
-WiFiConnection wiFiInfo("Unknown", "Invalid");
+ApplicationSettings appSettings; //change to pointer
 
 //************************//
 // Begin DHT22 Settings   //
@@ -270,7 +270,7 @@ void loop()
 		Serial.println("Update failed, refreshing WiFi connection.");
 		WiFi.disconnect();
 		delay(3000);
-		WiFi.begin(wiFiInfo.SSID, wiFiInfo.Password);
+		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 
 		int timeout = 0;
 		int timeoutMax = 30;
@@ -383,31 +383,34 @@ bool updateData()
 	return currentWeatherUpdated && forecastWeatherUpdated;
 }
 
-void resolveWiFiInfo()
+void resolveAppSettings()
 {
 	int8_t numNetworks = WiFi.scanNetworks();
+	Serial.println("Number of networks found: " + String(numNetworks));
 
 	for (uint8_t i=0; i<numNetworks; i++)
 	{
-		const char* ssid = WiFi.SSID(i);
-		//Serial.println("SSID: " + String(ssid) + ": " + String(WiFi.RSSI(i)));
-		for (uint8_t j=0; j < WiFiConnectionsCount; j++)
+		String ssid = WiFi.SSID(i);
+		Serial.println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
+		for (uint8_t j=0; j < AppSettingsCount; j++)
 		{
-			if (strcasecmp(WiFiConnections[j].SSID, ssid) == 0)
+			const char* appSsid = AppSettings[j].WifiSettings.SSID;
+			Serial.println("Checking: " + String(appSsid));
+			if (strcasecmp(appSsid, ssid.c_str()) == 0)
 			{
 				//Serial.println("Found: " + String(ssid));
-				WiFiConnections[j].Avialable = true;
-				WiFiConnections[j].Strength = WiFi.RSSI(i);
+				AppSettings[j].WifiSettings.Avialable = true;
+				AppSettings[j].WifiSettings.Strength = WiFi.RSSI(i);
 
-				if (WiFiConnections[j].Strength > wiFiInfo.Strength)
+				if (AppSettings[j].WifiSettings.Strength > appSettings.WifiSettings.Strength)
 				{
-					wiFiInfo = WiFiConnections[j];
+					appSettings = AppSettings[j];
 				}
 			}
 		}
 	}
 
-	Serial.println("Using WiFi " + String(wiFiInfo.SSID));	
+	Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
 }
 
 void configureWiFi()
@@ -433,13 +436,13 @@ void configureWiFi()
 	String scanMsg = "Scanning for WiFi SSID.";
 	Serial.println(scanMsg);
 	displayControl.drawProgress(30, scanMsg);
-	resolveWiFiInfo();
+	resolveAppSettings();
 
 	String infoMsg = "Waiting for connection to WiFi";
-	if (!wiFiInfo.Avialable)
+	if (!appSettings.WifiSettings.Avialable)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "No WiFi connecttion found %s!", wiFiInfo.SSID);
+		sprintf(connectErr, "No WiFi connecttion found %s!", appSettings.WifiSettings.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
@@ -448,7 +451,7 @@ void configureWiFi()
 	}
 
 	WiFi.setAutoConnect(true);
-	WiFi.begin(wiFiInfo.SSID, wiFiInfo.Password);
+	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 	Serial.println(infoMsg);
 	displayControl.drawProgress(50, infoMsg);
 
@@ -469,7 +472,7 @@ void configureWiFi()
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "WiFi failed to connect to %s access point!", wiFiInfo.SSID);
+		sprintf(connectErr, "WiFi failed to connect to %s access point!", appSettings.WifiSettings.SSID);
 		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
@@ -481,7 +484,7 @@ void configureWiFi()
 	WiFi.sleepMode(WIFI_NONE_SLEEP);
 
 	char ssidInfo[42] = "";
-	sprintf(ssidInfo, "Connected to WiFi: %s", wiFiInfo.SSID);
+	sprintf(ssidInfo, "Connected to WiFi: %s", appSettings.WifiSettings.SSID);
 	displayControl.drawProgress(90, ssidInfo);
 	delay(500);
 		
@@ -499,7 +502,7 @@ void printConnectInfo()
 
 	// print MAC address
 	char ssidInfo[34] = "";
-	sprintf(ssidInfo, "WiFi SSID: %s", wiFiInfo.SSID);
+	sprintf(ssidInfo, "WiFi SSID: %s", appSettings.WifiSettings.SSID);
 	Serial.println(ssidInfo);
 	displayControl.printLine(ssidInfo, GREEN);
 
