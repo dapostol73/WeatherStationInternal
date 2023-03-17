@@ -52,13 +52,15 @@ struct ThingSpeakInfo
     const char *Host = "api.thingspeak.com"; //IP address of the thingspeak server
     const char *APIKeyWrite = ""; //Your own thingspeak write api_key
     const char *APIKeyRead = "";	 //Your own thingspeak read api_key
+    unsigned long ChannelID;
 
     ThingSpeakInfo() = default;
 
-    ThingSpeakInfo(const char* apiKeyWrite, const char* apiKeyRead)
+    ThingSpeakInfo(const char* apiKeyWrite, const char* apiKeyRead, unsigned long channelID)
     {
         APIKeyWrite = apiKeyWrite;
         APIKeyRead = apiKeyRead;
+        ChannelID = channelID;
     }
 };
 
@@ -80,10 +82,10 @@ struct ApplicationSettings
 
 ApplicationSettings Home(WiFiConnection("homessid", "homepw123"),
                          OpenWeatherInfo("homeAppID", "homeLocationID"),
-                         ThingSpeakInfo("homeWriteAPIKey", "homeReadAPIKey"));
+                         ThingSpeakInfo("homeWriteAPIKey", "homeReadAPIKey", 1234567));
 ApplicationSettings Office(WiFiConnection("officessid", "officepw123"),
                            OpenWeatherInfo("officeAppID", "officeLocationID"),
-                           ThingSpeakInfo("officeWriteAPIKey", "officeReadAPIKey"));
+                           ThingSpeakInfo("officeWriteAPIKey", "officeReadAPIKey", 1234567));
 
 ApplicationSettings AppSettings[] = { Home, Office };
 uint8_t AppSettingsCount = 2;
