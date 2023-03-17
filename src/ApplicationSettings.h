@@ -51,6 +51,6 @@ ApplicationSettings Home(WiFiConnection("homessid", "homepw123"), ThingSpeakInfo
 ApplicationSettings Office(WiFiConnection("officessid", "officepw123"), ThingSpeakInfo("officeWriteAPIKey", "officeReadAPIKey"));
 
 ApplicationSettings AppSettings[] = { Home, Office };
-uint8_t AppSettingsCount = 3;
+uint8_t AppSettingsCount = 2;
 
 #endif
