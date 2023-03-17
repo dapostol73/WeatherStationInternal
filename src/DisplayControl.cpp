@@ -1,4 +1,5 @@
 #include "DisplayControl.h"
+#include "Debug.h"
 
 DisplayControl::DisplayControl()
 {
@@ -30,7 +31,7 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
     uint8_t g = (fg_g * alpha + bg_g * (255-alpha)) / 255;
     uint8_t b = (fg_b * alpha + bg_b * (255-alpha)) / 255;
 
-    //Serial.println(String(r) + ", " + String(g) + ", " + String(b));
+    //Debug::println(String(r) + ", " + String(g) + ", " + String(b));
             
     return m_utufGlue.color565(r, g, b);
 }
@@ -101,7 +102,7 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
     //uint8_t version = pgm_read_byte(palBmp);
     uint8_t bmpBitDepth = pgm_read_byte(palBmp + 1);
     if (bmpBitDepth != BITS_PER_PIXEL) {
-        Serial.println("Bmp has wrong bit depth");
+        //Debug::println("Bmp has wrong bit depth");
         return;
     }
     uint16_t width = pgm_read_byte(palBmp + 2) << 8 | pgm_read_byte(palBmp + 3);
@@ -124,7 +125,7 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
         {
             if (bitCounter == PIXELS_PER_BYTE || bitCounter == 0) 
             {
-                //Serial.println("Reading new data");
+                //Debug::println("Reading new data");
                 data = pgm_read_byte(palBmp + pointer);
                 pointer++;
                 //shift = bitsPerPixel;
@@ -133,8 +134,8 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
             shift = 8 - (bitCounter + 1) * BITS_PER_PIXEL;
             paletteIndex = (data >> shift) & BIT_MASK;
 
-            //Serial.println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
-            //Serial.println(paletteIndex);
+            //Debug::println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
+            //Debug::println(paletteIndex);
             // if there is a bit draw it
             m_utufGlue.setColor(palette[paletteIndex]);
             m_utufGlue.drawPixel(x + px, y + py);
@@ -389,7 +390,7 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     m_utufGlue.drawRoundRect(x, y, sx, sy, corner);
     m_utufGlue.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0));
 
-    //Serial.println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
+    //Debug::println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
     for (int16_t i = 0; i < strl; i++)
     {
         if (cx > px)
@@ -401,7 +402,7 @@ void DisplayControl::drawProgress(int16_t percent, String message)
             drawChar(cx, cy, m_progress->message[i], m_progress->backgroundColor);
         }
         cx = m_utufGlue.getCursorX();
-        //Serial.println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 
+        //Debug::println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 
     }
 }
 

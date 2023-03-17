@@ -11,18 +11,18 @@
 #include <limits.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <TimeLib.h>
+#include <TFT_Touch.h>
 #include <WiFiEspAT.h>
 #include <WiFiUdp.h>
-
-// time
-#include <TimeLib.h>
 #include <NTPClient.h>
+#include <ThingSpeak.h>
 
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
-#include <TFT_Touch.h>
 
+#include "Debug.h"
 #include "ApplicationSettings.h"
 #include "DisplayWeather.h"
 #include "OpenWeatherMapCurrent.h"
@@ -36,25 +36,12 @@
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
-ApplicationSettings appSettings; //change to pointer
+ApplicationSettings appSettings;
+WiFiClient client;
 
-//************************//
-// Begin DHT22 Settings   //
-//************************//
-#define DHTPIN 13     // Digital pin connected to the DHT sensor 
-// Uncomment the type of sensor in use:
-//#define DHTTYPE    DHT11     // DHT 11
-#define DHTTYPE    DHT22     // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
-DHT_Unified dht22(DHTPIN, DHTTYPE);
-float tempTemp = 0.0; //temperature
-float tempHmd = 0.0; //humidity
-long readTempHmdTime = LONG_MIN;
-void readTemperatureHumidity();
-
-//**************************//
-// Begin TFT_Touch Settings //
-//**************************//
+//******************************//
+// Begin TFT_Touch Settings     //
+//******************************//
 // LCDWIKI_TOUCH my_touch(53,52,50,51,44); // tcs, tclk, tdout, tdin, tirq
 //Set the pins to the correct ones for your development shield or breakout board.
 //This demo use the BREAKOUT BOARD only and use these 8bit data lines to the LCD,
@@ -71,9 +58,31 @@ void readTemperatureHumidity();
 TFT_Touch touch(TP_CS, TP_CLK, TP_IN, TP_OUT);
 long lastTouchTime = LONG_MIN;
 
-// ThingSpeak Settings
-WiFiClient client;
+//******************************//
+// Internal DHT Settings        //
+//******************************//
+#define DHTPIN 13     // Digital pin connected to the DHT sensor 
+// Uncomment the type of sensor in use:
+//#define DHTTYPE    DHT11     // DHT 11
+#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+DHT_Unified dht22(DHTPIN, DHTTYPE);
+float internalTemp = 0.0; //temperature
+float internalHmd = 0.0; //humidity
+long readinternalHmdTime = LONG_MIN;
+void readTemperatureHumidity();
 
+//******************************//
+// External ThinkSpeak Settings //
+//******************************//
+float externalTemp = 0.0; //temperature
+float externalHmd = 0.0; //humidity
+float externalLux = 0.0; //light
+float externalHPa = 0.0; //atmospheric
+
+//******************************//
+// OpenWeather Map Settings     //
+//******************************//
 const uint8_t MAX_FORECASTS = 4;
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
@@ -123,10 +132,8 @@ bool updateForecastWeather = true;
 long timeSinceCurrentUpdate = LONG_MIN;
 long timeSinceForecastUpdate = LONG_MIN;
 
-void updateSystemTime();
 bool updateData();
 void configureWiFi();
-void printConnectInfo();
 
 #ifdef DEBUG
 #define IRQ_PIN 44
@@ -139,9 +146,7 @@ void interruptServiceRoutine()
 
 void setup()
 {
-	Serial.begin(SERIAL_BAUD_RATE);
-	while (!Serial)
-		;
+	//Debug::begin(SERIAL_BAUD_RATE);
 
 	displayControl.init();
 	displayControl.fillScreen(BLACK);
@@ -167,9 +172,7 @@ void loop()
 
 void setup()
 {
-	Serial.begin(SERIAL_BAUD_RATE);
-	while (!Serial)
-		;
+	//Debug::begin(SERIAL_BAUD_RATE);
 
 	displayProgress.x = 0;
 	displayProgress.y = 280;
@@ -202,6 +205,7 @@ void setup()
 	configureWiFi();
 	dht22.begin();
 	timeClient.begin();
+	ThingSpeak.begin(client);
 }
 
 void loop()
@@ -223,43 +227,43 @@ void loop()
 	}
 
 	//Read sensor values base on Upload interval seconds
-	if(millis() - readTempHmdTime > (1000L*SENSOR_INTERVAL_SECS))
+	if(millis() - readinternalHmdTime > (1000L*SENSOR_INTERVAL_SECS))
 	{
 		readTemperatureHumidity();
-		readTempHmdTime = millis();
+		readinternalHmdTime = millis();
 	}
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
 	{
-		Serial.println("Setting updateForecastWeather to true");
+		//Debug::println("Setting updateForecastWeather to true");
 		updateForecastWeather = true;
 		timeSinceForecastUpdate = millis();
 	}
 
 	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
 	{
-		Serial.println("Setting updateCurrentWeather to true");
+		//Debug::println("Setting updateCurrentWeather to true");
 		updateCurrentWeather = true;
 		timeSinceCurrentUpdate = millis();
 	}
 
 	if ((updateCurrentWeather || updateForecastWeather) && !updateData()) 
 	{
-		Serial.println("Update failed, refreshing WiFi connection.");
+		//Debug::println("Update failed, refreshing WiFi connection.");
 		WiFi.disconnect();
 		delay(3000);
 		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 
 		int timeout = 0;
 		int timeoutMax = 30;
-		Serial.print("Connecting to WiFi");
+		//Debug::print("Connecting to WiFi");
 		while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 		{
 			delay(1000);
-			Serial.print('.');
+			//Debug::print('.');
 			++timeout;
 		}
-		Serial.println();
+		//Debug::println();
 
 		updateData();
 	}
@@ -321,11 +325,38 @@ void updateSystemTime()
 	}
 }
 
+void updateThingSpeak()
+{
+	int statusCode = 0;
+	// Read in fields of the public channel recording the temperature
+	// 1: Temperature °C, 2: Humidity %, 3: Light lux, 4: Atmosphere hPa, 5: Altitude M
+	externalTemp = ThingSpeak.readFloatField(appSettings.ThingSpeakSettings.ChannelID, 1);
+	externalHmd = ThingSpeak.readFloatField(appSettings.ThingSpeakSettings.ChannelID, 2); 
+	externalLux = ThingSpeak.readFloatField(appSettings.ThingSpeakSettings.ChannelID, 3); 
+	externalHPa = ThingSpeak.readFloatField(appSettings.ThingSpeakSettings.ChannelID, 4); 
+
+	// Check the status of the read operation to see if it was successful
+	statusCode = ThingSpeak.getLastReadStatus();
+	if(statusCode == 200)
+	{
+		//Debug::println("Reading from ThinkSpeak " + String(appSettings.ThingSpeakSettings.ChannelID));
+		//Debug::println("Temperature: " + String(externalTemp) + " °C");
+		//Debug::println("Humidity: " + String(externalHmd) + " %");
+		//Debug::println("Light: " + String(externalLux) + " lux");
+		//Debug::println("Atmosphere: " + String(externalHPa) + " hPa");
+	}
+	else
+	{
+		//Debug::println("Problem reading channel. HTTP error code " + String(statusCode)); 
+	}
+}
+
 bool updateData() 
 {
 	displayProgress.foregroundColor = CYAN;
 	displayControl.drawProgress(25, "Updating time...");
 	updateSystemTime();
+	updateThingSpeak();
 
 	if (updateCurrentWeather)
 	{
@@ -364,19 +395,19 @@ bool updateData()
 void resolveAppSettings()
 {
 	int8_t numNetworks = WiFi.scanNetworks();
-	Serial.println("Number of networks found: " + String(numNetworks));
+	//Debug::println("Number of networks found: " + String(numNetworks));
 
 	for (uint8_t i=0; i<numNetworks; i++)
 	{
 		String ssid = WiFi.SSID(i);
-		Serial.println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
+		//Debug::println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
 		for (uint8_t j=0; j < AppSettingsCount; j++)
 		{
 			const char* appSsid = AppSettings[j].WifiSettings.SSID;
-			Serial.println("Checking: " + String(appSsid));
+			//Debug::println("Checking: " + String(appSsid));
 			if (strcasecmp(appSsid, ssid.c_str()) == 0)
 			{
-				//Serial.println("Found: " + String(ssid));
+				////Debug::println("Found: " + String(ssid));
 				AppSettings[j].WifiSettings.Avialable = true;
 				AppSettings[j].WifiSettings.Strength = WiFi.RSSI(i);
 
@@ -388,13 +419,39 @@ void resolveAppSettings()
 		}
 	}
 
-	Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
+	//Debug::println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
+}
+
+void printConnectInfo()
+{
+	// get your MAC address
+	byte mac[6];
+	WiFi.macAddress(mac);
+	IPAddress ip = WiFi.localIP();
+
+	// print MAC address
+	char ssidInfo[34] = "";
+	sprintf(ssidInfo, "WiFi SSID: %s", appSettings.WifiSettings.SSID);
+	//Debug::println(ssidInfo);
+	displayControl.printLine(ssidInfo, GREEN);
+
+	// print MAC address
+	char macInfo[34] = "";
+	sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
+	//Debug::println(macInfo);
+	displayControl.printLine(macInfo, YELLOW);
+
+	// print IP address
+	char ipInfo[34] = "";
+	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
+	//Debug::println(ipInfo);
+	displayControl.printLine(ipInfo, YELLOW);
 }
 
 void configureWiFi()
 {
 	String intialMsg = "Intializing WiFi module.";
-	Serial.println(intialMsg);
+	//Debug::println(intialMsg);
 	displayControl.drawProgress(10, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
 	
@@ -403,7 +460,7 @@ void configureWiFi()
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
 		String initialErr = "Communication with WiFi module failed!";
-		Serial.println(initialErr);
+		//Debug::println(initialErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
@@ -412,7 +469,7 @@ void configureWiFi()
 	}
 
 	String scanMsg = "Scanning for WiFi SSID.";
-	Serial.println(scanMsg);
+	//Debug::println(scanMsg);
 	displayControl.drawProgress(30, scanMsg);
 	resolveAppSettings();
 
@@ -421,7 +478,7 @@ void configureWiFi()
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "No WiFi connecttion found %s!", appSettings.WifiSettings.SSID);
-		Serial.println(connectErr);
+		//Debug::println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		while (true)
@@ -430,7 +487,7 @@ void configureWiFi()
 
 	WiFi.setAutoConnect(true);
 	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-	Serial.println(infoMsg);
+	//Debug::println(infoMsg);
 	displayControl.drawProgress(50, infoMsg);
 
 	int counter = 0;
@@ -440,18 +497,18 @@ void configureWiFi()
 	while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 	{
 		delay(1000);
-		Serial.print('.');
+		//Debug::print('.');
 		displayControl.drawProgress(70, "Connecting to WiFi");
 		counter++;
 		++timeout;
 	}
-	Serial.println();
+	//Debug::println();
 
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "WiFi failed to connect to %s access point!", appSettings.WifiSettings.SSID);
-		Serial.println(connectErr);
+		//Debug::println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
@@ -471,67 +528,41 @@ void configureWiFi()
 	delay(1000);
 }
 
-void printConnectInfo()
-{
-	// get your MAC address
-	byte mac[6];
-	WiFi.macAddress(mac);
-	IPAddress ip = WiFi.localIP();
-
-	// print MAC address
-	char ssidInfo[34] = "";
-	sprintf(ssidInfo, "WiFi SSID: %s", appSettings.WifiSettings.SSID);
-	Serial.println(ssidInfo);
-	displayControl.printLine(ssidInfo, GREEN);
-
-	// print MAC address
-	char macInfo[34] = "";
-	sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
-	Serial.println(macInfo);
-	displayControl.printLine(macInfo, YELLOW);
-
-	// print IP address
-	char ipInfo[34] = "";
-	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
-	Serial.println(ipInfo);
-	displayControl.printLine(ipInfo, YELLOW);
-}
-
 void readTemperatureHumidity()
 {
 	sensors_event_t event;
 	dht22.temperature().getEvent(&event);
 	if (isnan(event.temperature))
 	{
-		Serial.println(F("Error reading temperature!"));
+		//Debug::println(F("Error reading temperature!"));
 	}
 	else
 	{
-		tempTemp = roundUpDecimal(event.temperature-4.8);
-		//Serial.print(F("Temperature: "));
-		//Serial.print(tempTemp);
-		//Serial.println(F("°C"));
+		internalTemp = roundUpDecimal(event.temperature-4.8);
+		////Debug::print(F("Temperature: "));
+		////Debug::print(internalTemp);
+		////Debug::println(F("°C"));
 	}
 
 	dht22.humidity().getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
-		Serial.println(F("Error reading humidity!"));
+		//Debug::println(F("Error reading humidity!"));
 	}
 	else
 	{
-		//tempHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
-		tempHmd = map(event.relative_humidity, 20.6, 69.5, 40.0, 75.0);
-		tempHmd = roundUpDecimal(tempHmd);
-		//Serial.print(F("Humidity: "));
-		//Serial.print(tempHmd);
-		//Serial.println(F("%"));
+		//internalHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
+		internalHmd = map(event.relative_humidity, 20.6, 69.5, 40.0, 75.0);
+		internalHmd = roundUpDecimal(internalHmd);
+		////Debug::print(F("Humidity: "));
+		////Debug::print(internalHmd);
+		////Debug::println(F("%"));
 	}
 }
 
 void drawTempratureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayControl.drawTempratureHumidity(x, y, tempTemp, tempHmd, 0.0, 0.0);
+	displayControl.drawTempratureHumidity(x, y, internalTemp, internalHmd, 0.0, 0.0);
 }
 
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
