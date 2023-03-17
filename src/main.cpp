@@ -73,30 +73,8 @@ long lastTouchTime = LONG_MIN;
 
 // ThingSpeak Settings
 WiFiClient client;
-const char *host = "api.thingspeak.com";                  //IP address of the thingspeak server
-const char *api_key ="EMCNAORN3ZXKCFW1";                  //Your own thingspeak api_key
-const int httpPort = 80;
 
-// OpenWeatherMap Settings
-// Sign up here to get an API key:
-// https://docs.thingpulse.com/how-tos/openweathermap-key/
-const boolean IS_METRIC = true;
-// Add your own thingpulse ID 
-String OPEN_WEATHER_MAP_APP_ID = "6ef72f6a0b2b7849e74ac530ce47d067";
-String OPEN_WEATHER_MAP_LOCATION = "6090785";
-
-// Pick a language code from this list:
-// Arabic - ar, Bulgarian - bg, Catalan - ca, Czech - cz, German - de, Greek - el,
-// English - en, Persian (Farsi) - fa, Finnish - fi, French - fr, Galician - gl,
-// Croatian - hr, Hungarian - hu, Italian - it, Japanese - ja, Korean - kr,
-// Latvian - la, Lithuanian - lt, Macedonian - mk, Dutch - nl, Polish - pl,
-// Portuguese - pt, Romanian - ro, Russian - ru, Swedish - se, Slovak - sk,
-// Slovenian - sl, Spanish - es, Turkish - tr, Ukrainian - ua, Vietnamese - vi,
-// Chinese Simplified - zh_cn, Chinese Traditional - zh_tw.
-
-String OPEN_WEATHER_MAP_LANGUAGE = "en";
 const uint8_t MAX_FORECASTS = 4;
-
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
 bool currentWeatherUpdated = false;
@@ -352,9 +330,9 @@ bool updateData()
 	if (updateCurrentWeather)
 	{
 		displayControl.drawProgress(50, "Updating weather...");
-		currentWeatherClient.setMetric(IS_METRIC);
-		currentWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
-		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION);
+		currentWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
+		currentWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
+		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location);
 		if (!currentWeatherUpdated)
 		{
 			displayProgress.foregroundColor = RED;
@@ -365,11 +343,11 @@ bool updateData()
 	if (updateForecastWeather)
 	{
 		displayControl.drawProgress(75, "Updating forecasts...");
-		forecastWeatherClient.setMetric(IS_METRIC);
-		forecastWeatherClient.setLanguage(OPEN_WEATHER_MAP_LANGUAGE);
+		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
+		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		uint8_t allowedHours[] = {12};
 		forecastWeatherClient.setAllowedHours(allowedHours, sizeof(allowedHours));
-		forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, OPEN_WEATHER_MAP_APP_ID, OPEN_WEATHER_MAP_LOCATION, MAX_FORECASTS);
+		forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, MAX_FORECASTS);
 		if (!forecastWeatherUpdated)
 		{
 			displayProgress.foregroundColor = RED;
