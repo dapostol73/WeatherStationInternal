@@ -35,5 +35,5 @@ google-services.json
 .vscode/
 .temp/
 
-# Wifi settings
-src/WifiInfo.h
+# Application Settings
+src/ApplicationSettings.h
