@@ -562,7 +562,7 @@ void readTemperatureHumidity()
 
 void drawTempratureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayControl.drawTempratureHumidity(x, y, internalTemp, internalHmd, 0.0, 0.0);
+	displayControl.drawTempratureHumidity(x, y, internalTemp, internalHmd, externalTemp, externalHmd);
 }
 
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
