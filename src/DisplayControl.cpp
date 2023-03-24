@@ -7,14 +7,14 @@ DisplayControl::DisplayControl()
 
 void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
 {
-    m_utufGlue.begin(0x7796); //initialize lcd
+    m_displayWrapper.InitLCD(); //initialize lcd
     m_gfxFontDefault = gfxFont;
     setFont(gfxFont);
     setRotation(rotation);
-    m_utufGlue.fillScreen(BLACK);
-    m_utufGlue.setBackColor(BLACK);
-    m_utufGlue.setColor(WHITE);
-    m_utufGlue.setTextColor(WHITE);
+    m_displayWrapper.fillScreen(BLACK);
+    m_displayWrapper.setBackColor(BLACK);
+    m_displayWrapper.setColor(WHITE);
+    m_displayWrapper.setTextColor(WHITE);
 }
 
 uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha) 
@@ -33,19 +33,19 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
 
     //Debug::println(String(r) + ", " + String(g) + ", " + String(b));
             
-    return m_utufGlue.color565(r, g, b);
+    return m_displayWrapper.color565(r, g, b);
 }
 
 void DisplayControl::setFont(const GFXfont *gfxFont)
 {
     m_gfxFont = gfxFont;
-    m_utufGlue.setFont(m_gfxFont);
+    m_displayWrapper.setFont(m_gfxFont);
     m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
 }
 
 void DisplayControl::setRotation(uint16_t rotation)
 {
-    m_utufGlue.setRotation(rotation);
+    m_displayWrapper.setRotation(rotation);
     m_maxLines = 48;
     if (rotation == 1 || rotation == 3)
     {
@@ -55,7 +55,7 @@ void DisplayControl::setRotation(uint16_t rotation)
 
 void DisplayControl::fillScreen(uint16_t color)
 {
-    m_utufGlue.fillScreen(color);
+    m_displayWrapper.fillScreen(color);
 }
 
 void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint8_t *bitmap, uint16_t foregroundColor, uint16_t backgroundColor, bool center, int16_t scale)
@@ -76,11 +76,11 @@ void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, 
             color = colorLerp(foregroundColor, backgroundColor, alpha);
             if (scale > 1)
             {
-                m_mcuFriend->fillRect(x + i * scale, y + j * scale, scale, scale, color);
+                m_displayWrapper.fillRect(x + i * scale, y + j * scale, scale, scale, color);
             }
             else
             {
-                m_mcuFriend->drawPixel(x + i, y + j, color);
+                m_displayWrapper.drawPixel(x + i, y + j, color);
             }
         }
     }
@@ -94,7 +94,7 @@ void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, co
         y -= sy * scale * 0.5;
     }
 
-    m_utufGlue.drawBitmap(x, y, sx, sy, data, scale);
+    m_displayWrapper.drawBitmap(x, y, sx, sy, data, scale);
 }
 
 void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *palBmp)
@@ -137,8 +137,8 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
             //Debug::println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
             //Debug::println(paletteIndex);
             // if there is a bit draw it
-            m_utufGlue.setColor(palette[paletteIndex]);
-            m_utufGlue.drawPixel(x + px, y + py);
+            m_displayWrapper.setColor(palette[paletteIndex]);
+            m_displayWrapper.drawPixel(x + px, y + py);
             bitCounter++;
         }
     //pointer++;
@@ -148,18 +148,18 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
 
 void DisplayControl::drawPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color)
 {
-    m_utufGlue.setColor(color);
-    m_utufGlue.drawLine(x0, y0, x1, y1);
-    m_utufGlue.drawLine(x1, y1, x2, y2);
-    m_utufGlue.drawLine(x2, y2, x3, y3);
-    m_utufGlue.drawLine(x3, y3, x0, y0);
+    m_displayWrapper.setColor(color);
+    m_displayWrapper.drawLine(x0, y0, x1, y1);
+    m_displayWrapper.drawLine(x1, y1, x2, y2);
+    m_displayWrapper.drawLine(x2, y2, x3, y3);
+    m_displayWrapper.drawLine(x3, y3, x0, y0);
 }
 
 void DisplayControl::fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color)
 {
-    m_utufGlue.setColor(color);
-    m_utufGlue.fillTriangle(x0, y0, x1, y1, x2, y2, color);
-    m_utufGlue.fillTriangle(x0, y0, x3, y3, x2, y2, color);
+    m_displayWrapper.setColor(color);
+    m_displayWrapper.fillTriangle(x0, y0, x1, y1, x2, y2, color);
+    m_displayWrapper.fillTriangle(x0, y0, x3, y3, x2, y2, color);
 }
 
 /// @brief Note if rx and ry are the same then an arc of a circle is drawn
@@ -195,8 +195,8 @@ void DisplayControl::fillArc(int16_t x, int16_t y, int16_t start_angle, int16_t 
         int x3 = sx2 * rx + x;
         int y3 = sy2 * ry + y;
 
-        m_utufGlue.fillTriangle(x0, y0, x1, y1, x2, y2, colour);
-        m_utufGlue.fillTriangle(x1, y1, x2, y2, x3, y3, colour);
+        m_displayWrapper.fillTriangle(x0, y0, x1, y1, x2, y2, colour);
+        m_displayWrapper.fillTriangle(x1, y1, x2, y2, x3, y3, colour);
 
         // Copy segment end to sgement start for next segment
         x0 = x2;
@@ -215,17 +215,17 @@ void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
     if (wd > 2)
     {
-        m_utufGlue.setColor(color);
-        m_utufGlue.fillCircle(x0, y0, (wd+1)/2);
-        m_utufGlue.fillCircle(x1, y1, (wd+1)/2);
+        m_displayWrapper.setColor(color);
+        m_displayWrapper.fillCircle(x0, y0, (wd+1)/2);
+        m_displayWrapper.fillCircle(x1, y1, (wd+1)/2);
     }
 
     for (wd = (wd+1)/2; ; ) {                                   /* pixel loop */
-        m_utufGlue.writePixel(x0,y0,color);//max(0,255*(abs(err-dx+dy)/ed-wd+1)));
+        m_displayWrapper.writePixel(x0,y0,color);//max(0,255*(abs(err-dx+dy)/ed-wd+1)));
         e2 = err; x2 = x0;
         if (2*e2 >= -dx) {                                           /* x step */
             for (e2 += dy, y2 = y0; e2 < ed*wd && (y1 != y2 || dx > dy); e2 += dx) {
-                m_utufGlue.writePixel(x0, y2 += sy,color);// max(0,255*(abs(e2)/ed-wd+1)));
+                m_displayWrapper.writePixel(x0, y2 += sy,color);// max(0,255*(abs(e2)/ed-wd+1)));
             }
             if (x0 == x1) {
                 break;
@@ -234,7 +234,7 @@ void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
         } 
         if (2*e2 <= dy) {                                            /* y step */
             for (e2 = dx-e2; e2 < ed*wd && (x1 != x2 || dx < dy); e2 += dy) {
-                m_utufGlue.writePixel(x2 += sx, y0,color);// max(0,255*(abs(e2)/ed-wd+1)));
+                m_displayWrapper.writePixel(x2 += sx, y0,color);// max(0,255*(abs(e2)/ed-wd+1)));
             }
             if (y0 == y1) {
                 break;
@@ -249,12 +249,12 @@ void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t fo
     char str[2];
     str[0] = c;
     str[1] = '\0';
-    m_utufGlue.setColor(foregroundColor);
-    m_utufGlue.setTextColor(foregroundColor);
+    m_displayWrapper.setColor(foregroundColor);
+    m_displayWrapper.setTextColor(foregroundColor);
     // For some reason write(char) doesn't draw from the top left
-    //m_utufGlue.setCursor(x, y);
-    //m_utufGlue.write(str);
-    m_utufGlue.print(str, x, y);
+    //m_displayWrapper.setCursor(x, y);
+    //m_displayWrapper.write(str);
+    m_displayWrapper.print(str, x, y);
 }
 
 void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert, boolean mode)
@@ -263,7 +263,7 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
     uint16_t w, h = 0;
     if (mode || align > TEXT_LEFT_TOP)
     {
-        m_utufGlue.getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
+        m_displayWrapper.getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
         switch (align)
         {
             case TEXT_LEFT_MIDDLE:
@@ -303,37 +303,37 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
     {
         if (mode)
         {
-            m_utufGlue.setColor(foregroundColor);
-            m_utufGlue.fillRect(x, y, x + w, y + h);
+            m_displayWrapper.setColor(foregroundColor);
+            m_displayWrapper.fillRect(x, y, x + w, y + h);
         }
-        m_utufGlue.setTextColor(backgroundColor);
-        m_utufGlue.print(str, x, y);
+        m_displayWrapper.setTextColor(backgroundColor);
+        m_displayWrapper.print(str, x, y);
     }
     else
     {
         if (mode)
         {
-            m_utufGlue.setColor(backgroundColor);
-            m_utufGlue.fillRect(x, y, x + w, y + h);
+            m_displayWrapper.setColor(backgroundColor);
+            m_displayWrapper.fillRect(x, y, x + w, y + h);
         }
-        m_utufGlue.setTextColor(foregroundColor);
-        m_utufGlue.print(str, x, y);
+        m_displayWrapper.setTextColor(foregroundColor);
+        m_displayWrapper.print(str, x, y);
     }
 }
 
 void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert)
 {
     m_gfxFontTemp = m_gfxFont;
-    m_utufGlue.setFont(m_gfxFontDefault);
-    int x = m_utufGlue.getCursorX();
+    m_displayWrapper.setFont(m_gfxFontDefault);
+    int x = m_displayWrapper.getCursorX();
     int y = m_currentLine*m_lineHeight;
     drawString(str, x, y, TEXT_LEFT_TOP, foregroundColor, backgroundColor, invert);
     // check if the text cursor over flowed and by how many lines
-    while (m_utufGlue.getCursorY() < m_currentLine*m_lineHeight - 2)
+    while (m_displayWrapper.getCursorY() < m_currentLine*m_lineHeight - 2)
     {
         m_currentLine++;
     }
-    m_utufGlue.setFont(m_gfxFontTemp);
+    m_displayWrapper.setFont(m_gfxFontTemp);
 }
 
 void DisplayControl::printLine()
@@ -347,11 +347,11 @@ void DisplayControl::printLine(String str, uint16_t foregroundColor, uint16_t ba
     int16_t x = 4;
     if (m_currentLine > m_maxLines)
     {
-        m_utufGlue.vertScroll(0, m_utufGlue.height(), -m_lineHeight*(m_currentLine%m_maxLines));
+        m_displayWrapper.vertScroll(0, m_displayWrapper.getDisplayYSize(), -m_lineHeight*(m_currentLine%m_maxLines));
         y = ((m_currentLine%m_maxLines)-1)*m_lineHeight;
     }
 
-    m_utufGlue.setCursor(x, y);
+    m_displayWrapper.setCursor(x, y);
     print(str, foregroundColor, backgroundColor, invert);
     printLine();
 }
@@ -365,7 +365,7 @@ void DisplayControl::drawProgress(int16_t percent, String message)
 {
     int16_t x1, y1 = 0;
     uint16_t w1, h1 = 0;
-    m_utufGlue.getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
+    m_displayWrapper.getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
     setFont(m_progress->gfxFont);
     m_progress->progress = percent;
     m_progress->message = message;
@@ -374,8 +374,8 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     int16_t minY = y1 - 2 * m_progress->padding;
     int16_t x = m_progress->x + m_progress->padding;
     int16_t y = m_progress->y + m_progress->padding;
-    int16_t sx = x + m_progress->width - 2 * m_progress->padding;
-    int16_t sy = y + m_progress->height - 2 * m_progress->padding;
+    int16_t sx = m_progress->width - 2 * m_progress->padding;
+    int16_t sy = m_progress->height - 2 * m_progress->padding;
     int16_t corner = min(m_progress->corner, min(sx*0.5, sy*0.5));
     
     if (sx < minX) sx = minX;
@@ -384,11 +384,11 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     int16_t cx = m_progress->x+(m_progress->width*0.5)-(0.5*w1);
     int16_t cy = m_progress->y+(m_progress->height*0.5)-(0.5*h1);
 
-    m_utufGlue.setColor(m_progress->backgroundColor);
-    m_utufGlue.fillRoundRect(x, y, sx, sy, corner);
-    m_utufGlue.setColor(m_progress->foregroundColor);
-    m_utufGlue.drawRoundRect(x, y, sx, sy, corner);
-    m_utufGlue.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0));
+    m_displayWrapper.setColor(m_progress->backgroundColor);
+    m_displayWrapper.fillRoundRect(x, y, sx, sy, corner);
+    m_displayWrapper.setColor(m_progress->foregroundColor);
+    m_displayWrapper.drawRoundRect(x, y, sx, sy, corner);
+    m_displayWrapper.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0));
 
     //Debug::println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
     for (int16_t i = 0; i < strl; i++)
@@ -401,7 +401,7 @@ void DisplayControl::drawProgress(int16_t percent, String message)
         {
             drawChar(cx, cy, m_progress->message[i], m_progress->backgroundColor);
         }
-        cx = m_utufGlue.getCursorX();
+        cx = m_displayWrapper.getCursorX();
         //Debug::println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 
     }
 }
@@ -417,7 +417,7 @@ void DisplayControl::drawFrame()
     {
         case IN_TRANSITION: 
         {
-            //m_utufGlue.fillScreen(BLACK);
+            //m_displayWrapper.fillScreen(BLACK);
             break;
         }
         case FIXED:
@@ -571,9 +571,9 @@ int8_t DisplayControl::update()
 void DisplayControl::testDisplay()
 {
     //Sequential display black,white,red,green,blue
-    m_utufGlue.fillScreen(BLACK);  
-    m_utufGlue.fillScreen(WHITE); 
-    m_utufGlue.fillScreen(RED); 
-    m_utufGlue.fillScreen(GREEN);
-    m_utufGlue.fillScreen(BLUE);
+    m_displayWrapper.fillScreen(BLACK);  
+    m_displayWrapper.fillScreen(WHITE); 
+    m_displayWrapper.fillScreen(RED); 
+    m_displayWrapper.fillScreen(GREEN);
+    m_displayWrapper.fillScreen(BLUE);
 }

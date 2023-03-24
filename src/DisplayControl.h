@@ -1,7 +1,7 @@
 #ifndef _DISPLAY_CONTROL_
 #define _DISPLAY_CONTROL_
 
-#include <UTFTGLUE.h>
+#include "DisplayWrapper.h"
 #include <gfxfont.h>
 
 #define BITS_PER_PIXEL 2 // 2^2 =  4 colors
@@ -136,8 +136,10 @@ class DisplayControl
 
     protected:
 		//MCUFRIEND_kbv m_lcd;
-		UTFTGLUE m_utufGlue = UTFTGLUE(0x7796, 38, 39, 40, 41, 43);
-		MCUFRIEND_kbv* m_mcuFriend = &m_utufGlue;
+		// LCDWIKI_KBV mylcd(NT35510,40,38,39,43,41);
+		// LCDWIKI_KBV(uint16_t model,uint8_t cs, uint8_t cd, uint8_t wr, uint8_t rd, uint8_t reset);
+		// UTFTGLUE(int model_ID, int RS, int WR,int CS, int RST, int RD = A0)
+		DisplayWrapper m_displayWrapper = DisplayWrapper(NT35510, 38, 39, 40, 41, 43);
 
 	public:
 		DisplayControl();
