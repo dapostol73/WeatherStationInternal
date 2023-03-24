@@ -146,7 +146,7 @@ void interruptServiceRoutine()
 
 void setup()
 {
-	//Debug::begin(SERIAL_BAUD_RATE);
+	Serial.begin(SERIAL_BAUD_RATE);
 
 	displayControl.init();
 	displayControl.fillScreen(BLACK);
@@ -172,11 +172,11 @@ void loop()
 
 void setup()
 {
-	//Debug::begin(SERIAL_BAUD_RATE);
+	Serial.begin(SERIAL_BAUD_RATE);
 
 	displayProgress.x = 0;
-	displayProgress.y = 280;
-	displayProgress.width = 480;
+	displayProgress.y = 440;
+	displayProgress.width = 800;
 	displayProgress.height = 40;
 	displayProgress.padding = 5;
 	displayProgress.corner = 20;
@@ -235,35 +235,35 @@ void loop()
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
 	{
-		//Debug::println("Setting updateForecastWeather to true");
+		Serial.println("Setting updateForecastWeather to true");
 		updateForecastWeather = true;
 		timeSinceForecastUpdate = millis();
 	}
 
 	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
 	{
-		//Debug::println("Setting updateCurrentWeather to true");
+		Serial.println("Setting updateCurrentWeather to true");
 		updateCurrentWeather = true;
 		timeSinceCurrentUpdate = millis();
 	}
 
 	if ((updateCurrentWeather || updateForecastWeather) && !updateData()) 
 	{
-		//Debug::println("Update failed, refreshing WiFi connection.");
+		Serial.println("Update failed, refreshing WiFi connection.");
 		WiFi.disconnect();
 		delay(3000);
 		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 
 		int timeout = 0;
 		int timeoutMax = 30;
-		//Debug::print("Connecting to WiFi");
+		Serial.print("Connecting to WiFi");
 		while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 		{
 			delay(1000);
-			//Debug::print('.');
+			Serial.print('.');
 			++timeout;
 		}
-		//Debug::println();
+		Serial.println();
 
 		updateData();
 	}
@@ -339,15 +339,15 @@ void updateThingSpeak()
 	statusCode = ThingSpeak.getLastReadStatus();
 	if(statusCode == 200)
 	{
-		//Debug::println("Reading from ThinkSpeak " + String(appSettings.ThingSpeakSettings.ChannelID));
-		//Debug::println("Temperature: " + String(externalTemp) + " °C");
-		//Debug::println("Humidity: " + String(externalHmd) + " %");
-		//Debug::println("Light: " + String(externalLux) + " lux");
-		//Debug::println("Atmosphere: " + String(externalHPa) + " hPa");
+		Serial.println("Reading from ThinkSpeak " + String(appSettings.ThingSpeakSettings.ChannelID));
+		Serial.println("Temperature: " + String(externalTemp) + " °C");
+		Serial.println("Humidity: " + String(externalHmd) + " %");
+		Serial.println("Light: " + String(externalLux) + " lux");
+		Serial.println("Atmosphere: " + String(externalHPa) + " hPa");
 	}
 	else
 	{
-		//Debug::println("Problem reading channel. HTTP error code " + String(statusCode)); 
+		Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
 	}
 }
 
@@ -395,19 +395,19 @@ bool updateData()
 void resolveAppSettings()
 {
 	int8_t numNetworks = WiFi.scanNetworks();
-	//Debug::println("Number of networks found: " + String(numNetworks));
+	Serial.println("Number of networks found: " + String(numNetworks));
 
 	for (uint8_t i=0; i<numNetworks; i++)
 	{
 		String ssid = WiFi.SSID(i);
-		//Debug::println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
+		Serial.println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
 		for (uint8_t j=0; j < AppSettingsCount; j++)
 		{
 			const char* appSsid = AppSettings[j].WifiSettings.SSID;
-			//Debug::println("Checking: " + String(appSsid));
+			Serial.println("Checking: " + String(appSsid));
 			if (strcasecmp(appSsid, ssid.c_str()) == 0)
 			{
-				////Debug::println("Found: " + String(ssid));
+				//Serial.println("Found: " + String(ssid));
 				AppSettings[j].WifiSettings.Avialable = true;
 				AppSettings[j].WifiSettings.Strength = WiFi.RSSI(i);
 
@@ -419,7 +419,7 @@ void resolveAppSettings()
 		}
 	}
 
-	//Debug::println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
+	Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
 }
 
 void printConnectInfo()
@@ -432,26 +432,26 @@ void printConnectInfo()
 	// print MAC address
 	char ssidInfo[34] = "";
 	sprintf(ssidInfo, "WiFi SSID: %s", appSettings.WifiSettings.SSID);
-	//Debug::println(ssidInfo);
+	Serial.println(ssidInfo);
 	displayControl.printLine(ssidInfo, GREEN);
 
 	// print MAC address
 	char macInfo[34] = "";
 	sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
-	//Debug::println(macInfo);
+	Serial.println(macInfo);
 	displayControl.printLine(macInfo, YELLOW);
 
 	// print IP address
 	char ipInfo[34] = "";
 	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
-	//Debug::println(ipInfo);
+	Serial.println(ipInfo);
 	displayControl.printLine(ipInfo, YELLOW);
 }
 
 void configureWiFi()
 {
 	String intialMsg = "Intializing WiFi module.";
-	//Debug::println(intialMsg);
+	Serial.println(intialMsg);
 	displayControl.drawProgress(10, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
 	
@@ -460,7 +460,7 @@ void configureWiFi()
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
 		String initialErr = "Communication with WiFi module failed!";
-		//Debug::println(initialErr);
+		Serial.println(initialErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
@@ -469,7 +469,7 @@ void configureWiFi()
 	}
 
 	String scanMsg = "Scanning for WiFi SSID.";
-	//Debug::println(scanMsg);
+	Serial.println(scanMsg);
 	displayControl.drawProgress(30, scanMsg);
 	resolveAppSettings();
 
@@ -478,7 +478,7 @@ void configureWiFi()
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "No WiFi connecttion found %s!", appSettings.WifiSettings.SSID);
-		//Debug::println(connectErr);
+		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		while (true)
@@ -487,7 +487,7 @@ void configureWiFi()
 
 	WiFi.setAutoConnect(true);
 	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-	//Debug::println(infoMsg);
+	Serial.println(infoMsg);
 	displayControl.drawProgress(50, infoMsg);
 
 	int counter = 0;
@@ -497,18 +497,18 @@ void configureWiFi()
 	while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 	{
 		delay(1000);
-		//Debug::print('.');
+		Serial.print('.');
 		displayControl.drawProgress(70, "Connecting to WiFi");
 		counter++;
 		++timeout;
 	}
-	//Debug::println();
+	Serial.println();
 
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "WiFi failed to connect to %s access point!", appSettings.WifiSettings.SSID);
-		//Debug::println(connectErr);
+		Serial.println(connectErr);
 		displayControl.fillScreen(RED);
 		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
@@ -523,7 +523,7 @@ void configureWiFi()
 	displayControl.drawProgress(90, ssidInfo);
 	delay(500);
 		
-	printConnectInfo();
+	//printConnectInfo();
 	displayControl.drawProgress(100, "WiFi initialization done!");
 	delay(1000);
 }
@@ -534,29 +534,29 @@ void readTemperatureHumidity()
 	dht22.temperature().getEvent(&event);
 	if (isnan(event.temperature))
 	{
-		//Debug::println(F("Error reading temperature!"));
+		Serial.println(F("Error reading temperature!"));
 	}
 	else
 	{
 		internalTemp = roundUpDecimal(event.temperature-4.8);
-		////Debug::print(F("Temperature: "));
-		////Debug::print(internalTemp);
-		////Debug::println(F("°C"));
+		//Serial.print(F("Temperature: "));
+		//Serial.print(internalTemp);
+		//Serial.println(F("°C"));
 	}
 
 	dht22.humidity().getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
-		//Debug::println(F("Error reading humidity!"));
+		Serial.println(F("Error reading humidity!"));
 	}
 	else
 	{
 		//internalHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
 		internalHmd = map(event.relative_humidity, 20.6, 69.5, 40.0, 75.0);
 		internalHmd = roundUpDecimal(internalHmd);
-		////Debug::print(F("Humidity: "));
-		////Debug::print(internalHmd);
-		////Debug::println(F("%"));
+		//Serial.print(F("Humidity: "));
+		//Serial.print(internalHmd);
+		//Serial.println(F("%"));
 	}
 }
 
