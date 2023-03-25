@@ -571,8 +571,8 @@ void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathe
 	m_displayWrapper.drawFastHLine(0, 14, 480, CYAN);
 
 	setFont(&CalibriBold8pt7b);
-	drawChar(4, 0, 'C', currentWeathersUpdated ? GREEN : RED);
-	drawChar(20, 0, 'F', forecastWeathersUpdated ? GREEN : RED);
+	drawChar(4, 0, 'C', TEXT_LEFT_MIDDLE, currentWeathersUpdated ? GREEN : RED);
+	drawChar(20, 0, 'F', TEXT_LEFT_MIDDLE, forecastWeathersUpdated ? GREEN : RED);
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
@@ -583,7 +583,7 @@ void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
 {
 	char date[20];
 	char time[10];
-	sprintf_P(date, PSTR("%s %d, %d"), MONTH_NAMES[month()-1].c_str(), day(), year());
+	sprintf_P(date, PSTR("%s %d - %d"), MONTH_NAMES[month()-1].c_str(), day(), year());
 	sprintf_P(time, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
 
 	m_displayWrapper.fillRect(0, 280, 480, 320, CHARCOAL); 

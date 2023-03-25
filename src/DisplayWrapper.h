@@ -1,23 +1,5 @@
-/*
- * DisplayWrapper.h   @@@@@@@@@@@@@@@@@@@@@@@@ LIBRARY @@@@@@@@@@@@@@@@@@@@@@@@@
- *
- * Created: 12/05/2019 14:25:06
- *  Author: David Prentice
- *  
- *  1. replace "UTFT.h" with "UTFTGLUE.h"
- *  2. replace UTFT constructor with UTFTGLUE(model_ID, 0,0,0,0,0)
- *  3. remove smallFont, BigFont, SeveSegNumFont declarations
- *  4. UTFTGLUE uses FreeFonts or NULL (System 5x7)
- *
- *  5. knows FreeSmallFont, FreeBigFont and FreeSevenSegNumFont
- *  6. any other Fonts just need to #include "FreeOtherXXX.h"
- *  7. #define OtherXXX &FreeOtherXXX
- */ 
-
-#warning   @@@@@@@@@@@@@@@@@@@@@@@@@ <DisplayWrapper.h> @@@@@@@@@@@@@@@@@@@@@@@@@@
-
-#ifndef _Display_Wrapper_
-#define _Display_Wrapper_
+#ifndef _DISPLAY_WRAPPER_
+#define _DISPLAY_WRAPPER_
 
 #include <LCDWIKI_GUI.h> //Core graphics library
 #include <LCDWIKI_KBV.h> //Hardware-specific library
@@ -83,39 +65,17 @@ class DisplayWrapper : public Adafruit_GFX
         {
             // not implemented
         }
-        // Custom code
-        uint16_t color565(byte r, byte g, byte b) { return ((r&0xF8) << 8) | ((g&0xFC) << 3) | (b>>3); }
-        
+        // Custom code        
         void vertScroll(int16_t top, int16_t scrollines, int16_t offset)
         {
             m_lcdwiki_kbv->Vert_Scroll(top, scrollines, offset);
-        }
-        void print(const char *st, int16_t x, int16_t y, int16_t deg=0)
-        {
-            setCursor(x, y);
-            Adafruit_GFX::print(st);
-        }
-        void print(char *st, int16_t x, int16_t y, int16_t deg=0)
-        {
-            setCursor(x, y);
-            Adafruit_GFX::print(st);
-        }
-        void print(String st, int16_t x, int16_t y, int16_t deg=0)
-        {
-            setCursor(x, y);
-            Adafruit_GFX::print(st);
-        }
-        void drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, int16_t scale=1)
-        {
-            m_lcdwiki_kbv->Draw_Bit_Map(x, y, sx, sy, data, scale);
         }
     protected:
         uint16_t m_foregroundColor;
         uint16_t m_backgroundColor;
         uint16_t m_modelID;
         uint8_t m_orientation;
-        const GFXfont *m_gfxFont;
         LCDWIKI_KBV *m_lcdwiki_kbv;
 };
 
-#endif /* _Display_Wrapper_ */
+#endif
