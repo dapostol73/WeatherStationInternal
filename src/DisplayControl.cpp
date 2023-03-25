@@ -1,5 +1,4 @@
 #include "DisplayControl.h"
-#include "Debug.h"
 
 DisplayControl::DisplayControl()
 {
@@ -7,14 +6,16 @@ DisplayControl::DisplayControl()
 
 void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
 {
-    m_displayWrapper.InitLCD(); //initialize lcd
+    m_displayWrapper.InitLCD(rotation); //initialize lcd
     m_gfxFontDefault = gfxFont;
     setFont(gfxFont);
-    setRotation(rotation);
     m_displayWrapper.fillScreen(BLACK);
-    //m_displayWrapper.setBackColor(BLACK);
-    //m_displayWrapper.setColor(WHITE);
     m_displayWrapper.setTextColor(WHITE);
+}
+
+uint16_t DisplayControl::color565(byte r, byte g, byte b)
+{
+    return ((r&0xF8) << 8) | ((g&0xFC) << 3) | (b>>3);
 }
 
 uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha) 
@@ -31,9 +32,9 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
     uint8_t g = (fg_g * alpha + bg_g * (255-alpha)) / 255;
     uint8_t b = (fg_b * alpha + bg_b * (255-alpha)) / 255;
 
-    //Debug::println(String(r) + ", " + String(g) + ", " + String(b));
+    //Serial.println(String(r) + ", " + String(g) + ", " + String(b));
             
-    return m_displayWrapper.color565(r, g, b);
+    return color565(r, g, b);
 }
 
 void DisplayControl::setFont(const GFXfont *gfxFont)
@@ -56,6 +57,32 @@ void DisplayControl::setRotation(uint16_t rotation)
 void DisplayControl::fillScreen(uint16_t color)
 {
     m_displayWrapper.fillScreen(color);
+}
+
+void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center, int16_t scale)
+{
+    if(center)
+    {
+        x -= sx * scale * 0.5;
+        y -= sy * scale * 0.5;
+    }
+
+    uint16_t color = BLACK;
+    for (int16_t row = 0; row < sy; row++) 
+    {
+        for (int16_t col = 0; col < sx; col++) 
+        {
+            color = *(data + (row*sx + col)*1);//pgm_read_word(data + (row*sx + col)*1);
+            if (scale > 1)
+            {
+                m_displayWrapper.fillRect(x+col*scale, y+row*scale, scale, scale, color);
+            }
+            else
+            {
+                m_displayWrapper.drawPixel(x + col, y + row, color);
+            }
+        }
+    }
 }
 
 void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, const uint8_t *bitmap, uint16_t foregroundColor, uint16_t backgroundColor, bool center, int16_t scale)
@@ -86,23 +113,12 @@ void DisplayControl::drawMaskBitmap(int16_t x, int16_t y, int16_t w, int16_t h, 
     }
 }
 
-void DisplayControl::drawBitmap(int16_t x, int16_t y, int16_t sx, int16_t sy, const uint16_t *data, bool center, int16_t scale)
-{
-    if(center)
-    {
-        x -= sx * scale * 0.5;
-        y -= sy * scale * 0.5;
-    }
-
-    m_displayWrapper.drawBitmap(x, y, sx, sy, data, scale);
-}
-
 void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, const unsigned char *palBmp)
 {
     //uint8_t version = pgm_read_byte(palBmp);
     uint8_t bmpBitDepth = pgm_read_byte(palBmp + 1);
     if (bmpBitDepth != BITS_PER_PIXEL) {
-        //Debug::println("Bmp has wrong bit depth");
+        //Serial.println("Bmp has wrong bit depth");
         return;
     }
     uint16_t width = pgm_read_byte(palBmp + 2) << 8 | pgm_read_byte(palBmp + 3);
@@ -125,7 +141,7 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
         {
             if (bitCounter == PIXELS_PER_BYTE || bitCounter == 0) 
             {
-                //Debug::println("Reading new data");
+                //Serial.println("Reading new data");
                 data = pgm_read_byte(palBmp + pointer);
                 pointer++;
                 //shift = bitsPerPixel;
@@ -134,10 +150,9 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
             shift = 8 - (bitCounter + 1) * BITS_PER_PIXEL;
             paletteIndex = (data >> shift) & BIT_MASK;
 
-            //Debug::println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
-            //Debug::println(paletteIndex);
+            //Serial.println(String(x) + ", " + String(y) + ": Pointer:" + String(pointer) + ", data:" + String(data) + ", Bit:" + String(bitCounter) + ", Shift:" + String(shift) + ", IDX:" + String(paletteIndex));
+            //Serial.println(paletteIndex);
             // if there is a bit draw it
-            //m_displayWrapper.setColor(palette[paletteIndex]);
             m_displayWrapper.drawPixel(x + px, y + py, palette[paletteIndex]);
             bitCounter++;
         }
@@ -148,7 +163,6 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
 
 void DisplayControl::drawPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color)
 {
-    //m_displayWrapper.setColor(color);
     m_displayWrapper.drawLine(x0, y0, x1, y1, color);
     m_displayWrapper.drawLine(x1, y1, x2, y2, color);
     m_displayWrapper.drawLine(x2, y2, x3, y3, color);
@@ -157,7 +171,6 @@ void DisplayControl::drawPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
 void DisplayControl::fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color)
 {
-    //m_displayWrapper.setColor(color);
     m_displayWrapper.fillTriangle(x0, y0, x1, y1, x2, y2, color);
     m_displayWrapper.fillTriangle(x0, y0, x3, y3, x2, y2, color);
 }
@@ -215,7 +228,6 @@ void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 
     if (wd > 2)
     {
-        //m_displayWrapper.setColor(color);
         m_displayWrapper.fillCircle(x0, y0, (wd+1)/2, color);
         m_displayWrapper.fillCircle(x1, y1, (wd+1)/2, color);
     }
@@ -244,81 +256,113 @@ void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     }
 }
 
-void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t foregroundColor)
-{	
-    char str[2];
-    str[0] = c;
-    str[1] = '\0';
-    //m_displayWrapper.setColor(foregroundColor);
+void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, TextAlignment verticalAlign, uint16_t foregroundColor)
+{
+    switch (verticalAlign)
+    {
+        case TEXT_LEFT_TOP:
+        case TEXT_CENTER_TOP:
+        case TEXT_RIGHT_TOP:
+            y += m_lineHeight;
+            break;
+        case TEXT_LEFT_MIDDLE:
+        case TEXT_CENTER_MIDDLE:
+        case TEXT_RIGHT_MIDDLE:
+            y += m_lineHeight * 0.5;
+            break;
+        case TEXT_LEFT_BOTTOM:
+        case TEXT_CENTER_BOTTOM:
+        case TEXT_RIGHT_BOTTOM:
+        default:
+            break;
+    }
+    //char str[2];
+    //str[0] = c;
+    //str[1] = '\0';
     m_displayWrapper.setTextColor(foregroundColor);
-    // For some reason write(char) doesn't draw from the top left
-    //m_displayWrapper.setCursor(x, y);
-    //m_displayWrapper.write(str);
-    m_displayWrapper.print(str, x, y);
+    //For gfx_font text draw from bottom left
+    m_displayWrapper.setCursor(x, y);
+    m_displayWrapper.write(c);
 }
 
 void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert, boolean mode)
 {
     int16_t x1, y1 = 0;
     uint16_t w, h = 0;
-    if (mode || align > TEXT_LEFT_TOP)
+    m_displayWrapper.getTextBounds(str, 0, y, &x1, &y1, &w, &h);
+    switch (align)
     {
-        m_displayWrapper.getTextBounds(str, 0, 0, &x1, &y1, &w, &h);
-        switch (align)
-        {
-            case TEXT_LEFT_MIDDLE:
-                y -= h * 0.5;
-                break;
-            case TEXT_LEFT_BOTTOM:
-                y -= h;
-                break;
-            case TEXT_CENTER_TOP:
-                x -= w * 0.5;
-                break;
-            case TEXT_CENTER_MIDDLE:
-                x -= w * 0.5;
-                y -= h * 0.5;
-                break;
-            case TEXT_CENTER_BOTTOM:
-                x -= w * 0.5;
-                y -= h;
-                break;
-            case TEXT_RIGHT_TOP:
-                x -= w + 1;
-                break;
-            case TEXT_RIGHT_MIDDLE:
-                x -= w + 1;
-                y -= h * 0.5;
-                break;
-            case TEXT_RIGHT_BOTTOM:
-                x -= w + 1;
-                y -= h;
-                break;
-            default:
-                break;
-        }
+        case TEXT_LEFT_TOP:
+            break;
+        case TEXT_LEFT_MIDDLE:
+            y -= h * 0.5;
+            break;
+        case TEXT_LEFT_BOTTOM:
+            y -= h;
+            break;
+        case TEXT_CENTER_TOP:
+            x -= w * 0.5;
+            break;
+        case TEXT_CENTER_MIDDLE:
+            x -= w * 0.5;
+            y -= h * 0.5;
+            break;
+        case TEXT_CENTER_BOTTOM:
+            x -= w * 0.5;
+            y -= h;
+            break;
+        case TEXT_RIGHT_TOP:
+            x -= w + 1;
+            break;
+        case TEXT_RIGHT_MIDDLE:
+            x -= w + 1;
+            y -= h * 0.5;
+            break;
+        case TEXT_RIGHT_BOTTOM:
+            x -= w + 1;
+            y -= h;
+            break;
+        default:
+            break;
     }
 
+    // for gfx_font, they draw from bottom left, so we need to offset y by the height.
     if (invert)
     {
         if (mode)
         {
-            //m_displayWrapper.setColor(foregroundColor);
             m_displayWrapper.fillRect(x, y, x + w, y + h, foregroundColor);
         }
         m_displayWrapper.setTextColor(backgroundColor);
-        m_displayWrapper.print(str, x, y);
+        if (m_gfxFont != nullptr) y += h;
+        print(str, x, y);
     }
     else
     {
         if (mode)
         {
-            //m_displayWrapper.setColor(backgroundColor);
             m_displayWrapper.fillRect(x, y, x + w, y + h, backgroundColor);
         }
         m_displayWrapper.setTextColor(foregroundColor);
-        m_displayWrapper.print(str, x, y);
+        if (m_gfxFont != nullptr) y += h;
+        print(str, x, y);
     }
+}
+
+void DisplayControl::print(const char *st, int16_t x, int16_t y)
+{
+    m_displayWrapper.setCursor(x, y);
+    m_displayWrapper.print(st);
+}
+void DisplayControl::print(char *st, int16_t x, int16_t y)
+{
+    m_displayWrapper.setCursor(x, y);
+    m_displayWrapper.print(st);
+}
+void DisplayControl::print(String st, int16_t x, int16_t y)
+{
+    m_displayWrapper.setCursor(x, y);
+    m_displayWrapper.print(st);
 }
 
 void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert)
@@ -384,25 +428,23 @@ void DisplayControl::drawProgress(int16_t percent, String message)
     int16_t cx = m_progress->x+(m_progress->width*0.5)-(0.5*w1);
     int16_t cy = m_progress->y+(m_progress->height*0.5)-(0.5*h1);
 
-    //m_displayWrapper.setColor(m_progress->backgroundColor);
     m_displayWrapper.fillRoundRect(x, y, sx, sy, corner, m_progress->backgroundColor);
-    //m_displayWrapper.setColor(m_progress->foregroundColor);
     m_displayWrapper.drawRoundRect(x, y, sx, sy, corner, m_progress->foregroundColor);
     m_displayWrapper.fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0), m_progress->foregroundColor);
 
-    //Debug::println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
+    //Serial.println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
     for (int16_t i = 0; i < strl; i++)
     {
         if (cx > px)
         {
-            drawChar(cx, cy, m_progress->message[i], m_progress->foregroundColor);
+            drawChar(cx, cy, m_progress->message[i], TEXT_LEFT_MIDDLE, m_progress->foregroundColor);
         }
         else
         {
-            drawChar(cx, cy, m_progress->message[i], m_progress->backgroundColor);
+            drawChar(cx, cy, m_progress->message[i], TEXT_LEFT_MIDDLE, m_progress->backgroundColor);
         }
         cx = m_displayWrapper.getCursorX();
-        //Debug::println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 
+        //Serial.println("Cursor: " + String(cx) + ", " + String(cy) + " Px: " + String(px)); 
     }
 }
 

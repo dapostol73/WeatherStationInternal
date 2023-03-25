@@ -22,7 +22,6 @@
 #include <DHT.h>
 #include <DHT_U.h>
 
-#include "Debug.h"
 #include "ApplicationSettings.h"
 #include "DisplayWeather.h"
 #include "OpenWeatherMapCurrent.h"
@@ -32,7 +31,7 @@
 //#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
-#include "SoftwareSerial.h"
+#include "Software//Serial.h"
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
@@ -146,7 +145,7 @@ void interruptServiceRoutine()
 
 void setup()
 {
-	Serial.begin(SERIAL_BAUD_RATE);
+	//Serial.begin(SERIAL_BAUD_RATE);
 
 	displayControl.init();
 	displayControl.fillScreen(BLACK);
@@ -189,19 +188,19 @@ void setup()
 	displayControl.setOverlays(overlays, numberOfOverlays);
 
 	displayControl.fillScreen(BLACK);
-	displayControl.drawWeatherIcon(40 ,  80, "01d", true);
-	displayControl.drawWeatherIcon(140,  80, "02d", true);
-	displayControl.drawWeatherIcon(240,  80, "03d", true);
-	displayControl.drawWeatherIcon(340,  80, "04d", true);
-	displayControl.drawWeatherIcon(440,  80, "09d", true);
-	displayControl.drawWeatherIcon(40 , 200, "10d", true);
-	displayControl.drawWeatherIcon(140, 200, "11d", true);
-	displayControl.drawWeatherIcon(240, 200, "13d", true);
-	displayControl.drawWeatherIcon(340, 200, "50d", true);
-	displayControl.drawWeatherIcon(440, 200, "00d", true);
+	displayControl.drawWeatherIcon(100, 120, "01d", true, 2);
+	displayControl.drawWeatherIcon(250, 120, "02d", true, 2);
+	displayControl.drawWeatherIcon(400, 120, "03d", true, 2);
+	displayControl.drawWeatherIcon(550, 120, "04d", true, 2);
+	displayControl.drawWeatherIcon(700, 120, "09d", true, 2);
+	displayControl.drawWeatherIcon(100, 300, "10d", true, 2);
+	displayControl.drawWeatherIcon(250, 300, "11d", true, 2);
+	displayControl.drawWeatherIcon(400, 300, "13d", true, 2);
+	displayControl.drawWeatherIcon(550, 300, "50d", true, 2);
+	displayControl.drawWeatherIcon(700, 300, "00d", true, 2);
 
 	touch.setRotation(1);
-	touch.setResolution(480, 320);
+	touch.setResolution(800, 480);
 	configureWiFi();
 	dht22.begin();
 	timeClient.begin();
@@ -235,35 +234,35 @@ void loop()
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
 	{
-		Serial.println("Setting updateForecastWeather to true");
+		//Serial.println("Setting updateForecastWeather to true");
 		updateForecastWeather = true;
 		timeSinceForecastUpdate = millis();
 	}
 
 	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
 	{
-		Serial.println("Setting updateCurrentWeather to true");
+		//Serial.println("Setting updateCurrentWeather to true");
 		updateCurrentWeather = true;
 		timeSinceCurrentUpdate = millis();
 	}
 
 	if ((updateCurrentWeather || updateForecastWeather) && !updateData()) 
 	{
-		Serial.println("Update failed, refreshing WiFi connection.");
+		//Serial.println("Update failed, refreshing WiFi connection.");
 		WiFi.disconnect();
 		delay(3000);
 		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 
 		int timeout = 0;
 		int timeoutMax = 30;
-		Serial.print("Connecting to WiFi");
+		//Serial.print("Connecting to WiFi");
 		while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 		{
 			delay(1000);
-			Serial.print('.');
+			//Serial.print('.');
 			++timeout;
 		}
-		Serial.println();
+		//Serial.println();
 
 		updateData();
 	}
@@ -339,15 +338,15 @@ void updateThingSpeak()
 	statusCode = ThingSpeak.getLastReadStatus();
 	if(statusCode == 200)
 	{
-		Serial.println("Reading from ThinkSpeak " + String(appSettings.ThingSpeakSettings.ChannelID));
-		Serial.println("Temperature: " + String(externalTemp) + " °C");
-		Serial.println("Humidity: " + String(externalHmd) + " %");
-		Serial.println("Light: " + String(externalLux) + " lux");
-		Serial.println("Atmosphere: " + String(externalHPa) + " hPa");
+		//Serial.println("Reading from ThinkSpeak " + String(appSettings.ThingSpeakSettings.ChannelID));
+		//Serial.println("Temperature: " + String(externalTemp) + " °C");
+		//Serial.println("Humidity: " + String(externalHmd) + " %");
+		//Serial.println("Light: " + String(externalLux) + " lux");
+		//Serial.println("Atmosphere: " + String(externalHPa) + " hPa");
 	}
 	else
 	{
-		Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
+		//Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
 	}
 }
 
@@ -395,16 +394,16 @@ bool updateData()
 void resolveAppSettings()
 {
 	int8_t numNetworks = WiFi.scanNetworks();
-	Serial.println("Number of networks found: " + String(numNetworks));
+	//Serial.println("Number of networks found: " + String(numNetworks));
 
 	for (uint8_t i=0; i<numNetworks; i++)
 	{
 		String ssid = WiFi.SSID(i);
-		Serial.println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
+		//Serial.println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
 		for (uint8_t j=0; j < AppSettingsCount; j++)
 		{
 			const char* appSsid = AppSettings[j].WifiSettings.SSID;
-			Serial.println("Checking: " + String(appSsid));
+			//Serial.println("Checking: " + String(appSsid));
 			if (strcasecmp(appSsid, ssid.c_str()) == 0)
 			{
 				//Serial.println("Found: " + String(ssid));
@@ -419,7 +418,7 @@ void resolveAppSettings()
 		}
 	}
 
-	Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
+	//Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
 }
 
 void printConnectInfo()
@@ -432,26 +431,26 @@ void printConnectInfo()
 	// print MAC address
 	char ssidInfo[34] = "";
 	sprintf(ssidInfo, "WiFi SSID: %s", appSettings.WifiSettings.SSID);
-	Serial.println(ssidInfo);
+	//Serial.println(ssidInfo);
 	displayControl.printLine(ssidInfo, GREEN);
 
 	// print MAC address
 	char macInfo[34] = "";
 	sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
-	Serial.println(macInfo);
+	//Serial.println(macInfo);
 	displayControl.printLine(macInfo, YELLOW);
 
 	// print IP address
 	char ipInfo[34] = "";
 	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
-	Serial.println(ipInfo);
+	//Serial.println(ipInfo);
 	displayControl.printLine(ipInfo, YELLOW);
 }
 
 void configureWiFi()
 {
 	String intialMsg = "Intializing WiFi module.";
-	Serial.println(intialMsg);
+	//Serial.println(intialMsg);
 	displayControl.drawProgress(10, intialMsg);
 	Serial3.begin(SERIAL_BAUD_RATE);
 	
@@ -460,16 +459,16 @@ void configureWiFi()
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
 		String initialErr = "Communication with WiFi module failed!";
-		Serial.println(initialErr);
+		//Serial.println(initialErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(initialErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
+		displayControl.drawString(initialErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
 		while (true)
 			;
 	}
 
 	String scanMsg = "Scanning for WiFi SSID.";
-	Serial.println(scanMsg);
+	//Serial.println(scanMsg);
 	displayControl.drawProgress(30, scanMsg);
 	resolveAppSettings();
 
@@ -478,16 +477,16 @@ void configureWiFi()
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "No WiFi connecttion found %s!", appSettings.WifiSettings.SSID);
-		Serial.println(connectErr);
+		//Serial.println(connectErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
+		displayControl.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
 		while (true)
 			;
 	}
 
 	WiFi.setAutoConnect(true);
 	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-	Serial.println(infoMsg);
+	//Serial.println(infoMsg);
 	displayControl.drawProgress(50, infoMsg);
 
 	int counter = 0;
@@ -497,20 +496,20 @@ void configureWiFi()
 	while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 	{
 		delay(1000);
-		Serial.print('.');
+		//Serial.print('.');
 		displayControl.drawProgress(70, "Connecting to WiFi");
 		counter++;
 		++timeout;
 	}
-	Serial.println();
+	//Serial.println();
 
 	if (WiFi.status() == WL_DISCONNECTED)
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "WiFi failed to connect to %s access point!", appSettings.WifiSettings.SSID);
-		Serial.println(connectErr);
+		//Serial.println(connectErr);
 		displayControl.fillScreen(RED);
-		displayControl.drawString(connectErr, 240, 160, TEXT_CENTER_MIDDLE, BLACK, RED);
+		displayControl.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
 		// don't continue
 		while (true)
 			;
@@ -523,7 +522,7 @@ void configureWiFi()
 	displayControl.drawProgress(90, ssidInfo);
 	delay(500);
 		
-	//printConnectInfo();
+	printConnectInfo();
 	displayControl.drawProgress(100, "WiFi initialization done!");
 	delay(1000);
 }
@@ -534,7 +533,7 @@ void readTemperatureHumidity()
 	dht22.temperature().getEvent(&event);
 	if (isnan(event.temperature))
 	{
-		Serial.println(F("Error reading temperature!"));
+		//Serial.println(F("Error reading temperature!"));
 	}
 	else
 	{
@@ -547,7 +546,7 @@ void readTemperatureHumidity()
 	dht22.humidity().getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
-		Serial.println(F("Error reading humidity!"));
+		//Serial.println(F("Error reading humidity!"));
 	}
 	else
 	{
