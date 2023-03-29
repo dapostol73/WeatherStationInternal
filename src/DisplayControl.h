@@ -1,7 +1,7 @@
 #ifndef _DISPLAY_CONTROL_
 #define _DISPLAY_CONTROL_
 
-#include "DisplayWrapper.h"
+#include <Arduino_GFX_Library.h>
 #include <gfxfont.h>
 
 #define BITS_PER_PIXEL 2 // 2^2 =  4 colors
@@ -136,11 +136,9 @@ class DisplayControl
 		DisplayControlState* getUiState();
 
     protected:
-		//MCUFRIEND_kbv m_lcd;
-		// LCDWIKI_KBV mylcd(NT35510,40,38,39,43,41);
-		// LCDWIKI_KBV(uint16_t model,uint8_t cs, uint8_t cd, uint8_t wr, uint8_t rd, uint8_t reset);
-		// UTFTGLUE(int model_ID, int RS, int WR,int CS, int RST, int RD = A0)
-		DisplayWrapper m_displayWrapper = DisplayWrapper(NT35510, 38, 39, 40, 41, 43);
+		// Arduino_DataBus *bus = new Arduino_SWPAR16(38, 40, 39, 43, 37, 36, 35, 34, 33, 32, 31, 30, 22, 23, 24, 25, 26, 27, 28, 29);
+		Arduino_DataBus *bus = new Arduino_AVRPAR16(38 /* DC */, 40 /* CS */, 39 /* WR */, 43 /* RD */, 3 /* PORT LOW */, 1 /* PORT HIGH */);
+		Arduino_GFX *m_displayWrapper = new Arduino_NT35510(bus, 41);
 
 	public:
 		DisplayControl();
