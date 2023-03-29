@@ -28,7 +28,7 @@
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
 
-//#define DEBUG
+#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
 #include "Software//Serial.h"
@@ -150,21 +150,17 @@ void setup()
 	displayControl.init();
 	displayControl.fillScreen(BLACK);
 	touch.setRotation(1);
-	touch.setResolution(480, 320);
+	touch.setResolution(800, 480);
 
-	pinMode(IRQ_PIN, INPUT);
-	attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
+	//pinMode(IRQ_PIN, INPUT);
+	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
+	displayControl.drawCurrentWeather(&currentWeather, 0, 0);
+	displayControl.drawFooter(&currentWeather);
 }
 
 void loop()
 {
-	if (test)
-	{
-		displayControl.drawString("Success!", 240, 160, TEXT_CENTER_MIDDLE, ORANGE);
-		test = false;
-		delay(2500);
-		displayControl.fillScreen(BLACK);
-	}
+	;
 }
 
 #else
