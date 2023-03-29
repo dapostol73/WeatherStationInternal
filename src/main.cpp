@@ -472,7 +472,7 @@ void configureWiFi()
 	displayControl.drawProgress(30, scanMsg);
 	resolveAppSettings();
 
-	String infoMsg = "Waiting for connection to WiFi";
+	char infoMsg[] = "Waiting for connection to WiFi";
 	if (!appSettings.WifiSettings.Avialable)
 	{
 		char connectErr[48] = "";
@@ -493,11 +493,12 @@ void configureWiFi()
 	int timeout = 0;
 	int timeoutMax = 30;
 
+	sprintf(infoMsg, "Connecting to %s!", appSettings.WifiSettings.SSID);
 	while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 	{
 		delay(1000);
 		//Serial.print('.');
-		displayControl.drawProgress(70, "Connecting to WiFi");
+		displayControl.drawProgress(70, infoMsg);
 		counter++;
 		++timeout;
 	}
