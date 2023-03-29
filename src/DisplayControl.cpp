@@ -288,8 +288,12 @@ void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, TextAlignme
 void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert, boolean mode)
 {
     int16_t x1, y1 = 0;
-    uint16_t w, h = 0;
-    m_displayWrapper.getTextBounds(str, 0, y, &x1, &y1, &w, &h);
+    uint16_t w, h, hIng = 0;
+    str.trim();
+    // Hack, we want to ignore , and lowercase letters that go below like "y"
+    // So we ingore height and use hard coded "0" for full height.
+    m_displayWrapper.getTextBounds("0", 0, y, &x1, &y1, &w, &h);
+    m_displayWrapper.getTextBounds(str, 0, y, &x1, &y1, &w, &hIng);
     switch (align)
     {
         case TEXT_LEFT_TOP:
