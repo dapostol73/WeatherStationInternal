@@ -51,9 +51,9 @@ typedef struct OpenWeatherMapForecastData {
   //   "id":802,
   uint16_t weatherId;
   //   "main":"Clouds",
-  String main;
+  String main = "Unknown";
   //   "description":"scattered clouds",
-  String description;
+  String description = "unknown";
   //   "icon":"03d"
   String icon;
   // }],"clouds":{"all":44},
