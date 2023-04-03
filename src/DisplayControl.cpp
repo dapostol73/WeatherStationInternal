@@ -234,11 +234,11 @@ void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     }
 
     for (wd = (wd+1)/2; ; ) {                                   /* pixel loop */
-        m_displayWrapper->writePixel(x0,y0,color);//max(0,255*(abs(err-dx+dy)/ed-wd+1)));
+        m_displayWrapper->drawPixel(x0,y0,color);//max(0,255*(abs(err-dx+dy)/ed-wd+1)));
         e2 = err; x2 = x0;
         if (2*e2 >= -dx) {                                           /* x step */
             for (e2 += dy, y2 = y0; e2 < ed*wd && (y1 != y2 || dx > dy); e2 += dx) {
-                m_displayWrapper->writePixel(x0, y2 += sy,color);// max(0,255*(abs(e2)/ed-wd+1)));
+                m_displayWrapper->drawPixel(x0, y2 += sy,color);// max(0,255*(abs(e2)/ed-wd+1)));
             }
             if (x0 == x1) {
                 break;
@@ -247,13 +247,23 @@ void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
         } 
         if (2*e2 <= dy) {                                            /* y step */
             for (e2 = dx-e2; e2 < ed*wd && (x1 != x2 || dx < dy); e2 += dy) {
-                m_displayWrapper->writePixel(x2 += sx, y0,color);// max(0,255*(abs(e2)/ed-wd+1)));
+                m_displayWrapper->drawPixel(x2 += sx, y0,color);// max(0,255*(abs(e2)/ed-wd+1)));
             }
             if (y0 == y1) {
                 break;
             }
             err += dx; y0 += sy; 
         }
+    }
+}
+
+void DisplayControl::drawFatCircle(int16_t x, int16_t y, int16_t r, int16_t wd, uint16_t color)
+{
+    int16_t rad = 0;
+    for (int16_t w = 0; w < wd; w++)
+    {   rad = r-w;
+        if (rad <= 0) break;
+        m_displayWrapper->drawCircle(x, y, rad, color);
     }
 }
 

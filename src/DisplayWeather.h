@@ -49,7 +49,11 @@ class DisplayWeather : public DisplayControl
         void draw11ThunderStorm(int16_t x, int16_t y, int16_t size = 1);
         void draw13Snow(int16_t x, int16_t y, int16_t size = 1);
         void draw50Mist(int16_t x, int16_t y, int16_t size = 1);
+        void drawTempratureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
+        void drawTempratureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
         void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
+        void drawHumidityGauge(float humidity, int16_t x, int16_t y, int16_t size = 1);
+        void drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
         void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
         void drawWiFiSignal(int16_t x, int16_t y, int16_t size);        

@@ -104,9 +104,6 @@ class DisplayControl
 		uint8_t m_currentLine = 0;
 		uint8_t m_lineHeight  = 10;
 		uint8_t m_maxLines    = 0;
-		const GFXfont *m_gfxFont;
-		const GFXfont *m_gfxFontDefault;
-		const GFXfont *m_gfxFontTemp;
 		// Values for the Frames
 		uint8_t          m_updateInterval          = 33;
 		int8_t           m_lastTransitionDirection = 1;
@@ -139,6 +136,9 @@ class DisplayControl
 		// Arduino_DataBus *bus = new Arduino_SWPAR16(38, 40, 39, 43, 37, 36, 35, 34, 33, 32, 31, 30, 22, 23, 24, 25, 26, 27, 28, 29);
 		Arduino_DataBus *bus = new Arduino_AVRPAR16(38 /* DC */, 40 /* CS */, 39 /* WR */, 43 /* RD */, 3 /* PORT LOW */, 1 /* PORT HIGH */);
 		Arduino_GFX *m_displayWrapper = new Arduino_NT35510(bus, 41);
+		const GFXfont *m_gfxFont;
+		const GFXfont *m_gfxFontDefault;
+		const GFXfont *m_gfxFontTemp;
 
 	public:
 		DisplayControl();
