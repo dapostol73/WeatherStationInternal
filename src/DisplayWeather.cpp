@@ -497,9 +497,6 @@ void DisplayWeather::drawHumidityIcon(float humidity, int16_t x, int16_t y, int1
 	m_displayWrapper->fillCircle(x+6*size, y+12*size, 6*size, CYAN);
 	m_displayWrapper->fillCircle(x+1*size, y+11*size, size, CYAN);
 	m_displayWrapper->fillCircle(x+11*size, y+11*size, size, CYAN);
-	//drawFatLine(x+6*size, y+8*size, x+4*size, y+12*size, size, BLACK);
-	//drawFatCircle(x+3*size, y+8*size, size, size, BLACK);
-	//drawFatCircle(x+7*size, y+12*size, size, size, BLACK);
 
 	m_gfxFontTemp = m_gfxFont;
 	switch (size)
@@ -530,13 +527,11 @@ void DisplayWeather::drawTempratureHumidity(int16_t x, int16_t y, float internal
 {
     y = 20;
 	fillScreen(BLACK);
-	drawHumidityIcon(internalTemp, 0, y);
-	drawHumidityIcon(internalTemp, 16, y, 2);
-	drawHumidityIcon(internalTemp, 48, y, 3);
-	drawHumidityIcon(internalTemp, 96, y, 4);
 	setFont(&CalibriBold24pt7b);
-	drawTemperature(internalTemp, m_isMetric, 260, y + 200, TEXT_CENTER_MIDDLE, CYAN);
-	drawHumidity(internalHmd, 540, y + 200, TEXT_CENTER_MIDDLE, CYAN);
+	drawTemperature(internalTemp, m_isMetric, 200, y + 160, TEXT_LEFT_MIDDLE, CYAN);
+	drawHumidity(internalHmd, 200, y + 240, TEXT_LEFT_MIDDLE, CYAN);
+	drawTemperature(externalTemp, m_isMetric, 600, y + 160, TEXT_LEFT_MIDDLE, CYAN);
+	drawHumidity(externalHmd, 600, y + 240, TEXT_LEFT_MIDDLE, CYAN);
 }
 
 /// @brief Draw current forecast, which is 20 and the bottom most is 420 which means we have and area to 
