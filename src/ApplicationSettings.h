@@ -80,17 +80,14 @@ struct ApplicationSettings
     }
 };
 
-ApplicationSettings Home(WiFiConnection("a12studiosinc", "apollo1973"),
-                         OpenWeatherInfo("6ef72f6a0b2b7849e74ac530ce47d067", "6090785"),
-                         ThingSpeakInfo("EMCNAORN3ZXKCFW1", "3MVBTFB81C5DGD27", 1980518));
-ApplicationSettings Office(WiFiConnection("a12studiosOG", "apollo1973"),
-                           OpenWeatherInfo("6ef72f6a0b2b7849e74ac530ce47d067", "6090785"),
-                           ThingSpeakInfo("EMCNAORN3ZXKCFW1", "3MVBTFB81C5DGD27", 1980518));
-ApplicationSettings Whistler(WiFiConnection("SHAW-74C6", "cellar0933beard"),
-                             OpenWeatherInfo("6ef72f6a0b2b7849e74ac530ce47d067", "6180144"),
-                             ThingSpeakInfo("97KZEPIAGEOWQ9DG", "9RE75XTU78B17IXV", 2047687));
+ApplicationSettings Home(WiFiConnection("homessid", "homepw123"),
+                         OpenWeatherInfo("homeAppID", "homeLocationID"),
+                         ThingSpeakInfo("homeWriteAPIKey", "homeReadAPIKey", 1234567));
+ApplicationSettings Office(WiFiConnection("officessid", "officepw123"),
+                           OpenWeatherInfo("officeAppID", "officeLocationID"),
+                           ThingSpeakInfo("officeWriteAPIKey", "officeReadAPIKey", 1234567));
 
-ApplicationSettings AppSettings[] = { Home, Office, Whistler };
-uint8_t AppSettingsCount = 3;
+ApplicationSettings AppSettings[] = { Home, Office };
+uint8_t AppSettingsCount = 2;
 
 #endif
