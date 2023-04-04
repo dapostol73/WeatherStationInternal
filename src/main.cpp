@@ -28,7 +28,7 @@
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
 
-#define DEBUG
+//#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
 #include "Software//Serial.h"
@@ -68,8 +68,8 @@ long lastTouchTime = LONG_MIN;
 DHT_Unified dht22(DHTPIN, DHTTYPE);
 float internalTemp = 0.0; //temperature
 float internalHmd = 0.0; //humidity
-long readinternalHmdTime = LONG_MIN;
-void readTemperatureHumidity();
+long timeSinceInternalUpdate = LONG_MIN;
+void readInternalSensors();
 
 //******************************//
 // External ThinkSpeak Settings //
@@ -78,6 +78,8 @@ float externalTemp = 0.0; //temperature
 float externalHmd = 0.0; //humidity
 float externalLux = 0.0; //light
 float externalHPa = 0.0; //atmospheric
+long timeSinceExternalUpdate = LONG_MIN;
+bool updateExternalSensors = true;
 
 //******************************//
 // OpenWeather Map Settings     //
@@ -110,7 +112,8 @@ int numberOfOverlays = 2;
  * Begin Settings
  **************************/
 // Setup
-const int SENSOR_INTERVAL_SECS = 60; // Sensor query every 15 seconds
+const int INTSENSOR_INTERVAL_SECS = 60; // Sensor query every 15 seconds
+const int EXTSENSOR_INTERVAL_SECS = 5 * 60; // Sensor query every 5 minutes
 const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
 const int CURRENT_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
 const int FORECAST_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
@@ -223,10 +226,16 @@ void loop()
 	}
 
 	//Read sensor values base on Upload interval seconds
-	if(millis() - readinternalHmdTime > (1000L*SENSOR_INTERVAL_SECS))
+	if(millis() - timeSinceInternalUpdate > (1000L*INTSENSOR_INTERVAL_SECS))
 	{
-		readTemperatureHumidity();
-		readinternalHmdTime = millis();
+		readInternalSensors();
+		timeSinceInternalUpdate = millis();
+	}
+
+	if(millis() - timeSinceExternalUpdate > (1000L*EXTSENSOR_INTERVAL_SECS))
+	{
+		updateExternalSensors = true;
+		timeSinceExternalUpdate = millis();
 	}
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
@@ -243,7 +252,7 @@ void loop()
 		timeSinceCurrentUpdate = millis();
 	}
 
-	if ((updateCurrentWeather || updateForecastWeather) && !updateData()) 
+	if ((updateExternalSensors || updateCurrentWeather || updateForecastWeather) && !updateData()) 
 	{
 		//Serial.println("Update failed, refreshing WiFi connection.");
 		WiFi.disconnect();
@@ -321,7 +330,7 @@ void updateSystemTime()
 	}
 }
 
-void updateThingSpeak()
+void updateExternalSensorsData()
 {
 	int statusCode = 0;
 	// Read in fields of the public channel recording the temperature
@@ -350,13 +359,19 @@ void updateThingSpeak()
 bool updateData() 
 {
 	displayProgress.foregroundColor = CYAN;
-	displayWeather.drawProgress(25, "Updating time...");
+	displayWeather.drawProgress(20, "Updating time...");
 	updateSystemTime();
-	updateThingSpeak();
+	if (updateExternalSensors)
+	{
+		displayWeather.drawProgress(40, "Updating external sensor data...");
+		updateExternalSensorsData();
+		updateExternalSensors = false;
+	}
+	
 
 	if (updateCurrentWeather)
 	{
-		displayWeather.drawProgress(50, "Updating weather...");
+		displayWeather.drawProgress(60, "Updating weather...");
 		currentWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		currentWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location);
@@ -369,7 +384,7 @@ bool updateData()
 
 	if (updateForecastWeather)
 	{
-		displayWeather.drawProgress(75, "Updating forecasts...");
+		displayWeather.drawProgress(80, "Updating forecasts...");
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		uint8_t allowedHours[] = {12};
@@ -473,7 +488,7 @@ void configureWiFi()
 	if (!appSettings.WifiSettings.Avialable)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "No WiFi connecttion found %s!", appSettings.WifiSettings.SSID);
+		sprintf(connectErr, "No WiFi connections found for %s!", appSettings.WifiSettings.SSID);
 		//Serial.println(connectErr);
 		displayWeather.fillScreen(RED);
 		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
@@ -525,7 +540,7 @@ void configureWiFi()
 	delay(1000);
 }
 
-void readTemperatureHumidity()
+void readInternalSensors()
 {
 	sensors_event_t event;
 	dht22.temperature().getEvent(&event);

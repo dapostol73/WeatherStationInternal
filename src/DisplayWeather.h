@@ -14,7 +14,7 @@
 #include "OpenWeatherMapOneCall.h"
 
 // Adjust according to your language
-const String WDAY_NAMES[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursda", "Friday", "Saturday"};
+const String WDAY_NAMES[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 const String MONTH_NAMES[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 const String WIND_DIR[] = {"N", "NNE", "NE", "NEE", "E", "SEE", "SE", "SSE", "S", "SSW", "SW", "SWW", "W", "NWW", "NW", "NNW"};
 
