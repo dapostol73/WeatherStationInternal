@@ -38,21 +38,32 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
     return color565(r, g, b);
 }
 
+void DisplayControl::setMaxLines()
+{
+    switch (m_displayWrapper->getRotation())
+    {
+        case 1:
+        case 3:
+            m_maxLines = floor(480/m_lineHeight);
+            break;
+        default:
+            m_maxLines = floor(800/m_lineHeight);
+            break;
+    } 
+}
+
 void DisplayControl::setFont(const GFXfont *gfxFont)
 {
     m_gfxFont = gfxFont;
     m_displayWrapper->setFont(m_gfxFont);
     m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
+    setMaxLines();
 }
 
 void DisplayControl::setRotation(uint16_t rotation)
 {
     m_displayWrapper->setRotation(rotation);
-    m_maxLines = 48;
-    if (rotation == 1 || rotation == 3)
-    {
-        m_maxLines = 32;
-    }
+    setMaxLines();
 }
 
 void DisplayControl::fillScreen(uint16_t color)
@@ -383,7 +394,7 @@ void DisplayControl::print(String st, int16_t x, int16_t y)
 void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgroundColor, boolean invert)
 {
     m_gfxFontTemp = m_gfxFont;
-    m_displayWrapper->setFont(m_gfxFontDefault);
+    setFont(m_gfxFontDefault);
     int x = m_displayWrapper->getCursorX();
     int y = m_currentLine*m_lineHeight;
     drawString(str, x, y, TEXT_LEFT_TOP, foregroundColor, backgroundColor, invert);
@@ -392,7 +403,7 @@ void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgr
     {
         m_currentLine++;
     }
-    m_displayWrapper->setFont(m_gfxFontTemp);
+    setFont(m_gfxFontTemp);
 }
 
 void DisplayControl::printLine()
@@ -423,8 +434,11 @@ void DisplayControl::setProgress(DisplayContolProgress *progress)
 void DisplayControl::drawProgress(int16_t percent, String message)
 {
     int16_t x1, y1 = 0;
-    uint16_t w1, h1 = 0;
-    m_displayWrapper->getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
+    uint16_t w1, h1, hIng = 0;
+    // Hack, we want to ignore , and lowercase letters that go below like "y"
+    // So we ingore height and use hard coded "0" for full height.
+    m_displayWrapper->getTextBounds("0", 0, 0, &x1, &y1, &w1, &h1);
+    m_displayWrapper->getTextBounds(message, 0, 0, &x1, &y1, &w1, &hIng);
     setFont(m_progress->gfxFont);
     m_progress->progress = percent;
     m_progress->message = message;

@@ -431,7 +431,7 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 {
 	int16_t x1, y1 = 0;
     uint16_t w, h = 0;
-    m_displayWrapper->getTextBounds("8", 0, 0, &x1, &y1, &w, &h);
+    m_displayWrapper->getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
 	String temp = String(temperature, 1);
 	int16_t sw = w * (temp.length() + 2);
     switch (align)

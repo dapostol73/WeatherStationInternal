@@ -40,7 +40,7 @@
 #define ORANGE 0xFD20
 #define ORANGERED 0xFA20
 #define OLIVE 0x7BE0
-#define PINK 0xF81F
+//#define PINK 0xF81F
 #define PURPLE 0x780F
 #define RED 0xF800
 #define WHITE 0xFFFF
@@ -129,6 +129,7 @@ class DisplayControl
 		DisplayControlState m_state;
 		DisplayContolProgress* m_progress;
 
+		void setMaxLines();
 		uint8_t getNextFrameNumber();
 		uint16_t color565(byte r, byte g, byte b);
 		uint16_t colorLerp(uint16_t fg, uint16_t bg, int8_t alpha);
