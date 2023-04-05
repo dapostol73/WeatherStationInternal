@@ -682,5 +682,5 @@ void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
 	drawString(time, 20, 434, TEXT_LEFT_TOP, ORANGE);
 	drawString(date, 400, 434, TEXT_CENTER_TOP, ORANGE);
 	drawTemperature(currentWeather->temp, m_isMetric, 740, 434, TEXT_RIGHT_TOP, ORANGE);
-	//drawWiFiSignal(754, 434, 3);
+	drawWiFiSignal(754, 434, 3);
 }
