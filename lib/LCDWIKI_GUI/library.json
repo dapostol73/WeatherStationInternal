@@ -1,0 +1,11 @@
+{
+  "name": "LCDWIKI GUI Library",
+  "keywords": "LCDWIKI, GUI, NT33510, Arduino, Mega",
+  "description": "lcdwiki graphics core library, this is the 'core' class that all our other graphics libraries derive from.",
+  "authors": {
+    "name": "lcdwiki"
+  },
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
