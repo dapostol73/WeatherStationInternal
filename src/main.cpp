@@ -192,13 +192,13 @@ void setup()
 	Serial.begin(SERIAL_BAUD_RATE);
 
 	displayProgress.x = 0;
-	displayProgress.y = 440;
+	displayProgress.y = 420;
 	displayProgress.width = 800;
-	displayProgress.height = 40;
+	displayProgress.height = 60;
 	displayProgress.padding = 5;
-	displayProgress.corner = 20;
+	displayProgress.corner = 30;
 	displayProgress.foregroundColor = CYAN;
-	displayProgress.gfxFont = &CalibriBold8pt7b;
+	displayProgress.gfxFont = &CalibriRegular16pt7b;
 	displayWeather.init();
 
 	displayWeather.setProgress(&displayProgress);
