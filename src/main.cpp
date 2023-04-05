@@ -54,6 +54,13 @@ WiFiClient client;
 #define TP_IN  51  /* Data in pin (T_DIN) of touch screen */
 #define TP_OUT 50  /* Data out pin (T_DO) of touch screen */
 #define TP_IRQ 44  /* Interupt pin (T_IRQ) of touch screen */
+#define HMIN 0
+#define HMAX 4095
+#define VMIN 0
+#define VMAX 4095
+#define HRES 800 /* Default screen resulution for X axis */
+#define VRES 480 /* Default screen resulution for Y axis */
+#define XYSWAP 1 // 0 or 1 (true/false)
 TFT_Touch touch(TP_CS, TP_CLK, TP_IN, TP_OUT);
 long lastTouchTime = LONG_MIN;
 
@@ -152,19 +159,30 @@ void setup()
 
 	displayWeather.init();
 	displayWeather.fillScreen(BLACK);
+	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
-	touch.setResolution(800, 480);
+	
+	displayWeather.setFont(&CalibriBold24pt7b);
 
 	//pinMode(IRQ_PIN, INPUT);
 	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
 	//displayWeather.drawTempratureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
-	displayWeather.drawCurrentWeather(&currentWeather, 0, 0);
-	displayWeather.drawFooter(&currentWeather);
+	//displayWeather.drawCurrentWeather(&currentWeather, 0, 0);
+	//displayWeather.drawFooter(&currentWeather);
 }
 
 void loop()
 {
-	;
+	if (touch.Pressed() && millis() - lastTouchTime > 100)
+	{
+		displayWeather.fillScreen(BLACK);
+		char coords[30] = "";
+		sprintf(coords, "Corrdinate X: %d Y: %d", touch.X(), touch.Y());
+
+		displayWeather.drawString(coords, 400, 240, TEXT_CENTER_MIDDLE);
+		displayWeather.drawString("X", touch.X(), touch.Y(), TEXT_CENTER_MIDDLE);
+		lastTouchTime = millis();
+	}
 }
 
 #else
@@ -199,8 +217,8 @@ void setup()
 	displayWeather.drawWeatherIcon(550, 300, "50d", true, 2);
 	displayWeather.drawWeatherIcon(700, 300, "00d", true, 2);
 
+	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
-	touch.setResolution(800, 480);
 	configureWiFi();
 	dht22.begin();
 	timeClient.begin();
@@ -211,10 +229,10 @@ void loop()
 {
 	if (touch.Pressed() && millis() - lastTouchTime > 100)
 	{
-		unsigned int X_Raw = touch.RawX();
-		//unsigned int Y_Raw = touch.RawY();
+		unsigned int xValue = touch.X();
+		//unsigned int yValue = touch.Y();
 
-		if (X_Raw > 2048)
+		if (xValue > 400)
 		{
 			displayWeather.navigateForwardFrame();
 		}

@@ -582,6 +582,8 @@ void DisplayControl::setOverlays(OverlayCallback* overlayFunctions, uint8_t over
 
 void DisplayControl::navigateForwardFrame()
 {
+    m_displayWrapper->fillTriangle(775, 200, 750, 150, 750, 250, DARKGRAY);
+    delay(250);
     if (m_state.frameState != IN_TRANSITION) {
         m_state.manuelControl = true;
         m_state.frameState = IN_TRANSITION;
@@ -593,6 +595,8 @@ void DisplayControl::navigateForwardFrame()
 
 void DisplayControl::navigateBackwardFrame()
 {
+    m_displayWrapper->fillTriangle(25, 200, 50, 150, 50, 250, DARKGRAY);
+    delay(250);
     if (m_state.frameState != IN_TRANSITION) {
         m_state.manuelControl = true;
         m_state.frameState = IN_TRANSITION;
