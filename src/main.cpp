@@ -243,19 +243,6 @@ void loop()
 		lastTouchTime = millis();
 	}
 
-	//Read sensor values base on Upload interval seconds
-	if(millis() - timeSinceInternalUpdate > (1000L*INTSENSOR_INTERVAL_SECS))
-	{
-		readInternalSensors();
-		timeSinceInternalUpdate = millis();
-	}
-
-	if(millis() - timeSinceExternalUpdate > (1000L*EXTSENSOR_INTERVAL_SECS))
-	{
-		updateExternalSensors = true;
-		timeSinceExternalUpdate = millis();
-	}
-
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
 	{
 		//Serial.println("Setting updateForecastWeather to true");
@@ -268,6 +255,19 @@ void loop()
 		//Serial.println("Setting updateCurrentWeather to true");
 		updateCurrentWeather = true;
 		timeSinceCurrentUpdate = millis();
+	}
+
+	if(millis() - timeSinceExternalUpdate > (1000L*EXTSENSOR_INTERVAL_SECS))
+	{
+		updateExternalSensors = true;
+		timeSinceExternalUpdate = millis();
+	}
+
+	//Read sensor values base on Upload interval seconds
+	if(millis() - timeSinceInternalUpdate > (1000L*INTSENSOR_INTERVAL_SECS))
+	{
+		readInternalSensors();
+		timeSinceInternalUpdate = millis();
 	}
 
 	if ((updateExternalSensors || updateCurrentWeather || updateForecastWeather) && !updateData()) 
