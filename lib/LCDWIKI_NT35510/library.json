@@ -1,0 +1,15 @@
+{
+  "name": "LCDWIKI_NT35510",
+  "keywords": "LCDWIKI, NT33510, Arduino, Mega",
+  "description": "A very memory efficient library to parse (large) JSON objects on embedded devices",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dapostol73/LCDWIKI_NT35510.git"
+  },
+  "authors": {
+    "name": "Demetrius Apostolopoulos"
+  },
+  "version": "1.0.0",
+  "frameworks": "arduino",
+  "platforms": "*"
+}

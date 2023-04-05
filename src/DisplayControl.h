@@ -3,8 +3,9 @@
 
 //#define LCDWIKI
 #ifdef LCDWIKI
-	#include "LCDWIKI_NT35510.h"
+	#include <LCDWIKI_NT35510.h>
 #else
+	#define DISABLE_COLOR_DEFINES
 	#include <Arduino_GFX_Library.h>
 #endif
 #include <gfxfont.h>
