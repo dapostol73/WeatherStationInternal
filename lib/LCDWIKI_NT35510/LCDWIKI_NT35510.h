@@ -31,6 +31,10 @@ class LCDWIKI_NT35510 : public Adafruit_GFX
             m_lcdwiki_kbv->Set_Rotation(m_orientation = orientation);
             Adafruit_GFX::setRotation(orientation);
         }
+        uint16_t color565(uint8_t red, uint8_t green, uint8_t blue)
+        {
+            return ((red & 0xF8) << 8) | ((green & 0xFC) << 3) | (blue >> 3);
+        }
         void drawPixel(int16_t x, int16_t y, uint16_t color) 
         {
             m_lcdwiki_kbv->Set_Draw_color(m_foregroundColor = color);

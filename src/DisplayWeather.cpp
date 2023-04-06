@@ -250,28 +250,28 @@ void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 	m_displayWrapper->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
 }
 
-/// @brief Wind is 29*21 at size 1
+/// @brief Wind is 32*22 at size 1
 /// @param x 
 /// @param y 
 /// @param size 
 /// @param color 
 void DisplayWeather::drawWind(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	m_displayWrapper->fillRoundRect(x+3*size, y+5*size, 22*size, 2*size, 1*size, color);
-	fillArc(x+24*size, y+3*size, 315, 75, 3*size, 3*size, 1*size, color);
-	m_displayWrapper->fillRoundRect(x, y+9*size, 29*size, 2*size, 1*size, color);
-	m_displayWrapper->fillRoundRect(x+6*size, y+13*size, 17*size, 2*size, 1*size, color);
-	fillArc(x+23*size, y+16*size, 0, 75, 3*size, 3*size, 1*size, color);
+	m_displayWrapper->fillRoundRect(x+3*size, y+6*size, 22*size, 2*size, 1*size, color);
+	fillArc(x+24*size, y+4*size, 315, 75, 4*size, 2*size, color);
+	m_displayWrapper->fillRoundRect(x, y+10*size, 32*size, 2*size, 1*size, color);
+	m_displayWrapper->fillRoundRect(x+6*size, y+14*size, 17*size, 2*size, 1*size, color);
+	fillArc(x+22*size, y+18*size, 0, 75, 4*size, 2*size, color);
 }
 
-/// @brief Visibility 32*16 at size 1
+/// @brief Visibility 24*16 at size 1
 /// @param x 
 /// @param y 
 /// @param size 
 void DisplayWeather::drawVisibility(int16_t x, int16_t y, int16_t size)
 {
-	fillArc(x+(12*size), y+(16*size), 300, 40, 16*size, 16*size, 8*size, WHITE);
-	fillArc(x+(12*size), y,           120, 40, 16*size, 16*size, 8*size, WHITE);
+	fillArc(x+(12*size), y+(16*size), 300, 40, 16*size, 8*size, WHITE);
+	fillArc(x+(12*size), y,           120, 40, 16*size, 8*size, WHITE);
 	m_displayWrapper->fillCircle(x+(12*size), y+(8*size), 7*size, BLUE);
 	m_displayWrapper->fillCircle(x+(12*size), y+(8*size), 3*size,  BLACK);
 }
@@ -416,6 +416,12 @@ void DisplayWeather::drawTempratureGauge(float temperature, bool isMetric, int16
 {
 }
 
+/// @brief Temprature 12*22 at size 1
+/// @param temperature 
+/// @param isMetric 
+/// @param x 
+/// @param y 
+/// @param size 
 void DisplayWeather::drawTempratureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)
 {
 	m_displayWrapper->fillRoundRect(x+6*size, y+3*size, 6*size, size, 0.5*size, WHITE);
@@ -491,6 +497,11 @@ void DisplayWeather::drawHumidityGauge(float humidity, int16_t x, int16_t y, int
 
 }
 
+/// @brief Humidity 12*18 at size 1
+/// @param humidity 
+/// @param x 
+/// @param y 
+/// @param size 
 void DisplayWeather::drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size)
 {
 	m_displayWrapper->fillTriangle(x, y+10*size, x+6*size, y, x+12*size, y+10*size, CYAN);
@@ -528,9 +539,11 @@ void DisplayWeather::drawTempratureHumidity(int16_t x, int16_t y, float internal
     y = 20;
 	fillScreen(BLACK);
 	setFont(&CalibriBold24pt7b);
+	drawString("Inside", 200, y + 20, TEXT_CENTER_TOP, YELLOW);
 	drawTemperature(internalTemp, m_isMetric, 200, y + 160, TEXT_LEFT_MIDDLE, CYAN);
 	drawHumidity(internalHmd, 200, y + 240, TEXT_LEFT_MIDDLE, CYAN);
 	drawTemperature(externalTemp, m_isMetric, 600, y + 160, TEXT_LEFT_MIDDLE, CYAN);
+	drawString("Outside", 600, y + 20, TEXT_CENTER_TOP, YELLOW);
 	drawHumidity(externalHmd, 600, y + 240, TEXT_LEFT_MIDDLE, CYAN);
 }
 
@@ -541,6 +554,8 @@ void DisplayWeather::drawTempratureHumidity(int16_t x, int16_t y, float internal
 /// @param y 
 void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y)
 {
+	int16_t xIcon = 480;
+	int16_t xText = 560;
 	y = 20;
 	char num[8] = "";
 	char info[20] = "";
@@ -550,14 +565,14 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	drawString(currentWeather->cityName, 400, y + 20, TEXT_CENTER_TOP, YELLOW);
 	drawString(currentWeather->description, 200, y + 360, TEXT_CENTER_MIDDLE, ORANGE);
 	
-	drawTempratureIcon(currentWeather->temp, m_isMetric, 430, y + 90, 2);
-	drawTemperature(currentWeather->temp, m_isMetric, 520, y + 120, TEXT_LEFT_MIDDLE, ORANGE);
+	drawTempratureIcon(currentWeather->temp, m_isMetric, xIcon - 10, y + 120 - 22, 2);
+	drawTemperature(currentWeather->temp, m_isMetric, xText, y + 120, TEXT_LEFT_MIDDLE, CYAN);
 
-	drawHumidityIcon(currentWeather->humidity, 424, y + 150, 3);
-	drawHumidity(currentWeather->humidity, 520, y + 180, TEXT_LEFT_MIDDLE, ORANGE);
+	drawHumidityIcon(currentWeather->humidity, xIcon - 16, y + 180 - 27, 3);
+	drawHumidity(currentWeather->humidity, xText, y + 180, TEXT_LEFT_MIDDLE, CYAN);
 	
 	// Visibility
-	drawVisibility(405, y + 230, 3);
+	drawVisibility(xIcon - 24, y + 240 - 16, 2);
 	if (currentWeather->visibility < 1000)
 	{
 		sprintf(info, "%d m", currentWeather->visibility);
@@ -568,10 +583,10 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 		sprintf(info, "%s km", num);
 	}
 
-	drawString(info, 520, y + 240, TEXT_LEFT_MIDDLE, ORANGE);
+	drawString(info, xText, y + 240, TEXT_LEFT_MIDDLE, ORANGE);
 
 	// Wind speed
-	drawWind(400, y + 330 - 31, 3);
+	drawWind(xIcon - 32, y + 300 - 22, 2);
 	if (currentWeather->windSpeed < 1000)
 	{
 		dtostrf(currentWeather->windSpeed, 5, 0, num);
@@ -582,12 +597,12 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 		dtostrf(currentWeather->windSpeed*0.001, 5, 2, num);
 		sprintf(info, "%s km/s", num);
 	}
-	
+	drawString(info, xText, y + 300, TEXT_LEFT_MIDDLE, ORANGE);
+
 	// Wind direction
 	int dir = roundf(currentWeather->windDeg/22.5)%16;
-	drawCompassArrow(740, y + 330, currentWeather->windDeg, 7);
-	drawString(info, 520, y + 300, TEXT_LEFT_MIDDLE, ORANGE);
-	drawString(WIND_DIR[dir].c_str(), 520, y + 360, TEXT_LEFT_MIDDLE, ORANGE);
+	drawCompassArrow(xIcon, y + 360, currentWeather->windDeg, 5);
+	drawString(WIND_DIR[dir].c_str(), xText, y + 360, TEXT_LEFT_MIDDLE, ORANGE);
 }
 
 /// @brief Draw the 1 of the 3 details forecast, we pass in the top\center of the up most
