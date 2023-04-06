@@ -167,22 +167,13 @@ void setup()
 	//pinMode(IRQ_PIN, INPUT);
 	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
 	//displayWeather.drawTempratureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
-	//displayWeather.drawCurrentWeather(&currentWeather, 0, 0);
-	//displayWeather.drawFooter(&currentWeather);
+	displayWeather.drawCurrentWeather(&currentWeather, 0, 0);
+	displayWeather.drawFooter(&currentWeather);
 }
 
 void loop()
 {
-	if (touch.Pressed() && millis() - lastTouchTime > 100)
-	{
-		displayWeather.fillScreen(BLACK);
-		char coords[30] = "";
-		sprintf(coords, "Corrdinate X: %d Y: %d", touch.X(), touch.Y());
-
-		displayWeather.drawString(coords, 400, 240, TEXT_CENTER_MIDDLE);
-		displayWeather.drawString("X", touch.X(), touch.Y(), TEXT_CENTER_MIDDLE);
-		lastTouchTime = millis();
-	}
+	;
 }
 
 #else

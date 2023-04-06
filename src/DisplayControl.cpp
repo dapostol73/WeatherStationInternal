@@ -14,11 +14,6 @@ void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
     m_displayWrapper->setTextColor(WHITE);
 }
 
-uint16_t DisplayControl::color565(byte r, byte g, byte b)
-{
-    return ((r&0xF8) << 8) | ((g&0xFC) << 3) | (b>>3);
-}
-
 uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha) 
 {
     uint8_t fg_r = (fg >> 8) & 0b11111000;
@@ -35,7 +30,7 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
 
     //Serial.println(String(r) + ", " + String(g) + ", " + String(b));
             
-    return color565(r, g, b);
+    return m_displayWrapper->color565(r, g, b);
 }
 
 void DisplayControl::setMaxLines()
@@ -195,33 +190,36 @@ void DisplayControl::fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 /// @param rx = x axis radius
 /// @param ry = y axis radius
 /// @param w = width (thickness) of arc in pixels
-/// @param colour = 16 bit colour value
-void DisplayControl::fillArc(int16_t x, int16_t y, int16_t start_angle, int16_t seg_count, int16_t rx, int16_t ry, int16_t w, uint16_t colour)
+/// @param color = 16 bit colour value
+void DisplayControl::fillArc(int16_t x, int16_t y, int16_t start_angle, int16_t seg_count, int16_t r, int16_t w, uint16_t color)
 {
+#ifdef LCDWIKI
+    start_angle = 0;
+    seg_count = 60;
     byte seg = 3; // Segments are 3 degrees wide = 120 segments for 360 degrees
     byte inc = 3; // Draw segments every 3 degrees, increase to 6 for segmented ring
 
     // Calculate first pair of coordinates for segment start
     float sx = cos((start_angle - 90) * DEG_TO_RAD);
     float sy = sin((start_angle - 90) * DEG_TO_RAD);
-    uint16_t x0 = sx * (rx - w) + x;
-    uint16_t y0 = sy * (ry - w) + y;
-    uint16_t x1 = sx * rx + x;
-    uint16_t y1 = sy * ry + y;
+    uint16_t x0 = sx * (r - w) + x;
+    uint16_t y0 = sy * (r - w) + y;
+    uint16_t x1 = sx * r + x;
+    uint16_t y1 = sy * r + y;
 
-    // Draw colour blocks every inc degrees
+    // Draw color blocks every inc degrees
     for (int i = start_angle; i < start_angle + seg * seg_count; i += inc)
     {
         // Calculate pair of coordinates for segment end
         float sx2 = cos((i + seg - 90) * DEG_TO_RAD);
         float sy2 = sin((i + seg - 90) * DEG_TO_RAD);
-        int x2 = sx2 * (rx - w) + x;
-        int y2 = sy2 * (ry - w) + y;
-        int x3 = sx2 * rx + x;
-        int y3 = sy2 * ry + y;
+        int x2 = sx2 * (r - w) + x;
+        int y2 = sy2 * (r - w) + y;
+        int x3 = sx2 * r + x;
+        int y3 = sy2 * r + y;
 
-        m_displayWrapper->fillTriangle(x0, y0, x1, y1, x2, y2, colour);
-        m_displayWrapper->fillTriangle(x1, y1, x2, y2, x3, y3, colour);
+        m_displayWrapper->fillTriangle(x0, y0, x1, y1, x2, y2, color);
+        m_displayWrapper->fillTriangle(x1, y1, x2, y2, x3, y3, color);
 
         // Copy segment end to sgement start for next segment
         x0 = x2;
@@ -229,6 +227,11 @@ void DisplayControl::fillArc(int16_t x, int16_t y, int16_t start_angle, int16_t 
         x1 = x3;
         y1 = y3;
     }
+#else
+    start_angle -= 90;// to match start of LCDWIKI function
+    int16_t end_angle = start_angle + (seg_count * 3);
+    m_displayWrapper->fillArc(x, y, r, r - w, start_angle, end_angle, color);
+#endif
 }
 
 void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t wd, uint16_t color)
