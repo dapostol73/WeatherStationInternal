@@ -104,7 +104,7 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 {
 	size = max(size, 1);
 	radius *= size;
-	m_displayWrapper->fillCircle(x+radius, y+radius, radius, color);
+	DisplayGFX->fillCircle(x+radius, y+radius, radius, color);
 }
 
 /// @brief Cloud is 58*36 at size 1
@@ -115,13 +115,13 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 void DisplayWeather::drawCloud(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	size = max(size, 1);
-	m_displayWrapper->fillCircle(10*size+x, 25*size+y, 11*size, color);
-	m_displayWrapper->fillCircle(24*size+x, 12*size+y, 12*size, color);
-	m_displayWrapper->fillCircle(41*size+x, 16*size+y, 7*size,  color);
-	m_displayWrapper->fillCircle(50*size+x, 28*size+y, 8*size,  color);
-	m_displayWrapper->fillRoundRect(30*size+x, 10*size+y, 19*size, 16*size, 7*size, color);
-	m_displayWrapper->fillRoundRect(10*size+x, 26*size+y, 40*size, 11*size, 2*size, color);
-	m_displayWrapper->fillRect(20*size+x, 20*size+y, 20*size, 6*size, color);
+	DisplayGFX->fillCircle(10*size+x, 25*size+y, 11*size, color);
+	DisplayGFX->fillCircle(24*size+x, 12*size+y, 12*size, color);
+	DisplayGFX->fillCircle(41*size+x, 16*size+y, 7*size,  color);
+	DisplayGFX->fillCircle(50*size+x, 28*size+y, 8*size,  color);
+	DisplayGFX->fillRoundRect(30*size+x, 10*size+y, 19*size, 16*size, 7*size, color);
+	DisplayGFX->fillRoundRect(10*size+x, 26*size+y, 40*size, 11*size, 2*size, color);
+	DisplayGFX->fillRect(20*size+x, 20*size+y, 20*size, 6*size, color);
 }
 
 /// @brief Thunder is 12*22 at size 1
@@ -147,8 +147,8 @@ void DisplayWeather::drawThunder(int16_t x, int16_t y, int16_t size, uint16_t co
 
 void DisplayWeather::drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	m_displayWrapper->fillTriangle(0*size+x, 2*size+y, 2*size+x, 0*size+y, 3*size+x, 3*size+y, color);
-	m_displayWrapper->fillCircle(1*size+x,  4*size+y, size*2, color);
+	DisplayGFX->fillTriangle(0*size+x, 2*size+y, 2*size+x, 0*size+y, 3*size+x, 3*size+y, color);
+	DisplayGFX->fillCircle(1*size+x,  4*size+y, size*2, color);
 }
 
 /// @brief Rain Heavy is 26*18 at size 1
@@ -242,12 +242,12 @@ void DisplayWeather::drawSnow(int16_t x, int16_t y, int16_t size, uint16_t color
 void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
 	int16_t height = (4*size)-1;
-	m_displayWrapper->fillRoundRect(x+12*size, y+0*size,  16*size,  height, 2*size, color);
-	m_displayWrapper->fillRoundRect(x+4*size,  y+6*size,  32*size, height, 2*size, color);
-	m_displayWrapper->fillRoundRect(x+12*size, y+12*size, 40*size, height, 2*size, color);
-	m_displayWrapper->fillRoundRect(x+0*size,  y+18*size, 40*size, height, 2*size, color);
-	m_displayWrapper->fillRoundRect(x+8*size,  y+24*size, 40*size, height, 2*size, color);
-	m_displayWrapper->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
+	DisplayGFX->fillRoundRect(x+12*size, y+0*size,  16*size,  height, 2*size, color);
+	DisplayGFX->fillRoundRect(x+4*size,  y+6*size,  32*size, height, 2*size, color);
+	DisplayGFX->fillRoundRect(x+12*size, y+12*size, 40*size, height, 2*size, color);
+	DisplayGFX->fillRoundRect(x+0*size,  y+18*size, 40*size, height, 2*size, color);
+	DisplayGFX->fillRoundRect(x+8*size,  y+24*size, 40*size, height, 2*size, color);
+	DisplayGFX->fillRoundRect(x+12*size, y+30*size, 24*size, height, 2*size, color);
 }
 
 /// @brief Wind is 32*22 at size 1
@@ -257,10 +257,10 @@ void DisplayWeather::drawFog(int16_t x, int16_t y, int16_t size, uint16_t color)
 /// @param color 
 void DisplayWeather::drawWind(int16_t x, int16_t y, int16_t size, uint16_t color)
 {
-	m_displayWrapper->fillRoundRect(x+3*size, y+6*size, 22*size, 2*size, 1*size, color);
+	DisplayGFX->fillRoundRect(x+3*size, y+6*size, 22*size, 2*size, 1*size, color);
 	fillArc(x+24*size, y+4*size, 315, 75, 4*size, 2*size, color);
-	m_displayWrapper->fillRoundRect(x, y+10*size, 32*size, 2*size, 1*size, color);
-	m_displayWrapper->fillRoundRect(x+6*size, y+14*size, 17*size, 2*size, 1*size, color);
+	DisplayGFX->fillRoundRect(x, y+10*size, 32*size, 2*size, 1*size, color);
+	DisplayGFX->fillRoundRect(x+6*size, y+14*size, 17*size, 2*size, 1*size, color);
 	fillArc(x+22*size, y+18*size, 0, 75, 4*size, 2*size, color);
 }
 
@@ -272,8 +272,8 @@ void DisplayWeather::drawVisibility(int16_t x, int16_t y, int16_t size)
 {
 	fillArc(x+(12*size), y+(16*size), 300, 40, 16*size, 8*size, WHITE);
 	fillArc(x+(12*size), y,           120, 40, 16*size, 8*size, WHITE);
-	m_displayWrapper->fillCircle(x+(12*size), y+(8*size), 7*size, BLUE);
-	m_displayWrapper->fillCircle(x+(12*size), y+(8*size), 3*size,  BLACK);
+	DisplayGFX->fillCircle(x+(12*size), y+(8*size), 7*size, BLUE);
+	DisplayGFX->fillCircle(x+(12*size), y+(8*size), 3*size,  BLACK);
 }
 
 /// @brief Assume 10*10 at size 1
@@ -311,10 +311,10 @@ void DisplayWeather::drawCompassArrow(int16_t x, int16_t y, int16_t direction, i
 
 	for (int i = 0; i < min(size, 2); i++)
 	{
-		m_displayWrapper->drawCircle(x+radius, y+radius, radius-i, WHITE);
+		DisplayGFX->drawCircle(x+radius, y+radius, radius-i, WHITE);
 	}
-	m_displayWrapper->fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx2, y+cy2, RED);
-	m_displayWrapper->fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx3, y+cy3, RED);
+	DisplayGFX->fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx2, y+cy2, RED);
+	DisplayGFX->fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx3, y+cy3, RED);
 }
 
 void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
@@ -322,8 +322,8 @@ void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 	x -= 29*size;
 	y -= 18*size;
 	drawCloud(x, y, size);
-	m_displayWrapper->fillRoundRect(x+26*size, y+6*size, 6*size, 20*size, 3*size, RED);
-	m_displayWrapper->fillCircle(x+29*size, y+30*size, 3*size, RED);
+	DisplayGFX->fillRoundRect(x+26*size, y+6*size, 6*size, 20*size, 3*size, RED);
+	DisplayGFX->fillCircle(x+29*size, y+30*size, 3*size, RED);
 }
 
 void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size)
@@ -460,21 +460,21 @@ void DisplayWeather::drawTemperatureIcon(float temperature, bool isMetric, int16
 		}
 	}
 
-	m_displayWrapper->fillRoundRect(x+6*size, y+3*size, 6*size, size, 0.5*size, WHITE);
-	m_displayWrapper->fillRoundRect(x+6*size, y+6*size, 5*size, size, 0.5*size, WHITE);
-	m_displayWrapper->fillRoundRect(x+6*size, y+9*size, 6*size, size, 0.5*size, WHITE);
-	m_displayWrapper->fillRoundRect(x+3*size, y, 6*size, 16*size, 3*size, WHITE);
-	m_displayWrapper->fillCircle(x+6*size, y+17*size, 5*size, WHITE);
-	m_displayWrapper->fillRoundRect(x+4*size, y+1*size, 4*size, 14*size, 2*size, color2);
-	m_displayWrapper->fillRect(x+4*size, y+7*size, 4*size, 7*size, color1);
-	m_displayWrapper->fillCircle(x+6*size, y+17*size, 4*size, color0);
+	DisplayGFX->fillRoundRect(x+6*size, y+3*size, 6*size, size, 0.5*size, WHITE);
+	DisplayGFX->fillRoundRect(x+6*size, y+6*size, 5*size, size, 0.5*size, WHITE);
+	DisplayGFX->fillRoundRect(x+6*size, y+9*size, 6*size, size, 0.5*size, WHITE);
+	DisplayGFX->fillRoundRect(x+3*size, y, 6*size, 16*size, 3*size, WHITE);
+	DisplayGFX->fillCircle(x+6*size, y+17*size, 5*size, WHITE);
+	DisplayGFX->fillRoundRect(x+4*size, y+1*size, 4*size, 14*size, 2*size, color2);
+	DisplayGFX->fillRect(x+4*size, y+7*size, 4*size, 7*size, color1);
+	DisplayGFX->fillCircle(x+6*size, y+17*size, 4*size, color0);
 }
 
 void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
 {
 	int16_t x1, y1 = 0;
     uint16_t w, h = 0;
-    m_displayWrapper->getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
+    DisplayGFX->getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
 	String temp = String(temperature, 1);
 	int16_t sw = w * (temp.length() + 2);
     switch (align)
@@ -515,9 +515,9 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 
 	drawString(temp, x, y, TEXT_LEFT_TOP, foregroundColor);
 	int16_t radius = w * 0.5;
-	x = m_displayWrapper->getCursorX() + radius;
-	m_displayWrapper->drawCircle(x, y + radius-1, radius-1, foregroundColor);
-	m_displayWrapper->drawCircle(x, y + radius-1, radius-2, foregroundColor);
+	x = DisplayGFX->getCursorX() + radius;
+	DisplayGFX->drawCircle(x, y + radius-1, radius-1, foregroundColor);
+	DisplayGFX->drawCircle(x, y + radius-1, radius-2, foregroundColor);
 	x += radius;
 	if (isMetric)
 	{
@@ -551,10 +551,10 @@ void DisplayWeather::drawHumidityIcon(float humidity, int16_t x, int16_t y, int1
 		color = DODGERBLUE;
 	}
 
-	m_displayWrapper->fillTriangle(x, y+12*size, x+8*size, y, x+16*size, y+12*size, color);
-	m_displayWrapper->fillCircle(x+8*size, y+14*size, 8*size, color);
-	m_displayWrapper->fillCircle(x+1*size, y+13*size, size, color);
-	m_displayWrapper->fillCircle(x+15*size, y+13*size, size, color);
+	DisplayGFX->fillTriangle(x, y+12*size, x+8*size, y, x+16*size, y+12*size, color);
+	DisplayGFX->fillCircle(x+8*size, y+14*size, 8*size, color);
+	DisplayGFX->fillCircle(x+1*size, y+13*size, size, color);
+	DisplayGFX->fillCircle(x+15*size, y+13*size, size, color);
 
 	m_gfxFontTemp = m_gfxFont;
 	switch (size)
@@ -699,10 +699,10 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 	if (WiFi.status() == WL_CONNECTED)
 	{
 		int32_t strength = WiFi.RSSI();
-		m_displayWrapper->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGRAY);
-		m_displayWrapper->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGRAY);
-		m_displayWrapper->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGRAY);
-		m_displayWrapper->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGRAY);
+		DisplayGFX->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? WHITE : DIMGRAY);
+		DisplayGFX->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? WHITE : DIMGRAY);
+		DisplayGFX->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? WHITE : DIMGRAY);
+		DisplayGFX->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? WHITE : DIMGRAY);
 	}
 	else
 	{
@@ -710,23 +710,23 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 		int16_t lw = size*10;
 		for (int16_t t=0; t < size * 2; t++)
 		{
-			m_displayWrapper->drawFastHLine(x+2, ly+t, lw, ORANGERED);
+			DisplayGFX->drawFastHLine(x+2, ly+t, lw, ORANGERED);
 		}
 		int16_t r = 6*size;
 		int16_t cx = x+r;
 		int16_t cy = y+r;
 		for (int16_t t=0; t < size * 2; t++)
 		{
-			m_displayWrapper->drawCircle(cx, cy, r-t, ORANGERED);
+			DisplayGFX->drawCircle(cx, cy, r-t, ORANGERED);
 		}		
 	}
 }
 
 void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated)
 {
-	m_displayWrapper->fillRect(0, 0, 800, 18, CHARCOAL);
-	m_displayWrapper->drawFastHLine(0, 19, 800, CYAN);
-	m_displayWrapper->drawFastHLine(0, 20, 800, CYAN);
+	DisplayGFX->fillRect(0, 0, 800, 18, CHARCOAL);
+	DisplayGFX->drawFastHLine(0, 19, 800, CYAN);
+	DisplayGFX->drawFastHLine(0, 20, 800, CYAN);
 
 	setFont(&CalibriBold8pt7b);
 	drawChar(4, 2, 'C', TEXT_LEFT_MIDDLE, currentWeathersUpdated ? GREEN : RED);
@@ -744,9 +744,9 @@ void DisplayWeather::drawFooter(OpenWeatherMapCurrentData *currentWeather)
 	sprintf_P(date, PSTR("%s %d, %d"), MONTH_NAMES[month()-1].c_str(), day(), year());
 	sprintf_P(time, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
 
-	m_displayWrapper->fillRect(0, 422, 800, 480, CHARCOAL); 
-	m_displayWrapper->drawFastHLine(0, 420, 800, CYAN);
-	m_displayWrapper->drawFastHLine(0, 421, 800, CYAN);
+	DisplayGFX->fillRect(0, 422, 800, 480, CHARCOAL); 
+	DisplayGFX->drawFastHLine(0, 420, 800, CYAN);
+	DisplayGFX->drawFastHLine(0, 421, 800, CYAN);
 	setFont(&CalibriBold24pt7b);
 	
 	drawString(time, 20, 434, TEXT_LEFT_TOP, ORANGE);

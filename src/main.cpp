@@ -1,11 +1,6 @@
 // Firmware for ESP8266
 // Flash to this version: https://github.com/espressif/ESP8266_NONOS_SDK/
 // This on how to: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
-// Libraries for Screen
-// http://www.lcdwiki.com/3.95inch_Arduino_Display-Mega2560_ST7796
-// For the screen to work, you need to uncomment the following in MCUFRIEND_kbv Library
-// In utility\mcufriend_shield.h uncomment #define USE_SPECIAL
-// In utility\mcufriend_special.h uncomment #define USE_MEGA_8BIT_PORTC_SHIELD
 
 #include <Arduino.h>
 #include <limits.h>
@@ -220,18 +215,39 @@ void loop()
 {
 	if (touch.Pressed() && millis() - lastTouchTime > 100)
 	{
-		unsigned int xValue = touch.X();
-		//unsigned int yValue = touch.Y();
+		uint16_t xValue = touch.X();
+		uint16_t yValue = touch.Y();
+		Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
 
-		if (xValue > 400)
+		if (xValue > 300 && xValue < 500 && yValue < 20)
+		{
+			// force update
+			displayWeather.DisplayGFX->drawRect(300, 0, 100, 20, RED);
+			updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;
+		}
+		else if (xValue > 500)
 		{
 			displayWeather.navigateForwardFrame();
 		}
-		else
+		else if (xValue < 300)
 		{
 			displayWeather.navigateBackwardFrame();			
 		}
 		lastTouchTime = millis();
+	}
+
+	if (WiFi.status() != WL_CONNECTED)
+	{
+		WiFi.disconnect();
+		delay(3000);
+		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
+		for (int t; t < 10; t++)
+		{
+			displayWeather.DisplayGFX->fillCircle(400 - 45 + (t * 10), 10, 3, CYAN);
+			delay(1000);
+		}
+		displayWeather.DisplayGFX->fillRect(400 - 50, 5, 100, 10, DARKGRAY);
+		return;
 	}
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
@@ -261,24 +277,8 @@ void loop()
 		timeSinceInternalUpdate = millis();
 	}
 
-	if ((updateExternalSensors || updateCurrentWeather || updateForecastWeather) && !updateData()) 
+	if (updateExternalSensors || updateCurrentWeather || updateForecastWeather) 
 	{
-		//Serial.println("Update failed, refreshing WiFi connection.");
-		WiFi.disconnect();
-		delay(3000);
-		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-
-		int timeout = 0;
-		int timeoutMax = 30;
-		//Serial.print("Connecting to WiFi");
-		while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
-		{
-			delay(1000);
-			//Serial.print('.');
-			++timeout;
-		}
-		//Serial.println();
-
 		updateData();
 	}
 
@@ -417,6 +417,12 @@ void resolveAppSettings()
 	int8_t numNetworks = WiFi.scanNetworks();
 	//Serial.println("Number of networks found: " + String(numNetworks));
 
+	if (numNetworks == 0)
+	{
+		delay(2500);
+		numNetworks = WiFi.scanNetworks();
+	}
+
 	for (uint8_t i=0; i<numNetworks; i++)
 	{
 		String ssid = WiFi.SSID(i);
@@ -439,7 +445,8 @@ void resolveAppSettings()
 		}
 	}
 
-	//Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));	
+	//Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));
+	WiFi.disconnect();	
 }
 
 void printConnectInfo()
@@ -476,6 +483,11 @@ void configureWiFi()
 	Serial3.begin(SERIAL_BAUD_RATE);
 	
 	WiFi.init(&Serial3);
+	delay(1000);
+	//WiFi.endAP(true);
+	WiFi.setAutoConnect(false);
+	WiFi.setPersistent(false);
+	WiFi.sleepMode(WIFI_NONE_SLEEP);
 
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
@@ -505,30 +517,27 @@ void configureWiFi()
 			;
 	}
 
-	WiFi.setAutoConnect(true);
 	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 	//Serial.println(infoMsg);
 	displayWeather.drawProgress(50, infoMsg);
 
-	int counter = 0;
 	int timeout = 0;
-	int timeoutMax = 30;
+	int timeoutMax = 10;
 
-	sprintf(infoMsg, "Connecting to %s!", appSettings.WifiSettings.SSID);
+	sprintf(infoMsg, "Connecting to %s", appSettings.WifiSettings.SSID);
 	while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
 	{
 		delay(1000);
 		//Serial.print('.');
-		displayWeather.drawProgress(70, infoMsg);
-		counter++;
+		displayWeather.drawProgress(65 + (timeout*2), infoMsg);
 		++timeout;
 	}
 	//Serial.println();
 
-	if (WiFi.status() == WL_DISCONNECTED)
+	if (WiFi.status() != WL_CONNECTED)
 	{
 		char connectErr[48] = "";
-		sprintf(connectErr, "WiFi failed to connect to %s access point!", appSettings.WifiSettings.SSID);
+		sprintf(connectErr, "Failed to connect to %s WiFi!", appSettings.WifiSettings.SSID);
 		//Serial.println(connectErr);
 		displayWeather.fillScreen(RED);
 		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
@@ -536,8 +545,6 @@ void configureWiFi()
 		while (true)
 			;
 	}
-
-	WiFi.sleepMode(WIFI_NONE_SLEEP);
 
 	char ssidInfo[42] = "";
 	sprintf(ssidInfo, "Connected to WiFi: %s", appSettings.WifiSettings.SSID);
