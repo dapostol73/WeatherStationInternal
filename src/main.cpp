@@ -103,13 +103,13 @@ bool forecastWeatherUpdated = false;
 DisplayWeather displayWeather;
 DisplayContolProgress displayProgress;
 
-void drawTempratureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawTemperatureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawTempratureHumidityFrame };
+FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawTemperatureHumidityFrame };
 int numberOfFrames = 3;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
@@ -166,7 +166,7 @@ void setup()
 
 	//pinMode(IRQ_PIN, INPUT);
 	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
-	//displayWeather.drawTempratureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
+	//displayWeather.drawTemperatureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
 	displayWeather.drawCurrentWeather(&currentWeather, 0, 0);
 	displayWeather.drawFooter(&currentWeather);
 }
@@ -187,7 +187,7 @@ void setup()
 	displayProgress.width = 800;
 	displayProgress.height = 60;
 	displayProgress.padding = 5;
-	displayProgress.corner = 30;
+	displayProgress.corner = 24;
 	displayProgress.foregroundColor = CYAN;
 	displayProgress.gfxFont = &CalibriRegular16pt7b;
 	displayWeather.init();
@@ -197,16 +197,16 @@ void setup()
 	displayWeather.setOverlays(overlays, numberOfOverlays);
 
 	displayWeather.fillScreen(BLACK);
-	displayWeather.drawWeatherIcon(100, 120, "01d", true, 2);
-	displayWeather.drawWeatherIcon(250, 120, "02d", true, 2);
-	displayWeather.drawWeatherIcon(400, 120, "03d", true, 2);
-	displayWeather.drawWeatherIcon(550, 120, "04d", true, 2);
-	displayWeather.drawWeatherIcon(700, 120, "09d", true, 2);
-	displayWeather.drawWeatherIcon(100, 300, "10d", true, 2);
-	displayWeather.drawWeatherIcon(250, 300, "11d", true, 2);
-	displayWeather.drawWeatherIcon(400, 300, "13d", true, 2);
-	displayWeather.drawWeatherIcon(550, 300, "50d", true, 2);
-	displayWeather.drawWeatherIcon(700, 300, "00d", true, 2);
+	displayWeather.drawWeatherIcon(100, 120, "00d", true, 2);
+	displayWeather.drawWeatherIcon(250, 120, "01d", true, 2);
+	displayWeather.drawWeatherIcon(400, 120, "02d", true, 2);
+	displayWeather.drawWeatherIcon(550, 120, "03d", true, 2);
+	displayWeather.drawWeatherIcon(700, 120, "04d", true, 2);
+	displayWeather.drawWeatherIcon(100, 300, "09d", true, 2);
+	displayWeather.drawWeatherIcon(250, 300, "10d", true, 2);
+	displayWeather.drawWeatherIcon(400, 300, "11d", true, 2);
+	displayWeather.drawWeatherIcon(550, 300, "13d", true, 2);
+	displayWeather.drawWeatherIcon(700, 300, "50d", true, 2);
 
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
@@ -581,9 +581,9 @@ void readInternalSensors()
 	}
 }
 
-void drawTempratureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y)
+void drawTemperatureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayWeather.drawTempratureHumidity(x, y, internalTemp, internalHmd, externalTemp, externalHmd);
+	displayWeather.drawTemperatureHumidity(x, y, internalTemp, internalHmd, externalTemp, externalHmd);
 }
 
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)

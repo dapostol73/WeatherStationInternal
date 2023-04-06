@@ -462,7 +462,7 @@ void DisplayControl::drawProgress(int16_t percent, String message)
 
     m_displayWrapper->fillRoundRect(x, y, sx, sy, corner, m_progress->backgroundColor);
     m_displayWrapper->drawRoundRect(x, y, sx, sy, corner, m_progress->foregroundColor);
-    m_displayWrapper->fillRoundRect(x+2, y+2, px, sy-2, max(corner-2, 0), m_progress->foregroundColor);
+    m_displayWrapper->fillRoundRect(x+m_progress->border, y+m_progress->border, px, sy-m_progress->border, max(corner-m_progress->border, 0), m_progress->foregroundColor);
 
     //Serial.println("Pos: " + String(x) + ", " + String(y) + " Size: " + String(sx) + ", " + String(sy) + " Start: " + String(cx) + ", " + String(cy) + ", Corner:" + String(corner));
     for (int16_t i = 0; i < strl; i++)
