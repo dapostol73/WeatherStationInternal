@@ -49,8 +49,8 @@ class DisplayWeather : public DisplayControl
         void draw11ThunderStorm(int16_t x, int16_t y, int16_t size = 1);
         void draw13Snow(int16_t x, int16_t y, int16_t size = 1);
         void draw50Mist(int16_t x, int16_t y, int16_t size = 1);
-        void drawTempratureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
-        void drawTempratureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
+        void drawTemperatureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
+        void drawTemperatureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
         void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
         void drawHumidityGauge(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size = 1);
@@ -61,7 +61,7 @@ class DisplayWeather : public DisplayControl
         DisplayWeather();
         void init();
         void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale = 1);
-        void drawTempratureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd);
+        void drawTemperatureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd);
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
         void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
         void drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated);

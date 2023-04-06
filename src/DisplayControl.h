@@ -72,6 +72,7 @@ struct DisplayContolProgress
 	int16_t width = 100;
 	int16_t height = 30;
 	int16_t padding = 0;
+	int16_t border = 2;
 	int16_t corner = 2;
 	int16_t progress = 0; 
 	String message = "";

@@ -412,25 +412,62 @@ void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool
 	else draw00Unknown(x, y, size);
 }
 
-void DisplayWeather::drawTempratureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)
+void DisplayWeather::drawTemperatureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)
 {
 }
 
-/// @brief Temprature 12*22 at size 1
+/// @brief Temperature 12*22 at size 1
 /// @param temperature 
 /// @param isMetric 
 /// @param x 
 /// @param y 
 /// @param size 
-void DisplayWeather::drawTempratureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)
+void DisplayWeather::drawTemperatureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)
 {
+	uint16_t color0 = ORANGERED;
+	uint16_t color1 = ORANGERED;
+	uint16_t color2 = BLACK;
+	if (isMetric)
+	{
+		if (temperature < 0.0)
+		{
+			color0 = DODGERBLUE;
+			color1 = BLACK;
+		}
+		else if (temperature < 10.0)
+		{
+			color0 = color1 = DODGERBLUE;
+		}
+		else if (temperature > 26.0)
+		{
+			color0 = color1 = color2 = RED;
+		}
+	}
+	else if (temperature > 65)
+	{
+		if (temperature < 32.0)
+		{
+			color0 = DODGERBLUE;
+			color1 = DARKGRAY;
+		}
+		else if (temperature < 52.0)
+		{
+			color0 = color1 = DODGERBLUE;
+		}
+		else if (temperature > 84.0)
+		{
+			color0 = color1 = color2 = RED;
+		}
+	}
+
 	m_displayWrapper->fillRoundRect(x+6*size, y+3*size, 6*size, size, 0.5*size, WHITE);
 	m_displayWrapper->fillRoundRect(x+6*size, y+6*size, 5*size, size, 0.5*size, WHITE);
 	m_displayWrapper->fillRoundRect(x+6*size, y+9*size, 6*size, size, 0.5*size, WHITE);
 	m_displayWrapper->fillRoundRect(x+3*size, y, 6*size, 16*size, 3*size, WHITE);
 	m_displayWrapper->fillCircle(x+6*size, y+17*size, 5*size, WHITE);
-	m_displayWrapper->fillRoundRect(x+4*size, y+1*size, 4*size, 14*size, 2*size, RED);
-	m_displayWrapper->fillCircle(x+6*size, y+17*size, 4*size, BLUE);
+	m_displayWrapper->fillRoundRect(x+4*size, y+1*size, 4*size, 14*size, 2*size, color2);
+	m_displayWrapper->fillRect(x+4*size, y+7*size, 4*size, 7*size, color1);
+	m_displayWrapper->fillCircle(x+6*size, y+17*size, 4*size, color0);
 }
 
 void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
@@ -497,34 +534,45 @@ void DisplayWeather::drawHumidityGauge(float humidity, int16_t x, int16_t y, int
 
 }
 
-/// @brief Humidity 12*18 at size 1
+/// @brief Humidity 16*22 at size 1
 /// @param humidity 
 /// @param x 
 /// @param y 
 /// @param size 
 void DisplayWeather::drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size)
 {
-	m_displayWrapper->fillTriangle(x, y+10*size, x+6*size, y, x+12*size, y+10*size, CYAN);
-	m_displayWrapper->fillCircle(x+6*size, y+12*size, 6*size, CYAN);
-	m_displayWrapper->fillCircle(x+1*size, y+11*size, size, CYAN);
-	m_displayWrapper->fillCircle(x+11*size, y+11*size, size, CYAN);
+	uint16_t color = CYAN;
+	if (humidity < 40)
+	{
+		color = GOLD;
+	}
+	else if (humidity > 65)
+	{
+		color = DODGERBLUE;
+	}
+
+	m_displayWrapper->fillTriangle(x, y+12*size, x+8*size, y, x+16*size, y+12*size, color);
+	m_displayWrapper->fillCircle(x+8*size, y+14*size, 8*size, color);
+	m_displayWrapper->fillCircle(x+1*size, y+13*size, size, color);
+	m_displayWrapper->fillCircle(x+15*size, y+13*size, size, color);
 
 	m_gfxFontTemp = m_gfxFont;
 	switch (size)
 	{
-		case 0:
 		case 1:
-		case 2:
 			setFont(&CalibriBold8pt7b);
 			break;
-		case 3:
+		case 2:
 			setFont(&CalibriBold16pt7b);
 			break;
-		default:
+		case 3:
 			setFont(&CalibriBold24pt7b);
 			break;
+		default:
+			setFont(&CalibriBold32pt7b);
+			break;
 	}
-	drawString("%", x+6*size, y+6*size, TEXT_CENTER_TOP, BLACK);
+	drawString("%", x+8*size, y+8*size, TEXT_CENTER_TOP, BLACK);
 	setFont(m_gfxFontTemp);
 }
     
@@ -534,17 +582,18 @@ void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlig
 	drawString(humi, x, y, align, foregroundColor);
 }
 
-void DisplayWeather::drawTempratureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd)
+void DisplayWeather::drawTemperatureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd)
 {
     y = 20;
 	fillScreen(BLACK);
 	setFont(&CalibriBold24pt7b);
 	drawString("Inside", 200, y + 20, TEXT_CENTER_TOP, YELLOW);
-	drawTemperature(internalTemp, m_isMetric, 200, y + 160, TEXT_LEFT_MIDDLE, CYAN);
-	drawHumidity(internalHmd, 200, y + 240, TEXT_LEFT_MIDDLE, CYAN);
-	drawTemperature(externalTemp, m_isMetric, 600, y + 160, TEXT_LEFT_MIDDLE, CYAN);
+	drawTemperature(internalTemp, m_isMetric, 200, y + 160, TEXT_CENTER_MIDDLE, CYAN);
+	drawHumidity(internalHmd, 200, y + 240, TEXT_CENTER_MIDDLE, CYAN);
+
 	drawString("Outside", 600, y + 20, TEXT_CENTER_TOP, YELLOW);
-	drawHumidity(externalHmd, 600, y + 240, TEXT_LEFT_MIDDLE, CYAN);
+	drawTemperature(externalTemp, m_isMetric, 600, y + 160, TEXT_CENTER_MIDDLE, CYAN);
+	drawHumidity(externalHmd, 600, y + 240, TEXT_CENTER_MIDDLE, CYAN);
 }
 
 /// @brief Draw current forecast, which is 20 and the bottom most is 420 which means we have and area to 
@@ -565,10 +614,10 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	drawString(currentWeather->cityName, 400, y + 20, TEXT_CENTER_TOP, YELLOW);
 	drawString(currentWeather->description, 200, y + 360, TEXT_CENTER_MIDDLE, ORANGE);
 	
-	drawTempratureIcon(currentWeather->temp, m_isMetric, xIcon - 10, y + 120 - 22, 2);
+	drawTemperatureIcon(currentWeather->temp, m_isMetric, xIcon - 10, y + 120 - 22, 2);
 	drawTemperature(currentWeather->temp, m_isMetric, xText, y + 120, TEXT_LEFT_MIDDLE, CYAN);
 
-	drawHumidityIcon(currentWeather->humidity, xIcon - 16, y + 180 - 27, 3);
+	drawHumidityIcon(currentWeather->humidity, xIcon - 16, y + 180 - 22, 2);
 	drawHumidity(currentWeather->humidity, xText, y + 180, TEXT_LEFT_MIDDLE, CYAN);
 	
 	// Visibility
@@ -619,8 +668,14 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	drawWeatherIcon(x, y + 180, forecastWeather[dayIndex].icon, true, 3);
 	setFont(&CalibriBold24pt7b);
 	drawString(WDAY_NAMES[day], x, y + 20, TEXT_CENTER_TOP, YELLOW);
-	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x, y + 300, TEXT_CENTER_TOP, CYAN);
 	setFont(&CalibriBold16pt7b);
+	
+	drawTemperatureIcon(forecastWeather[dayIndex].temp, m_isMetric, x - 114 - 10, y + 330 - 22, 2);
+	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, CYAN);
+	
+	drawHumidityIcon(forecastWeather[dayIndex].humidity, x + 16 - 16, y + 330 - 22, 2);
+	drawHumidity(forecastWeather[dayIndex].humidity, x + 40, y + 330, TEXT_LEFT_MIDDLE, CYAN);
+	
 	drawString(forecastWeather[dayIndex].description, x, y + 360, TEXT_CENTER_TOP, ORANGE);	
 }
 
