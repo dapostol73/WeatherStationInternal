@@ -68,6 +68,17 @@ long lastTouchTime = LONG_MIN;
 #define DHTTYPE    DHT22     // DHT 22 (AM2302)
 //#define DHTTYPE    DHT21     // DHT 21 (AM2301)
 DHT_Unified dht22(DHTPIN, DHTTYPE);
+// The DHT sensor temp offset as tested. 
+// Sensor(S) 1: -5.0
+// Sensor(s) 2: -1.7
+#define DHT_TEMPOFFSET -5.0
+// define the DHT mapping for target(T) low 32% and high 84% 
+// Sensor(S) 1: Low 35.4, High 85.9
+// Sensor(s) 2: Low 34.9, High 87.4
+#define DHT_HMDLOW_T 32.0
+#define DHT_HMDHIGH_T 84.0
+#define DHT_HMDLOW_S 35.4
+#define DHT_HMDHIGH_S 85.9
 float internalTemp = 0.0; //temperature
 float internalHmd = 0.0; //humidity
 long timeSinceInternalUpdate = LONG_MIN;
@@ -217,7 +228,7 @@ void loop()
 	{
 		uint16_t xValue = touch.X();
 		uint16_t yValue = touch.Y();
-		Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
+		//Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
 
 		if (xValue > 300 && xValue < 500 && yValue < 20)
 		{
@@ -566,7 +577,7 @@ void readInternalSensors()
 	}
 	else
 	{
-		internalTemp = roundUpDecimal(event.temperature-4.8);
+		internalTemp = roundUpDecimal(event.temperature + DHT_TEMPOFFSET);
 		//Serial.print(F("Temperature: "));
 		//Serial.print(internalTemp);
 		//Serial.println(F("°C"));
@@ -580,7 +591,7 @@ void readInternalSensors()
 	else
 	{
 		//internalHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
-		internalHmd = map(event.relative_humidity, 20.6, 69.5, 40.0, 75.0);
+		internalHmd = map(event.relative_humidity, DHT_HMDLOW_S, DHT_HMDHIGH_S, DHT_HMDLOW_T, DHT_HMDHIGH_T);
 		internalHmd = roundUpDecimal(internalHmd);
 		//Serial.print(F("Humidity: "));
 		//Serial.print(internalHmd);
