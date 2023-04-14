@@ -70,15 +70,15 @@ long lastTouchTime = LONG_MIN;
 DHT_Unified dht22(DHTPIN, DHTTYPE);
 // The DHT sensor temp offset as tested. 
 // Sensor(S) 1: -5.0
-// Sensor(s) 2: -1.7
-#define DHT_TEMPOFFSET -5.0
+// Sensor(s) 2: -6.1
+#define DHT_TEMPOFFSET -6.1
 // define the DHT mapping for target(T) low 32% and high 84% 
 // Sensor(S) 1: Low 35.4, High 85.9
 // Sensor(s) 2: Low 34.9, High 87.4
 #define DHT_HMDLOW_T 32.0
 #define DHT_HMDHIGH_T 84.0
-#define DHT_HMDLOW_S 35.4
-#define DHT_HMDHIGH_S 85.9
+#define DHT_HMDLOW_S 34.9
+#define DHT_HMDHIGH_S 97.4
 float internalTemp = 0.0; //temperature
 float internalHmd = 0.0; //humidity
 long timeSinceInternalUpdate = LONG_MIN;
@@ -496,9 +496,8 @@ void configureWiFi()
 	WiFi.init(&Serial3);
 	delay(1000);
 	//WiFi.endAP(true);
-	WiFi.setAutoConnect(false);
+	WiFi.setAutoConnect(true);
 	WiFi.setPersistent(false);
-	WiFi.sleepMode(WIFI_NONE_SLEEP);
 
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
@@ -529,6 +528,7 @@ void configureWiFi()
 	}
 
 	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
+	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	//Serial.println(infoMsg);
 	displayWeather.drawProgress(50, infoMsg);
 
