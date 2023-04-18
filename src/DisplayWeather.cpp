@@ -634,18 +634,10 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 
 	drawString(info, xText, y + 240, TEXT_LEFT_MIDDLE, ORANGE);
 
-	// Wind speed
+	// Wind speed convert m/s to km/h by multiplying by 3.6 (60 * 60 / 1000)
 	drawWind(xIcon - 32, y + 300 - 22, 2);
-	if (currentWeather->windSpeed < 1000)
-	{
-		dtostrf(currentWeather->windSpeed, 5, 0, num);
-		sprintf(info, "%s m/s", num);
-	}
-	else
-	{
-		dtostrf(currentWeather->windSpeed*0.001, 5, 2, num);
-		sprintf(info, "%s km/s", num);
-	}
+	dtostrf(currentWeather->windSpeed*3.6, 5, 1, num);
+	sprintf(info, "%s km/h", num);
 	drawString(info, xText, y + 300, TEXT_LEFT_MIDDLE, ORANGE);
 
 	// Wind direction
