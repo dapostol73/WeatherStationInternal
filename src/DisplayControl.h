@@ -20,31 +20,15 @@
 // https://learn.microsoft.com/en-us/dotnet/media/art-color-table.png?view=windowsdesktop-7.0
 // http://www.rinkydinkelectronics.com/calc_rgb565.php
 
-#define CYAN 0x07FF
-#define DEEPSKYBLUE 0x05FF
 #define BLACK 0x0000
-#define BLUE 0x001F
-#define CHARCOAL 0x2945
-#define GOLD 0xFEA0
-#define GREEN 0x07E0
-#define GREENYELLOW 0xAFE5
-#define DARKCYAN 0x03EF
-#define DARKGREEN 0x03E0
-#define DARKGRAY 0xAD55
-#define DIMGRAY 0xAD55
-#define DODGERBLUE 0x1C9F
-#define LIGHTGRAY 0xC618
-#define MAGENTA 0xF81F
-#define MAROON 0x7800
-#define NAVY 0x000F
-#define ORANGE 0xFD20
-#define ORANGERED 0xFA20
-#define OLIVE 0x7BE0
-//#define PINK 0xF81F
-#define PURPLE 0x780F
-#define RED 0xF800
+#define GRAY 0x8410
 #define WHITE 0xFFFF
+#define BLUE 0x001F
+#define GREEN 0x07E0
+#define RED 0xF800
+#define CYAN 0x07FF
 #define YELLOW 0xFFE0
+#define PURPLE 0x780F
 
 enum FrameState
 {
@@ -132,7 +116,6 @@ class DisplayControl
 
 		void setMaxLines();
 		uint8_t getNextFrameNumber();
-		uint16_t colorLerp(uint16_t fg, uint16_t bg, int8_t alpha);
 		void drawFrame();
 		void drawOverlays();
 		void tick();
@@ -159,6 +142,8 @@ class DisplayControl
 		/// @brief 
 		/// @param rotation 0,1,2,3 = (0,90,180,270)
 		void init(uint16_t rotation, const GFXfont *gfxFont);
+
+		uint16_t colorLerp(uint16_t fg, uint16_t bg, int8_t alpha);
 
 		void setFont(const GFXfont *font);
 
@@ -200,7 +185,7 @@ class DisplayControl
 
 		void setProgress(DisplayContolProgress *progress);
 
-		void drawProgress(int16_t progress = 0, String message = "");
+		void drawProgress(int8_t progress = 0, String message = "");
 
 		void enableIndicator();
 
