@@ -434,15 +434,15 @@ void DisplayControl::setProgress(DisplayContolProgress *progress)
     m_progress = progress;
 }
 
-void DisplayControl::drawProgress(int16_t percent, String message)
+void DisplayControl::drawProgress(int8_t percent, String message)
 {
     int16_t x1, y1 = 0;
     uint16_t w1, h1, hIng = 0;
     // Hack, we want to ignore , and lowercase letters that go below like "y"
     // So we ingore height and use hard coded "0" for full height.
+    setFont(m_progress->gfxFont);
     DisplayGFX->getTextBounds("0", 0, 0, &x1, &y1, &w1, &h1);
     DisplayGFX->getTextBounds(message, 0, 0, &x1, &y1, &w1, &hIng);
-    setFont(m_progress->gfxFont);
     m_progress->progress = percent;
     m_progress->message = message;
     int16_t strl = m_progress->message.length();
@@ -599,7 +599,7 @@ void DisplayControl::setOverlays(OverlayCallback* overlayFunctions, uint8_t over
 
 void DisplayControl::navigateForwardFrame()
 {
-    DisplayGFX->fillTriangle(775, 200, 750, 150, 750, 250, DARKGRAY);
+    DisplayGFX->fillTriangle(775, 200, 750, 150, 750, 250, GRAY);
     delay(250);
     if (m_state.frameState != IN_TRANSITION) {
         m_state.manuelControl = true;
@@ -612,7 +612,7 @@ void DisplayControl::navigateForwardFrame()
 
 void DisplayControl::navigateBackwardFrame()
 {
-    DisplayGFX->fillTriangle(25, 200, 50, 150, 50, 250, DARKGRAY);
+    DisplayGFX->fillTriangle(25, 200, 50, 150, 50, 250, GRAY);
     delay(250);
     if (m_state.frameState != IN_TRANSITION) {
         m_state.manuelControl = true;

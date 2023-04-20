@@ -167,8 +167,6 @@ void setup()
 	displayWeather.fillScreen(BLACK);
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
-	
-	displayWeather.setFont(&CalibriBold24pt7b);
 
 	//pinMode(IRQ_PIN, INPUT);
 	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
@@ -194,7 +192,7 @@ void setup()
 	displayProgress.height = 60;
 	displayProgress.padding = 5;
 	displayProgress.corner = 24;
-	displayProgress.foregroundColor = CYAN;
+	displayProgress.foregroundColor = TEXT_ALT_COLOR;
 	displayProgress.gfxFont = &CalibriRegular16pt7b;
 	displayWeather.init();
 
@@ -203,16 +201,17 @@ void setup()
 	displayWeather.setOverlays(overlays, numberOfOverlays);
 
 	displayWeather.fillScreen(BLACK);
-	displayWeather.drawWeatherIcon(100, 120, "00d", true, 2);
-	displayWeather.drawWeatherIcon(250, 120, "01d", true, 2);
-	displayWeather.drawWeatherIcon(400, 120, "02d", true, 2);
-	displayWeather.drawWeatherIcon(550, 120, "03d", true, 2);
-	displayWeather.drawWeatherIcon(700, 120, "04d", true, 2);
-	displayWeather.drawWeatherIcon(100, 300, "09d", true, 2);
-	displayWeather.drawWeatherIcon(250, 300, "10d", true, 2);
-	displayWeather.drawWeatherIcon(400, 300, "11d", true, 2);
-	displayWeather.drawWeatherIcon(550, 300, "13d", true, 2);
-	displayWeather.drawWeatherIcon(700, 300, "50d", true, 2);
+	displayWeather.drawString("Weather Station", 400, 200, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
+	displayWeather.drawWeatherIcon(100, 100, "00d", true, 2);
+	displayWeather.drawWeatherIcon(250, 100, "01d", true, 2);
+	displayWeather.drawWeatherIcon(400, 100, "02d", true, 2);
+	displayWeather.drawWeatherIcon(550, 100, "03d", true, 2);
+	displayWeather.drawWeatherIcon(700, 100, "04d", true, 2);
+	displayWeather.drawWeatherIcon(100, 320, "09d", true, 2);
+	displayWeather.drawWeatherIcon(250, 320, "10d", true, 2);
+	displayWeather.drawWeatherIcon(400, 320, "11d", true, 2);
+	displayWeather.drawWeatherIcon(550, 320, "13d", true, 2);
+	displayWeather.drawWeatherIcon(700, 320, "50d", true, 2);
 
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
@@ -233,7 +232,7 @@ void loop()
 		if (xValue > 300 && xValue < 500 && yValue < 20)
 		{
 			// force update
-			displayWeather.DisplayGFX->drawRect(300, 0, 100, 20, RED);
+			displayWeather.DisplayGFX->drawRect(300, 0, 100, 20, ERROR_COLOR);
 			updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;
 		}
 		else if (xValue > 500)
@@ -254,10 +253,10 @@ void loop()
 		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
 		for (int t; t < 10; t++)
 		{
-			displayWeather.DisplayGFX->fillCircle(400 - 45 + (t * 10), 10, 3, CYAN);
+			displayWeather.DisplayGFX->fillCircle(400 - 45 + (t * 10), 10, 3, TEXT_MAIN_COLOR);
 			delay(1000);
 		}
-		displayWeather.DisplayGFX->fillRect(400 - 50, 5, 100, 10, DARKGRAY);
+		displayWeather.DisplayGFX->fillRect(400 - 50, 5, 100, 10, OVERLAY_COLOR);
 		return;
 	}
 
@@ -378,7 +377,7 @@ void updateExternalSensorsData()
 
 bool updateData() 
 {
-	displayProgress.foregroundColor = CYAN;
+	displayProgress.foregroundColor = TEXT_ALT_COLOR;
 	displayWeather.drawProgress(20, "Updating time...");
 	updateSystemTime();
 	if (updateExternalSensors)
@@ -397,7 +396,7 @@ bool updateData()
 		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location);
 		if (!currentWeatherUpdated)
 		{
-			displayProgress.foregroundColor = RED;
+			displayProgress.foregroundColor = ERROR_COLOR;
 		}
 		updateCurrentWeather = !currentWeatherUpdated; 
 	}
@@ -412,7 +411,7 @@ bool updateData()
 		forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, MAX_FORECASTS);
 		if (!forecastWeatherUpdated)
 		{
-			displayProgress.foregroundColor = RED;
+			displayProgress.foregroundColor = ERROR_COLOR;
 		}
 		updateForecastWeather = !forecastWeatherUpdated;
 	}
@@ -471,19 +470,73 @@ void printConnectInfo()
 	char ssidInfo[34] = "";
 	sprintf(ssidInfo, "WiFi SSID: %s", appSettings.WifiSettings.SSID);
 	//Serial.println(ssidInfo);
-	displayWeather.printLine(ssidInfo, GREEN);
+	displayWeather.printLine(ssidInfo, SUCCESS_COLOR);
 
 	// print MAC address
 	char macInfo[34] = "";
 	sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
 	//Serial.println(macInfo);
-	displayWeather.printLine(macInfo, YELLOW);
+	displayWeather.printLine(macInfo, TEXT_MAIN_COLOR);
 
 	// print IP address
 	char ipInfo[34] = "";
 	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
 	//Serial.println(ipInfo);
-	displayWeather.printLine(ipInfo, YELLOW);
+	displayWeather.printLine(ipInfo, TEXT_MAIN_COLOR);
+}
+
+bool connectToWiFi(uint8_t retries)
+{
+	String scanMsg = "Scanning for WiFi SSID.";
+	//Serial.println(scanMsg);
+	displayWeather.drawProgress(30, scanMsg);
+	resolveAppSettings();
+
+	char infoMsg[] = "Waiting for connection to WiFi";
+	if (!appSettings.WifiSettings.Avialable)
+	{
+		char connectErr[48] = "";
+		sprintf(connectErr, "No WiFi connections found for %s!", appSettings.WifiSettings.SSID);
+		//Serial.println(connectErr);
+		displayWeather.fillScreen(ERROR_COLOR);
+		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, ERROR_COLOR);
+		return false;
+	}
+
+	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
+	WiFi.sleepMode(WIFI_NONE_SLEEP);
+	//Serial.println(infoMsg);
+	displayWeather.drawProgress(50, infoMsg);
+
+	uint8_t attempts = 0;
+	uint8_t attemptMax = 3;
+
+	sprintf(infoMsg, "Connecting to %s", appSettings.WifiSettings.SSID);
+	while (WiFi.status() != WL_CONNECTED && attempts < attemptMax)
+	{
+		delay(1000);
+		//Serial.print('.');
+		displayWeather.drawProgress(65 + (attempts*5), infoMsg);
+		++attempts;
+	}
+	//Serial.println();
+
+	uint8_t retry = 0;
+	while(WiFi.status() != WL_CONNECTED)
+	{
+		if (retry < retries)
+		{
+			connectToWiFi(0);
+			++retry;
+		}
+		else
+		{
+			return false;
+		}
+		
+	}
+
+	return true;
 }
 
 void configureWiFi()
@@ -503,55 +556,20 @@ void configureWiFi()
 	{
 		String initialErr = "Communication with WiFi module failed!";
 		//Serial.println(initialErr);
-		displayWeather.fillScreen(RED);
-		displayWeather.drawString(initialErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
+		displayWeather.fillScreen(ERROR_COLOR);
+		displayWeather.drawString(initialErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, ERROR_COLOR);
 		// don't continue
 		while (true)
 			;
 	}
 
-	String scanMsg = "Scanning for WiFi SSID.";
-	//Serial.println(scanMsg);
-	displayWeather.drawProgress(30, scanMsg);
-	resolveAppSettings();
-
-	char infoMsg[] = "Waiting for connection to WiFi";
-	if (!appSettings.WifiSettings.Avialable)
-	{
-		char connectErr[48] = "";
-		sprintf(connectErr, "No WiFi connections found for %s!", appSettings.WifiSettings.SSID);
-		//Serial.println(connectErr);
-		displayWeather.fillScreen(RED);
-		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
-		while (true)
-			;
-	}
-
-	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-	WiFi.sleepMode(WIFI_NONE_SLEEP);
-	//Serial.println(infoMsg);
-	displayWeather.drawProgress(50, infoMsg);
-
-	int timeout = 0;
-	int timeoutMax = 10;
-
-	sprintf(infoMsg, "Connecting to %s", appSettings.WifiSettings.SSID);
-	while (WiFi.status() != WL_CONNECTED && timeout < timeoutMax)
-	{
-		delay(1000);
-		//Serial.print('.');
-		displayWeather.drawProgress(65 + (timeout*2), infoMsg);
-		++timeout;
-	}
-	//Serial.println();
-
-	if (WiFi.status() != WL_CONNECTED)
+	if (!connectToWiFi(2))
 	{
 		char connectErr[48] = "";
 		sprintf(connectErr, "Failed to connect to %s WiFi!", appSettings.WifiSettings.SSID);
 		//Serial.println(connectErr);
-		displayWeather.fillScreen(RED);
-		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, RED);
+		displayWeather.fillScreen(ERROR_COLOR);
+		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, ERROR_COLOR);
 		// don't continue
 		while (true)
 			;
@@ -621,5 +639,5 @@ void drawHeaderOverlay(DisplayControlState* state)
 
 void drawFooterOverlay(DisplayControlState* state)
 {
-	displayWeather.drawFooter(&currentWeather);
+	displayWeather.drawFooter(externalTemp);
 }
