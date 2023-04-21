@@ -689,7 +689,7 @@ void DisplayWeather::drawForecast(OpenWeatherMapForecastData *forecastWeather, i
 void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
 {
 	size = max(size, 1);
-	uint16_t gray = colorLerp(FOREGROUND_COLOR, BACKGROUND_COLOR, 0.5);
+	uint16_t gray = colorLerp(FOREGROUND_COLOR, BACKGROUND_COLOR, 128);
 	if (WiFi.status() == WL_CONNECTED)
 	{
 		int32_t strength = WiFi.RSSI();
