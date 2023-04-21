@@ -3,26 +3,16 @@
 // This on how to: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
 
 #include <Arduino.h>
-#include <limits.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <TimeLib.h>
-#include <TFT_Touch.h>
 #include <WiFiEspAT.h>
-#include <WiFiUdp.h>
-#include <NTPClient.h>
-#include <ThingSpeak.h>
-
-#include <Adafruit_Sensor.h>
-#include <DHT.h>
-#include <DHT_U.h>
 
 #include "ApplicationSettings.h"
 #include "ApplicationHelper.h"
 #include "DisplayWeather.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
-#include "OpenWeatherMapOneCall.h"
+//#include "OpenWeatherMapOneCall.h"
 
 //#define DEBUG
 #define SERIAL_BAUD_RATE 115200

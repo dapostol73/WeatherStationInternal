@@ -14,6 +14,11 @@ void DisplayControl::init(uint16_t rotation, const GFXfont *gfxFont)
     DisplayGFX->setTextColor(WHITE);
 }
 
+/// @brief Blend between 2 color based on 255 alpha value
+/// @param fg 565 color for 0 alpha
+/// @param bg 565 color for 255 alpha
+/// @param alpha value between 0-255
+/// @return 
 uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha) 
 {
     uint8_t fg_r = (fg >> 8) & 0b11111000;
