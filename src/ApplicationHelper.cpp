@@ -20,7 +20,13 @@
 #define HRES 800 /* Default screen resulution for X axis */
 #define VRES 480 /* Default screen resulution for Y axis */
 #define XYSWAP 1 // 0 or 1 (true/false)
-TFT_Touch touch(TP_CS, TP_CLK, TP_IN, TP_OUT);
+#ifdef LCDWIKITOUCH
+	LCDWIKI_TOUCH touch(TP_CS, TP_CLK, TP_OUT, TP_IN, TP_IRQ); //tcs,tclk,tdout,tdin,tirq
+#else
+	TFT_Touch touch(TP_CS, TP_CLK, TP_IN, TP_OUT);
+#endif
+
+
 long lastTouchTime = LONG_MIN;
 
 //******************************//
@@ -40,18 +46,41 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
 void initHelpers()
 {
+#ifdef LCDWIKITOUCH
+	touch.TP_Init(1, HRES, VRES);
+	touch.TP_Set_Rotation(1);
+#else
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
+#endif
 	timeClient.begin();
 }
 
 TouchResult touchTest()
 {
-    if (touch.Pressed() && millis() - lastTouchTime > 100)
+	bool touched = false;
+	uint16_t xValue;
+	uint16_t yValue;
+#ifdef LCDWIKITOUCH
+	touch.TP_Scan(0);
+	if (touch.TP_Get_State()&TP_PRES_DOWN) 
 	{
-		uint16_t xValue = touch.X();
-		uint16_t yValue = touch.Y();
-		//Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
+		xValue = touch.x;
+		yValue = touch.y;
+		touched = true;
+	}
+#else
+	if (touch.Pressed())
+	{
+		xValue = touch.X();
+		yValue = touch.Y();
+		touched = true;
+	}
+#endif
+
+    if (touched && millis() - lastTouchTime > 100)
+	{
+		Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
 
 		if (xValue > 300 && xValue < 500 && yValue < 20)
 		{
