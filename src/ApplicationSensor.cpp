@@ -2,30 +2,54 @@
 
 WiFiClient client;
 
-//******************************//
-// Internal DHT Settings        //
-//******************************//
-#define DHTPIN 13     // Digital pin connected to the DHT sensor 
-// Uncomment the type of sensor in use:
-//#define DHTTYPE    DHT11     // DHT 11
-#define DHTTYPE    DHT22     // DHT 22 (AM2302)
-//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
-DHT_Unified dht22(DHTPIN, DHTTYPE);
-// The DHT sensor temp offset as tested. 
-// Sensor(S) 1: -5.0
-// Sensor(s) 2: -6.1
-#define DHT_TEMPOFFSET -6.1
-// define the DHT mapping for target(T) low 32% and high 84% 
-// Sensor(S) 1: Low 35.4, High 85.9
-// Sensor(s) 2: Low 34.9, High 87.4
-#define DHT_HMDLOW_T 32.0
-#define DHT_HMDHIGH_T 84.0
-#define DHT_HMDLOW_S 34.9
-#define DHT_HMDHIGH_S 97.4
+#ifdef BME280
+	const int BME280_DEFAULT_I2CADDR = 0x76;  // address:0x76
+	const float SEALEVELPRESSURE_HPA = 1021.1;
+	Adafruit_BME280 bme280;
+	// The BME sensor temp offset as tested. 
+	// Sensor(S) 1: -1.5
+	// Sensor(s) 2: -2.2
+	#define BME_TEMPOFFSET -2.2
+	// BME280 Sensors
+	// Sensor: 1 Low: 31.1 High: 84.6
+	// Sensor: 2 Low: 31.7 High: 78.0
+	#define BME_HMDLOW_T 32.0
+	#define BME_HMDHIGH_T 84.0
+	#define BME_HMDLOW_S 31.7
+	#define BME_HMDHIGH_S 78.0
+#else
+	//******************************//
+	// Internal DHT Settings        //
+	//******************************//
+	#define DHTPIN 13     // Digital pin connected to the DHT sensor 
+	// Uncomment the type of sensor in use:
+	//#define DHTTYPE    DHT11     // DHT 11
+	#define DHTTYPE    DHT22     // DHT 22 (AM2302)
+	//#define DHTTYPE    DHT21     // DHT 21 (AM2301)
+	DHT_Unified dht22(DHTPIN, DHTTYPE);
+	// The DHT sensor temp offset as tested. 
+	// Sensor(S) 1: -5.0
+	// Sensor(s) 2: -6.1
+	#define DHT_TEMPOFFSET -6.1
+	// define the DHT mapping for target(T) low 32% and high 84% 
+	// Sensor(S) 1: Low 35.4, High 85.9
+	// Sensor(s) 2: Low 34.9, High 87.4
+	#define DHT_HMDLOW_T 32.0
+	#define DHT_HMDHIGH_T 84.0
+	#define DHT_HMDLOW_S 34.9
+	#define DHT_HMDHIGH_S 97.4
+#endif
 
 void initSensors()
 {
-	dht22.begin();
+	#ifdef BME280
+		if (!bme280.begin(BME280_DEFAULT_I2CADDR))
+		{
+			//Serial.println("Could not find BME280 sensor at 0x76");
+		}
+	#else
+		dht22.begin();
+	#endif
 	ThingSpeak.begin(client);    
 }
 
@@ -49,7 +73,8 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	sensorData->Temp = ThingSpeak.readFloatField(channelID, 1);
 	sensorData->Hmd = ThingSpeak.readFloatField(channelID, 2); 
 	sensorData->Lux = ThingSpeak.readFloatField(channelID, 3); 
-	sensorData->HPa = ThingSpeak.readFloatField(channelID, 4); 
+	sensorData->HPa = ThingSpeak.readFloatField(channelID, 4);
+	sensorData->Alt = ThingSpeak.readFloatField(channelID, 5);
 
 	// Check the status of the read operation to see if it was successful
 	statusCode = ThingSpeak.getLastReadStatus();
@@ -69,6 +94,59 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	}
 }
 
+#ifdef BME280
+void readInternalSensors(SensorData *sensorData)
+{
+	sensors_event_t event;
+	bme280.getTemperatureSensor()->getEvent(&event);
+	if (isnan(event.temperature))
+	{
+		//Serial.println(F("Error reading temperature!"));
+		sensorData->IsUpdated = false;		
+	}
+	else
+	{
+		sensorData->Temp = roundUpDecimal(event.temperature + BME_TEMPOFFSET);
+		sensorData->IsUpdated = true;
+		//Serial.print(F("Temperature: "));
+		//Serial.print(sensorData->Temp);
+		//Serial.println(F("°C"));
+	}
+
+  	bme280.getHumiditySensor()->getEvent(&event);
+	if (isnan(event.relative_humidity))
+	{
+		//Serial.println(F("Error reading humidity!"));
+		sensorData->IsUpdated = false;
+	}
+	else
+	{
+		sensorData->Hmd = map(event.relative_humidity, BME_HMDLOW_S, BME_HMDHIGH_S, BME_HMDLOW_T, BME_HMDHIGH_T);
+		sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
+		sensorData->IsUpdated = true;
+		//Serial.print(F("Humidity: "));
+		//Serial.print(sensorData->Hmd);
+		//Serial.println(F("%"));
+	}
+
+	bme280.getPressureSensor()->getEvent(&event);
+	if (isnan(event.pressure))
+	{
+		//Serial.println(F("Error reading pressure!"));
+		sensorData->IsUpdated = false;
+	}
+	else
+	{
+		sensorData->HPa = roundUpDecimal(event.pressure / 100.0F);
+		// approx low from https://vancouver.weatherstats.ca/charts/pressure_sea-hourly.html
+		sensorData->Alt = roundUpDecimal(bme280.readAltitude(SEALEVELPRESSURE_HPA));
+		sensorData->IsUpdated = true;
+		//Serial.print(F("Pressure: "));
+		//Serial.print(sensorData->HPa);
+		//Serial.println(F(" HPa"));
+	}
+}
+#else
 void readInternalSensors(SensorData *sensorData)
 {
 	sensors_event_t event;
@@ -95,7 +173,6 @@ void readInternalSensors(SensorData *sensorData)
 	}
 	else
 	{
-		//internalHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
 		sensorData->Hmd = map(event.relative_humidity, DHT_HMDLOW_S, DHT_HMDHIGH_S, DHT_HMDLOW_T, DHT_HMDHIGH_T);
 		sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
 		sensorData->IsUpdated = true;
@@ -104,3 +181,4 @@ void readInternalSensors(SensorData *sensorData)
 		//Serial.println(F("%"));
 	}
 }
+#endif
