@@ -9,6 +9,7 @@
 
 #include "ApplicationSettings.h"
 #include "ApplicationHelper.h"
+#include "ApplicationSensor.h"
 #include "DisplayWeather.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
@@ -148,6 +149,7 @@ void setup()
 
 	configureWiFi();
 	initHelpers();// needs WiFi
+	initSensors();
 }
 
 void loop()
@@ -235,7 +237,7 @@ void updateData()
 	if (updateExternalSensors)
 	{
 		displayWeather.drawProgress(40, "Updating external sensor data...");
-		readExternalSensorsData(&appSettings, &externalSensorData);
+		readExternalSensorsData(appSettings.ThingSpeakSettings.ChannelID, &externalSensorData);
 		updateExternalSensors = false;
 	}
 	

@@ -7,7 +7,7 @@
 #include <TimeLib.h>
 #include <NTPClient.h>
 
-#include "SensorData.h"
+#include "ApplicationSensor.h"
 #include "DisplayControl.h"
 #include "DisplayFonts.h"
 #include "OpenWeatherMapCurrent.h"
