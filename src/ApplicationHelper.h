@@ -4,9 +4,15 @@
 #include <Arduino.h>
 #include <limits.h>
 #include <TimeLib.h>
-#include <TFT_Touch.h>
 #include <WiFiEspAT.h>
 #include <NTPClient.h>
+
+#define LCDWIKITOUCH
+#ifdef LCDWIKITOUCH
+	#include <LCDWIKI_TOUCH.h>
+#else
+	#include <TFT_Touch.h>
+#endif
 
 enum TouchResult
 {

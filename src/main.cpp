@@ -157,7 +157,7 @@ void loop()
 	switch (touchTest())
 	{
 		case UPDATE:
-			displayWeather.DisplayGFX->drawRect(300, 0, 100, 20, ERROR_COLOR);
+			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
 			updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;
 			break;
 		case FORWARD:
