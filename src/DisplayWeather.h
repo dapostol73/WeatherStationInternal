@@ -7,6 +7,7 @@
 #include <TimeLib.h>
 #include <NTPClient.h>
 
+#include "SensorData.h"
 #include "DisplayControl.h"
 #include "DisplayFonts.h"
 #include "OpenWeatherMapCurrent.h"
@@ -54,7 +55,7 @@ class DisplayWeather : public DisplayControl
         NTPClient *m_timeClient;
         time_t m_timeUpdated;
         char m_lastTimeUpdated[40] = "?Unkown";
-        bool m_isMetric = true;
+        //bool m_isMetric = true;
 
         void drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color);
         void drawRainLight(int16_t x, int16_t y, int16_t size = 1, uint16_t color = RAIN_COLOR);
@@ -90,11 +91,11 @@ class DisplayWeather : public DisplayControl
         DisplayWeather();
         void init();
         void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale = 1);
-        void drawTemperatureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd);
+        void drawSensorData(int16_t x, int16_t y, SensorData *internalSensorData, SensorData *externalSensorData);
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
         void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
         void drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated);
-        void drawFooter(float temperature);
+        void drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather);
 };
 
 #endif

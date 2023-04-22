@@ -51,13 +51,13 @@ bool forecastWeatherUpdated = false;
 DisplayWeather displayWeather;
 DisplayContolProgress displayProgress;
 
-void drawTemperatureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawTemperatureHumidityFrame };
+FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawSensorDataFrame };
 int numberOfFrames = 3;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
@@ -436,9 +436,9 @@ void configureWiFi()
 	delay(1000);
 }
 
-void drawTemperatureHumidityFrame(DisplayControlState* state, int16_t x, int16_t y)
+void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayWeather.drawTemperatureHumidity(x, y, internalSensorData.Temp, internalSensorData.Hmd, externalSensorData.Temp, externalSensorData.Hmd);
+	displayWeather.drawSensorData(x, y, &internalSensorData, &externalSensorData);
 }
 
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
@@ -458,5 +458,5 @@ void drawHeaderOverlay(DisplayControlState* state)
 
 void drawFooterOverlay(DisplayControlState* state)
 {
-	displayWeather.drawFooter(externalSensorData.Temp);
+	displayWeather.drawFooter(&externalSensorData, &currentWeather);
 }

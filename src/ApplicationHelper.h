@@ -15,6 +15,7 @@
 #include <DHT_U.h>
 
 #include "ApplicationSettings.h"
+#include "SensorData.h"
 
 // LCDWIKI_TOUCH my_touch(53,52,50,51,44); // tcs, tclk, tdout, tdin, tirq
 //Set the pins to the correct ones for your development shield or breakout board.
@@ -82,14 +83,6 @@ enum TouchResult
 	UPDATE,
 	FORWARD,
 	BACKWARD
-};
-
-struct SensorData
-{
-    float Temp = 0.0; //temperature
-    float Hmd = 0.0; //humidity
-    float Lux = 0.0; //light
-    float HPa = 0.0; //atmospheric
 };
 
 void initHelpers()
@@ -185,6 +178,7 @@ void readExternalSensorsData(ApplicationSettings *appSettings, SensorData *senso
 	statusCode = ThingSpeak.getLastReadStatus();
 	if(statusCode == 200)
 	{
+		sensorData->IsUpdated = true;
 		//Serial.println("Reading from ThinkSpeak " + String(appSettings->ThingSpeakSettings.ChannelID));
 		//Serial.println("Temperature: " + String(externalTemp) + " °C");
 		//Serial.println("Humidity: " + String(externalHmd) + " %");
@@ -193,6 +187,7 @@ void readExternalSensorsData(ApplicationSettings *appSettings, SensorData *senso
 	}
 	else
 	{
+		sensorData->IsUpdated = false;
 		//Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
 	}
 }
@@ -204,10 +199,12 @@ void readInternalSensors(SensorData *sensorData)
 	if (isnan(event.temperature))
 	{
 		//Serial.println(F("Error reading temperature!"));
+		sensorData->IsUpdated = false;
 	}
 	else
 	{
 		sensorData->Temp = roundUpDecimal(event.temperature + DHT_TEMPOFFSET);
+		sensorData->IsUpdated = true;
 		//Serial.print(F("Temperature: "));
 		//Serial.print(sensorData->Temp);
 		//Serial.println(F("°C"));
@@ -217,12 +214,14 @@ void readInternalSensors(SensorData *sensorData)
 	if (isnan(event.relative_humidity))
 	{
 		//Serial.println(F("Error reading humidity!"));
+		sensorData->IsUpdated = false;
 	}
 	else
 	{
 		//internalHmd = roundUpDecimal(event.relative_humidity*0.9341+22.319);
 		sensorData->Hmd = map(event.relative_humidity, DHT_HMDLOW_S, DHT_HMDHIGH_S, DHT_HMDLOW_T, DHT_HMDHIGH_T);
 		sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
+		sensorData->IsUpdated = true;
 		//Serial.print(F("Humidity: "));
 		//Serial.print(sensorData->Hmd);
 		//Serial.println(F("%"));

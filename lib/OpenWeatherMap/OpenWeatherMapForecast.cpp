@@ -50,6 +50,7 @@ bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String p
   this->weatherItemCounter = 0;
   this->currentForecast = 0;
   this->data = data;
+  this->data->isMetric = isMetric();
   JsonStreamingParser parser;
   parser.setListener(this);
   char connectInfo[256] = "";

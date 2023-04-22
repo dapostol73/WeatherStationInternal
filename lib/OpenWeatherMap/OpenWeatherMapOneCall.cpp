@@ -47,6 +47,7 @@ bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
   this->hourlyItemCounter = 0;
   this->dailyItemCounter = 0;
   this->data = data;
+  this->data->isMetric = isMetric();
   JsonStreamingParser parser;
   parser.setListener(this);
   char connectInfo[256] = "";
