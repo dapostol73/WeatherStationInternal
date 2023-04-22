@@ -60,7 +60,6 @@ typedef struct OpenWeatherMapOneCallCurrentData {
   String weatherDescription;
   // "icon": "09d"
   String weatherIcon;
-  String weatherIconMeteoCon;
 
 } OpenWeatherMapOneCallCurrentData;
 
@@ -152,6 +151,7 @@ typedef struct OpenWeatherMapOneCallDailyData {
 } OpenWeatherMapOneCallDailyData;
 
 typedef struct OpenWeatherMapOneCallData {
+  bool isMetric = true;
   // "lon": 8.54,
   float lon;
   // "lat": 47.37

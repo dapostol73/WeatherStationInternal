@@ -27,6 +27,7 @@
 #include <time.h>
 
 typedef struct OpenWeatherMapForecastData {
+  bool isMetric = true;
   // {"dt":1527066000,
   uint32_t observationTime;
   // "main":{

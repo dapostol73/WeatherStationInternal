@@ -47,6 +47,7 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
   unsigned long lost_do = millis();
   this->weatherItemCounter = 0;
   this->data = data;
+  this->data->isMetric = isMetric();
   JsonStreamingParser parser;
   parser.setListener(this);
   char connectInfo[256] = "";

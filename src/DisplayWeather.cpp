@@ -583,18 +583,18 @@ void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlig
 	drawString(humi, x, y, align, foregroundColor);
 }
 
-void DisplayWeather::drawTemperatureHumidity(int16_t x, int16_t y, float internalTemp, float internalHmd, float externalTemp, float externalHmd)
+void DisplayWeather::drawSensorData(int16_t x, int16_t y, SensorData *internalSensorData, SensorData *externalSensorData)
 {
     y = 20;
 	fillScreen(BACKGROUND_COLOR);
 	setFont(&CalibriBold24pt7b);
 	drawString("Inside", 200, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawTemperature(internalTemp, m_isMetric, 200, y + 160, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
-	drawHumidity(internalHmd, 200, y + 240, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
+	drawTemperature(internalSensorData->Temp, internalSensorData->IsMetric, 200, y + 160, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
+	drawHumidity(internalSensorData->Hmd, 200, y + 240, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
 
 	drawString("Outside", 600, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawTemperature(externalTemp, m_isMetric, 600, y + 160, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
-	drawHumidity(externalHmd, 600, y + 240, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
+	drawTemperature(externalSensorData->Temp, externalSensorData->IsMetric, 600, y + 160, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
+	drawHumidity(externalSensorData->Hmd, 600, y + 240, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
 }
 
 /// @brief Draw current forecast, which is 20 and the bottom most is 420 which means we have and area to 
@@ -615,8 +615,8 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	drawString(currentWeather->cityName, 400, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 	drawString(currentWeather->description, 200, y + 360, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
 	
-	drawTemperatureIcon(currentWeather->temp, m_isMetric, xIcon - 10, y + 120 - 22, 2);
-	drawTemperature(currentWeather->temp, m_isMetric, xText, y + 120, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawTemperatureIcon(currentWeather->temp, currentWeather->isMetric, xIcon - 10, y + 120 - 22, 2);
+	drawTemperature(currentWeather->temp, currentWeather->isMetric, xText, y + 120, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 
 	drawHumidityIcon(currentWeather->humidity, xIcon - 16, y + 180 - 22, 2);
 	drawHumidity(currentWeather->humidity, xText, y + 180, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
@@ -663,8 +663,8 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	drawString(WDAY_NAMES[day], x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 	setFont(&CalibriBold16pt7b);
 	
-	drawTemperatureIcon(forecastWeather[dayIndex].temp, m_isMetric, x - 114 - 10, y + 330 - 22, 2);
-	drawTemperature(forecastWeather[dayIndex].temp, m_isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawTemperatureIcon(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 114 - 10, y + 330 - 22, 2);
+	drawTemperature(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 	
 	drawHumidityIcon(forecastWeather[dayIndex].humidity, x + 16 - 16, y + 330 - 22, 2);
 	drawHumidity(forecastWeather[dayIndex].humidity, x + 40, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
@@ -731,7 +731,7 @@ void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathe
 	drawString(m_lastTimeUpdated, 800, 2, TEXT_RIGHT_TOP);	
 }
 
-void DisplayWeather::drawFooter(float temperature)
+void DisplayWeather::drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather)
 {
 	char date[20];
 	char time[10];
@@ -745,6 +745,14 @@ void DisplayWeather::drawFooter(float temperature)
 	
 	drawString(time, 20, 434, TEXT_LEFT_TOP, TEXT_MAIN_COLOR);
 	drawString(date, 400, 434, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
-	drawTemperature(temperature, m_isMetric, 730, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+	if (externalSensorData->IsUpdated)
+	{
+		drawTemperature(externalSensorData->Temp, externalSensorData->IsMetric, 730, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+	}
+	else
+	{
+		drawTemperature(currentWeather->temp, currentWeather->isMetric, 730, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+	}
+	
 	drawWiFiSignal(750, 434, 3);
 }
