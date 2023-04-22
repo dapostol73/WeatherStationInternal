@@ -3,7 +3,6 @@
 WiFiClient client;
 
 #ifdef BME280
-	const int BME280_DEFAULT_I2CADDR = 0x76;  // address:0x76
 	const float SEALEVELPRESSURE_HPA = 1021.1;
 	Adafruit_BME280 bme280;
 	// The BME sensor temp offset as tested. 
@@ -43,7 +42,7 @@ WiFiClient client;
 void initSensors()
 {
 	#ifdef BME280
-		if (!bme280.begin(BME280_DEFAULT_I2CADDR))
+		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
 			//Serial.println("Could not find BME280 sensor at 0x76");
 		}
@@ -97,6 +96,14 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 #ifdef BME280
 void readInternalSensors(SensorData *sensorData)
 {
+	// BME simple read, saves 48 bytes RAM and 1,440 bytes of Flash
+	//sensorData->Temp = roundUpDecimal(bme280.readTemperature() + BME_TEMPOFFSET);
+	//sensorData->Hmd = map(bme280.readHumidity(), BME_HMDLOW_S, BME_HMDHIGH_S, BME_HMDLOW_T, BME_HMDHIGH_T);
+	//sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
+	//sensorData->HPa = roundUpDecimal(bme280.readPressure() / 100.0F);
+	//sensorData->Alt = roundUpDecimal(bme280.readAltitude(SEALEVELPRESSURE_HPA));
+	// approx low from https://vancouver.weatherstats.ca/charts/pressure_sea-hourly.html
+
 	sensors_event_t event;
 	bme280.getTemperatureSensor()->getEvent(&event);
 	if (isnan(event.temperature))
