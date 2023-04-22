@@ -49,6 +49,20 @@ enum TextAlignment
 	TEXT_RIGHT_BOTTOM
 };
 
+struct RGBColor
+{
+	uint8_t R = 0;
+	uint8_t G = 0;
+	uint8_t B = 0;
+};
+
+struct HSVColor
+{
+	float H = 0;
+	float S = 0;
+	float V = 0;
+};
+
 struct DisplayContolProgress
 {
 	int16_t x = 0;
@@ -144,6 +158,14 @@ class DisplayControl
 		void init(uint16_t rotation, const GFXfont *gfxFont);
 
 		uint16_t colorLerp(uint16_t fg, uint16_t bg, int8_t alpha);
+
+		uint16_t color565(RGBColor color);
+
+		uint16_t color565(HSVColor color);
+
+		RGBColor colorRGB(uint16_t color);
+
+		HSVColor colorHSV(uint16_t color);
 
 		void setFont(const GFXfont *font);
 

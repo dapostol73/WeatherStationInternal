@@ -38,6 +38,132 @@ uint16_t DisplayControl::colorLerp(uint16_t fg, uint16_t bg, int8_t alpha)
     return DisplayGFX->color565(r, g, b);
 }
 
+uint16_t DisplayControl::color565(RGBColor color)
+{
+    return DisplayGFX->color565(color.R, color.G, color.B);
+}
+
+uint16_t DisplayControl::color565(HSVColor color)
+{
+    static float tolerance = 0.001;
+    if (color.S < tolerance)
+    {
+        uint8_t v = 255 * color.V;
+        return DisplayGFX->color565(v, v, v);
+    }
+
+    if (color.V < tolerance)
+    {
+        return BLACK;
+    }
+
+    if (color.H > 360)
+    {
+        color.H = fmod(color.H, 360);
+    }
+    if (color.H < 0)
+    {
+        color.H += 360;
+    }
+
+    // Calculate the chroma value
+    float C = color.V * color.S;
+
+    // Calculate intermediate values
+    float X = C * (1 - abs(fmod(color.H / 60.0, 2) - 1));
+    float m = color.V - C;
+
+    float R, G, B;
+    if (color.H < 60)
+    {
+        R = C;
+        G = X;
+        B = 0;
+    }
+    else if (color.H < 120)
+    {
+        R = X;
+        G = C;
+        B = 0;
+    }
+    else if (color.H < 180)
+    {
+        R = 0;
+        G = C;
+        B = X;
+    }
+    else if (color.H < 240)
+    {
+        R = 0;
+        G = X;
+        B = C;
+    }
+    else if (color.H < 300)
+    {
+        R = X;
+        G = 0;
+        B = C;
+    }
+    else
+    {
+        R = C;
+        G = 0;
+        B = X;
+    }
+
+    uint8_t red = round((R + m) * 255);
+    uint8_t green = round((G + m) * 255);
+    uint8_t blue = round((B + m) * 255);
+
+    return DisplayGFX->color565(red, green, blue);
+}
+
+RGBColor DisplayControl::colorRGB(uint16_t color)
+{
+    RGBColor rgbColor;
+    rgbColor.R = (color >> 8) & 0b11111000;
+    rgbColor.G = (color >> 3) & 0b11111100;
+    rgbColor.B = (color << 3) & 0b11111000;
+
+    return rgbColor;
+}
+
+HSVColor DisplayControl::colorHSV(uint16_t color)
+{
+    RGBColor rgbColor = colorRGB(color);
+    HSVColor hsvColor;
+    float R_normalized = rgbColor.R / 31.0;
+    float G_normalized = rgbColor.G / 63.0;
+    float B_normalized = rgbColor.B / 31.0;
+    float max_value = max(R_normalized, max(G_normalized, B_normalized));
+    float min_value = min(R_normalized, min(G_normalized, B_normalized));
+    hsvColor.V = max_value;
+    hsvColor.S = 0;
+    if (hsvColor.V != 0)
+    {
+        hsvColor.S = (max_value - min_value) / max_value;
+    }
+    hsvColor.H = 0;
+    if (max_value == R_normalized)
+    {
+        hsvColor.H = 60 * (G_normalized - B_normalized) / (max_value - min_value);
+    }
+    else if (max_value == G_normalized)
+    {
+        hsvColor.H = 60 * (2 + (B_normalized - R_normalized) / (max_value - min_value));
+    }
+    else if (max_value == B_normalized)
+    {
+        hsvColor.H = 60 * (4 + (R_normalized - G_normalized) / (max_value - min_value));
+    }
+    if (hsvColor.H < 0)
+    {
+        hsvColor.H += 360;
+    }
+
+    return hsvColor;
+}
+
 void DisplayControl::setMaxLines()
 {
     switch (DisplayGFX->getRotation())
