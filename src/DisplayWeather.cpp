@@ -686,10 +686,16 @@ void DisplayWeather::drawForecast(OpenWeatherMapForecastData *forecastWeather, i
 /// @param x 
 /// @param y 
 /// @param size 
-void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t backgroundColor)
 {
 	size = max(size, 1);
 	uint16_t gray = colorLerp(FOREGROUND_COLOR, BACKGROUND_COLOR, 128);
+
+	if (backgroundColor != NULL)
+	{
+		DisplayGFX->fillRect(x, y, size*12, size*12, backgroundColor);
+	}
+
 	if (WiFi.status() == WL_CONNECTED)
 	{
 		int32_t strength = WiFi.RSSI();
@@ -728,10 +734,12 @@ void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathe
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
-	drawString(m_lastTimeUpdated, 800, 2, TEXT_RIGHT_TOP);	
+	drawString(m_lastTimeUpdated, 800, 2, TEXT_RIGHT_TOP);
+
+	drawWiFiSignal(760, 24, 3, BACKGROUND_COLOR);
 }
 
-void DisplayWeather::drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather)
+void DisplayWeather::drawFooter(SensorData *sensorData, OpenWeatherMapCurrentData *currentWeather)
 {
 	char date[20];
 	char time[10];
@@ -743,16 +751,16 @@ void DisplayWeather::drawFooter(SensorData *externalSensorData, OpenWeatherMapCu
 	DisplayGFX->drawFastHLine(0, 421, 800, TEXT_ALT_COLOR);
 	setFont(&CalibriBold24pt7b);
 	
-	drawString(time, 20, 434, TEXT_LEFT_TOP, TEXT_MAIN_COLOR);
-	drawString(date, 400, 434, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
-	if (externalSensorData->IsUpdated)
+	drawString(date, 20, 434, TEXT_LEFT_TOP, TEXT_MAIN_COLOR);
+	drawString(time, 400, 434, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
+	if (sensorData->IsUpdated)
 	{
-		drawTemperature(externalSensorData->Temp, externalSensorData->IsMetric, 730, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+		drawTemperature(sensorData->Temp, sensorData->IsMetric, 640, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+		drawHumidity(sensorData->Hmd, 790, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
 	}
 	else
 	{
-		drawTemperature(currentWeather->temp, currentWeather->isMetric, 730, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+		drawTemperature(currentWeather->temp, currentWeather->isMetric, 640, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+		drawHumidity(currentWeather->humidity, 790, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
 	}
-	
-	drawWiFiSignal(750, 434, 3);
 }

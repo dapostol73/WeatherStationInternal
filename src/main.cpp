@@ -460,5 +460,5 @@ void drawHeaderOverlay(DisplayControlState* state)
 
 void drawFooterOverlay(DisplayControlState* state)
 {
-	displayWeather.drawFooter(&externalSensorData, &currentWeather);
+	displayWeather.drawFooter(&internalSensorData, &currentWeather);
 }
