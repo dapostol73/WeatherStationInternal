@@ -736,31 +736,35 @@ void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathe
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
 	drawString(m_lastTimeUpdated, 800, 2, TEXT_RIGHT_TOP);
 
-	drawWiFiSignal(760, 24, 3, BACKGROUND_COLOR);
+	drawWiFiSignal(764, 28, 3, BACKGROUND_COLOR);
 }
 
 void DisplayWeather::drawFooter(SensorData *sensorData, OpenWeatherMapCurrentData *currentWeather)
 {
-	char date[20];
-	char time[10];
-	sprintf_P(date, PSTR("%s %d, %d"), MONTH_NAMES[month()-1].c_str(), day(), year());
-	sprintf_P(time, PSTR("%d:%02d %s"), hourFormat12(), minute(), (isAM() ? "AM" : "PM"));
+	char datetime[30];
+	sprintf_P(datetime,
+			  PSTR("%s %d, %d  %d:%02d %s"),
+			  MONTH_NAMES[month()-1].c_str(),
+			  day(),
+			  year(),
+			  hourFormat12(),
+			  minute(),
+			  (isAM() ? "AM" : "PM"));
 
 	DisplayGFX->fillRect(0, 422, 800, 480, OVERLAY_COLOR); 
 	DisplayGFX->drawFastHLine(0, 420, 800, TEXT_ALT_COLOR);
 	DisplayGFX->drawFastHLine(0, 421, 800, TEXT_ALT_COLOR);
 	setFont(&CalibriBold24pt7b);
 	
-	drawString(date, 20, 434, TEXT_LEFT_TOP, TEXT_MAIN_COLOR);
-	drawString(time, 400, 434, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
+	drawString(datetime, 400, 434, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
 	if (sensorData->IsUpdated)
 	{
-		drawTemperature(sensorData->Temp, sensorData->IsMetric, 640, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
-		drawHumidity(sensorData->Hmd, 790, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+		drawTemperature(sensorData->Temp, sensorData->IsMetric, 790, 434, TEXT_RIGHT_TOP, TEXT_ALT_COLOR);
+		drawHumidity(sensorData->Hmd, 10, 434, TEXT_LEFT_TOP, TEXT_ALT_COLOR);
 	}
 	else
 	{
-		drawTemperature(currentWeather->temp, currentWeather->isMetric, 640, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
-		drawHumidity(currentWeather->humidity, 790, 434, TEXT_RIGHT_TOP, TEXT_MAIN_COLOR);
+		drawTemperature(currentWeather->temp, currentWeather->isMetric, 790, 434, TEXT_RIGHT_TOP, TEXT_ALT_COLOR);
+		drawHumidity(currentWeather->humidity, 10, 434, TEXT_LEFT_TOP, TEXT_ALT_COLOR);
 	}
 }

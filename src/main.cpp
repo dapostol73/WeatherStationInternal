@@ -43,10 +43,12 @@ bool updateExternalSensors = true;
 const uint8_t MAX_FORECASTS = 4;
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
+bool updateCurrentWeather = true;
 bool currentWeatherUpdated = false;
 
 OpenWeatherMapForecastData forecastWeather[MAX_FORECASTS];
 OpenWeatherMapForecast forecastWeatherClient;
+bool updateForecastWeather = true;
 bool forecastWeatherUpdated = false;
 
 DisplayWeather displayWeather;
@@ -74,14 +76,12 @@ const int EXTSENSOR_INTERVAL_SECS = 5 * 60; // Sensor query every 5 minutes
 const int CURRENT_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
 const int FORECAST_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
 
-// flag changed in the ticker function every 10 minutes
+bool updateSuccessed = true;
 time_t lastUpdated;
-bool updateCurrentWeather = true;
-bool updateForecastWeather = true;
 long timeSinceCurrentUpdate = LONG_MIN;
 long timeSinceForecastUpdate = LONG_MIN;
 
-void updateData();
+bool updateData();
 void configureWiFi();
 
 #ifdef DEBUG
@@ -158,7 +158,7 @@ void loop()
 	{
 		case UPDATE:
 			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
-			updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;
+			updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;// force update
 			break;
 		case FORWARD:
 			displayWeather.navigateForwardFrame();
@@ -170,7 +170,7 @@ void loop()
 			break;
 	}
 
-	if (WiFi.status() != WL_CONNECTED)
+	if (WiFi.status() != WL_CONNECTED || !updateSuccessed)
 	{
 		WiFi.disconnect();
 		delay(3000);
@@ -181,7 +181,7 @@ void loop()
 			delay(1000);
 		}
 		displayWeather.DisplayGFX->fillRect(400 - 50, 5, 100, 10, OVERLAY_COLOR);
-		return;
+		updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;// force update
 	}
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
@@ -213,7 +213,7 @@ void loop()
 
 	if (updateExternalSensors || updateCurrentWeather || updateForecastWeather) 
 	{
-		updateData();
+		updateSuccessed = updateData();
 	}
 
 	int remainingTimeBudget = displayWeather.update();
@@ -229,8 +229,9 @@ void loop()
 
 #endif
 
-void updateData() 
+bool updateData() 
 {
+	bool success = true;
 	displayProgress.foregroundColor = TEXT_ALT_COLOR;
 	displayWeather.drawProgress(20, "Updating time...");
 	updateSystemTime();
@@ -239,6 +240,7 @@ void updateData()
 		displayWeather.drawProgress(40, "Updating external sensor data...");
 		readExternalSensorsData(appSettings.ThingSpeakSettings.ChannelID, &externalSensorData);
 		updateExternalSensors = false;
+		success = success == externalSensorData.IsUpdated;
 	}
 	
 
@@ -252,7 +254,8 @@ void updateData()
 		{
 			displayProgress.foregroundColor = ERROR_COLOR;
 		}
-		updateCurrentWeather = !currentWeatherUpdated; 
+		updateCurrentWeather = false;
+		success = success == currentWeatherUpdated;
 	}
 
 	if (updateForecastWeather)
@@ -267,12 +270,14 @@ void updateData()
 		{
 			displayProgress.foregroundColor = ERROR_COLOR;
 		}
-		updateForecastWeather = !forecastWeatherUpdated;
+		updateForecastWeather = false;
+		success = success == forecastWeatherUpdated;
 	}
 
 	lastUpdated = now();
 	displayWeather.drawProgress(100, "Updating done!");
 	delay(1000);
+	return success;
 }
 
 void resolveAppSettings()
