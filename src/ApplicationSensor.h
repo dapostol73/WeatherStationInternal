@@ -7,10 +7,14 @@
 
 #include <Adafruit_Sensor.h>
 
-#define BME280
+#define SHT3XDIS // BME280/DHT22/SHT3XDIS
+#ifdef SHT3XDIS
+    #include <Adafruit_SHT31.h>
+#endif
 #ifdef BME280
     #include <Adafruit_BME280.h>
-#else
+#endif
+#ifdef DHT22
     #include <DHT.h>
     #include <DHT_U.h>
 #endif
