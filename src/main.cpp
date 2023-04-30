@@ -172,15 +172,18 @@ void loop()
 
 	if (WiFi.status() != WL_CONNECTED || !updateSuccessed)
 	{
-		WiFi.disconnect();
+		WiFi.disconnect(true);
+		WiFi.reset();
 		delay(3000);
 		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-		for (int t; t < 10; t++)
+		WiFi.sleepMode(WIFI_NONE_SLEEP);
+		int t = 0;//tries
+		while (WiFi.status() != WL_CONNECTED && t < 10)
 		{
 			displayWeather.DisplayGFX->fillCircle(400 - 45 + (t * 10), 10, 3, TEXT_MAIN_COLOR);
 			delay(1000);
+			t++;
 		}
-		displayWeather.DisplayGFX->fillRect(400 - 50, 5, 100, 10, OVERLAY_COLOR);
 		updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;// force update
 	}
 
@@ -240,7 +243,7 @@ bool updateData()
 		displayWeather.drawProgress(40, "Updating external sensor data...");
 		readExternalSensorsData(appSettings.ThingSpeakSettings.ChannelID, &externalSensorData);
 		updateExternalSensors = false;
-		success = success == externalSensorData.IsUpdated;
+		success = success && externalSensorData.IsUpdated;
 	}
 	
 
@@ -255,7 +258,7 @@ bool updateData()
 			displayProgress.foregroundColor = ERROR_COLOR;
 		}
 		updateCurrentWeather = false;
-		success = success == currentWeatherUpdated;
+		success = success && currentWeatherUpdated;
 	}
 
 	if (updateForecastWeather)
@@ -271,7 +274,7 @@ bool updateData()
 			displayProgress.foregroundColor = ERROR_COLOR;
 		}
 		updateForecastWeather = false;
-		success = success == forecastWeatherUpdated;
+		success = success && forecastWeatherUpdated;
 	}
 
 	lastUpdated = now();
