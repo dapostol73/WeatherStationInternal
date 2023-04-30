@@ -2,11 +2,11 @@
 
 WiFiClient client;
 
-#ifdef SHT3XDIS
+#ifdef SHT_3X
 	// SHTSensor SHT3X (0x44) or SHT3X_ALT (0x45)
 	Adafruit_SHT31 sht3x;
 #endif
-#ifdef BME280
+#ifdef BME_280
 	const float SEALEVELPRESSURE_HPA = 1021.1;
 	Adafruit_BME280 bme280;
 	// The BME sensor temp offset as tested. 
@@ -21,7 +21,7 @@ WiFiClient client;
 	#define BME_HMDLOW_S 31.7
 	#define BME_HMDHIGH_S 78.0
 #endif
-#ifdef DHT22
+#ifdef DHT_22
 	//******************************//
 	// Internal DHT Settings        //
 	//******************************//
@@ -46,19 +46,19 @@ WiFiClient client;
 
 void initSensors()
 {
-	#ifdef SHT3XDIS
+	#ifdef SHT_3X
 		if (!sht3x.begin())
 		{
 			Serial.println("Could not find SHT3X-DIS sensor");
 		}
 	#endif
-	#ifdef BME280
+	#ifdef BME_280
 		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
 			//Serial.println("Could not find BME280 sensor at 0x76");
 		}
 	#endif
-	#ifdef DHT22
+	#ifdef DHT_22
 		dht22.begin();
 	#endif
 	ThingSpeak.begin(client);    
@@ -105,7 +105,7 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	}
 }
 
-#ifdef SHT3XDIS
+#ifdef SHT_3X
 void readInternalSensors(SensorData *sensorData)
 {
 	sensorData->IsUpdated = false;
@@ -114,7 +114,7 @@ void readInternalSensors(SensorData *sensorData)
 	sensorData->IsUpdated = true;
 }
 #endif
-#ifdef BME280
+#ifdef BME_280
 void readInternalSensors(SensorData *sensorData)
 {
 	// BME simple read, saves 48 bytes RAM and 1,440 bytes of Flash
@@ -175,7 +175,7 @@ void readInternalSensors(SensorData *sensorData)
 	}
 }
 #endif
-#ifdef DHT22
+#ifdef DHT_22
 void readInternalSensors(SensorData *sensorData)
 {
 	sensors_event_t event;
