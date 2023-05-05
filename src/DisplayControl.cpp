@@ -183,6 +183,7 @@ void DisplayControl::setFont(const GFXfont *gfxFont)
     m_gfxFont = gfxFont;
     DisplayGFX->setFont(m_gfxFont);
     m_lineHeight = pgm_read_byte(&m_gfxFont->yAdvance);
+    
     setMaxLines();
 }
 
@@ -414,21 +415,45 @@ void DisplayControl::drawFatCircle(int16_t x, int16_t y, int16_t r, int16_t wd, 
 
 void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, TextAlignment verticalAlign, uint16_t foregroundColor)
 {
+    int16_t x1, y1 = 0;
+    uint16_t w, h, hIng = 0;
+    // Hack, we want to ignore , and lowercase letters that go below like "y"
+    // So we ingore height and use hard coded "0" for full height.
+    char cArray[2] = { c, '\0' };
+    DisplayGFX->getTextBounds("0", 0, y, &x1, &y1, &w, &h);
+    DisplayGFX->getTextBounds(cArray, 0, 0, &x1, &y1, &w, &hIng);
     switch (verticalAlign)
     {
         case TEXT_LEFT_TOP:
+            y += h;
+            break;
         case TEXT_CENTER_TOP:
+            x -= w*0.5;
+            y += h;
+            break;
         case TEXT_RIGHT_TOP:
-            y += m_lineHeight;
+            x -= w;
+            y += h;
             break;
         case TEXT_LEFT_MIDDLE:
+            y += h * 0.5;
+            break;
         case TEXT_CENTER_MIDDLE:
+            x -= w*0.5;
+            y += h * 0.5;
+            break;
         case TEXT_RIGHT_MIDDLE:
-            y += m_lineHeight * 0.5;
+            x -= w;
+            y += h * 0.5;
             break;
         case TEXT_LEFT_BOTTOM:
+            break;
         case TEXT_CENTER_BOTTOM:
+            x -= w*0.5;
+            break;
         case TEXT_RIGHT_BOTTOM:
+            x -= w;
+            break;
         default:
             break;
     }

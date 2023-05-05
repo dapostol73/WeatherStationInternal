@@ -722,15 +722,17 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t
 	}
 }
 
-void DisplayWeather::drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated)
+void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool forecastUpdated, time_t timeUpdated)
 {
 	DisplayGFX->fillRect(0, 0, 800, 18, OVERLAY_COLOR);
 	DisplayGFX->drawFastHLine(0, 19, 800, TEXT_ALT_COLOR);
 	DisplayGFX->drawFastHLine(0, 20, 800, TEXT_ALT_COLOR);
 
 	setFont(&CalibriBold8pt7b);
-	drawChar(4, 2, 'C', TEXT_LEFT_MIDDLE, currentWeathersUpdated ? SUCCESS_COLOR : ERROR_COLOR);
-	drawChar(20, 2, 'F', TEXT_LEFT_MIDDLE, forecastWeathersUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(10, 10, 'E', TEXT_CENTER_MIDDLE, externalUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(25, 10, 'C', TEXT_CENTER_MIDDLE, currentUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(40, 10, 'F', TEXT_CENTER_MIDDLE, forecastUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawString(WiFi.SSID(), 400, 2, TEXT_CENTER_TOP);
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
