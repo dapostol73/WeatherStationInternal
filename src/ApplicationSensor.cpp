@@ -5,6 +5,8 @@ WiFiClient client;
 #ifdef SHT_3X
 	// SHTSensor SHT3X (0x44) or SHT3X_ALT (0x45)
 	Adafruit_SHT31 sht3x;
+	#define SHT_TEMPOFFSET -4.1
+	#define SHT_HMDOFFSET 9
 #endif
 #ifdef BME_280
 	const float SEALEVELPRESSURE_HPA = 1021.1;
@@ -109,8 +111,8 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 void readInternalSensors(SensorData *sensorData)
 {
 	sensorData->IsUpdated = false;
-	sensorData->Temp = roundUpDecimal(sht3x.readTemperature());
-	sensorData->Hmd = roundUpDecimal(sht3x.readHumidity());
+	sensorData->Temp = roundUpDecimal(sht3x.readTemperature() + SHT_TEMPOFFSET);
+	sensorData->Hmd = roundUpDecimal(sht3x.readHumidity() + SHT_HMDOFFSET);
 	sensorData->IsUpdated = true;
 }
 #endif
