@@ -732,11 +732,11 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 	drawChar(10, 10, 'E', TEXT_CENTER_MIDDLE, externalUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawChar(25, 10, 'C', TEXT_CENTER_MIDDLE, currentUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawChar(40, 10, 'F', TEXT_CENTER_MIDDLE, forecastUpdated ? SUCCESS_COLOR : ERROR_COLOR);
-	drawString(WiFi.SSID(), 400, 2, TEXT_CENTER_TOP);
+	drawString(WiFi.SSID(), 400, 10, TEXT_CENTER_MIDDLE);
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
-	drawString(m_lastTimeUpdated, 800, 2, TEXT_RIGHT_TOP);
+	drawString(m_lastTimeUpdated, 800, 10, TEXT_RIGHT_MIDDLE);
 
 	drawWiFiSignal(764, 28, 3, BACKGROUND_COLOR);
 }
