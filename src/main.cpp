@@ -95,18 +95,26 @@ void interruptServiceRoutine()
 
 void setup()
 {
-	//Serial.begin(SERIAL_BAUD_RATE);
-
+	Serial.begin(SERIAL_BAUD_RATE);
 	displayWeather.init();
 	displayWeather.fillScreen(BLACK);
-	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
-	touch.setRotation(1);
 
+	displayWeather.DisplayGFX->drawFastVLine(300, 0, 480, RED);
+	displayWeather.DisplayGFX->drawFastVLine(400, 0, 480, RED);
+	displayWeather.DisplayGFX->drawFastVLine(500, 0, 480, RED);
+	displayWeather.drawChar(300,  50, 'A', TEXT_LEFT_TOP);
+	displayWeather.drawChar(300, 100, 'B', TEXT_CENTER_TOP);
+	displayWeather.drawChar(300, 150, 'C', TEXT_RIGHT_TOP);
+	displayWeather.drawChar(400, 50, 'D', TEXT_LEFT_MIDDLE);
+	displayWeather.drawChar(400, 100, 'E', TEXT_CENTER_MIDDLE);
+	displayWeather.drawChar(400, 150, 'F', TEXT_RIGHT_MIDDLE);
+	displayWeather.drawChar(500, 50, 'G', TEXT_LEFT_BOTTOM);
+	displayWeather.drawChar(500, 100, 'H', TEXT_CENTER_BOTTOM);
+	displayWeather.drawChar(500, 150, 'I', TEXT_RIGHT_BOTTOM);
 	//pinMode(IRQ_PIN, INPUT);
 	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
 	//displayWeather.drawTemperatureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
-	displayWeather.drawCurrentWeather(&currentWeather, 0, 0);
-	displayWeather.drawFooter(&currentWeather);
+
 }
 
 void loop()
@@ -463,7 +471,7 @@ void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y)
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
-	displayWeather.drawHeader(currentWeatherUpdated, forecastWeatherUpdated, lastUpdated);
+	displayWeather.drawHeader(externalSensorData.IsUpdated, currentWeatherUpdated, forecastWeatherUpdated, lastUpdated);
 }
 
 void drawFooterOverlay(DisplayControlState* state)

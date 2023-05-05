@@ -94,7 +94,7 @@ class DisplayWeather : public DisplayControl
         void drawSensorData(int16_t x, int16_t y, SensorData *internalSensorData, SensorData *externalSensorData);
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
         void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
-        void drawHeader(bool currentWeathersUpdated, bool forecastWeathersUpdated, time_t timeUpdated);
+        void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastUpdated, time_t timeUpdated);
         void drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather);
 };
 
