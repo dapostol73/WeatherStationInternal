@@ -702,7 +702,7 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t
 		DisplayGFX->fillRect(x,        y+size*9, size*2, size*3,  strength > -80 ? FOREGROUND_COLOR : gray);
 		DisplayGFX->fillRect(x+size*3, y+size*6, size*2, size*6,  strength > -70 ? FOREGROUND_COLOR : gray);
 		DisplayGFX->fillRect(x+size*6, y+size*3, size*2, size*9,  strength > -60 ? FOREGROUND_COLOR : gray);
-		DisplayGFX->fillRect(x+size*9, y,        size*2, size*12, strength > -45 ? FOREGROUND_COLOR : gray);
+		DisplayGFX->fillRect(x+size*9, y,        size*2, size*12, strength > -50 ? FOREGROUND_COLOR : gray);
 	}
 	else
 	{
