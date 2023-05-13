@@ -593,12 +593,9 @@ void DisplayControl::setProgress(DisplayContolProgress *progress)
 void DisplayControl::drawProgress(int8_t percent, String message)
 {
     int16_t x1, y1 = 0;
-    uint16_t w1, h1, hIng = 0;
-    // Hack, we want to ignore , and lowercase letters that go below like "y"
-    // So we ingore height and use hard coded "0" for full height.
+    uint16_t w1, h1 = 0;
     setFont(m_progress->gfxFont);
-    DisplayGFX->getTextBounds("0", 0, 0, &x1, &y1, &w1, &h1);
-    DisplayGFX->getTextBounds(message, 0, 0, &x1, &y1, &w1, &hIng);
+    DisplayGFX->getTextBounds(message, 0, 0, &x1, &y1, &w1, &h1);
     m_progress->progress = percent;
     m_progress->message = message;
     int16_t strl = m_progress->message.length();
@@ -614,7 +611,7 @@ void DisplayControl::drawProgress(int8_t percent, String message)
     if (sy < minY) sy = minY;
     int16_t px = max((sx*(m_progress->progress*0.01))-2, 0);
     int16_t cx = m_progress->x+(m_progress->width*0.5)-(0.5*w1);
-    int16_t cy = m_progress->y+(m_progress->height*0.5)-(0.5*h1);
+    int16_t cy = m_progress->y+(m_progress->height*0.5);
 
     DisplayGFX->fillRoundRect(x, y, sx, sy, corner, m_progress->backgroundColor);
     DisplayGFX->drawRoundRect(x, y, sx, sy, corner, m_progress->foregroundColor);
