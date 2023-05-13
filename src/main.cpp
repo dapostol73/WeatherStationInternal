@@ -41,6 +41,7 @@ bool updateExternalSensors = true;
 // OpenWeather Map Settings     //
 //******************************//
 const uint8_t MAX_FORECASTS = 4;
+const uint8_t FORECAST_HOURS[] = { 15 };
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
 bool updateCurrentWeather = true;
@@ -274,8 +275,7 @@ bool updateData()
 		displayWeather.drawProgress(80, "Updating forecasts...");
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
-		uint8_t allowedHours[] = {12};
-		forecastWeatherClient.setAllowedHours(allowedHours, sizeof(allowedHours));
+		forecastWeatherClient.setAllowedHours(FORECAST_HOURS, sizeof(FORECAST_HOURS));
 		forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, MAX_FORECASTS);
 		if (!forecastWeatherUpdated)
 		{
