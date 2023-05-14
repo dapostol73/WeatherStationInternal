@@ -425,49 +425,58 @@ void DisplayWeather::drawTemperatureGauge(float temperature, bool isMetric, int1
 /// @param size 
 void DisplayWeather::drawTemperatureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)
 {
-	uint16_t color0 = TEMP_WARM_COLOR;
-	uint16_t color1 = TEMP_WARM_COLOR;
-	uint16_t color2 = BACKGROUND_COLOR;
+	uint16_t color0 = TEMP_MILD_COLOR;
+	float p = 1.0;//percentage
+	uint8_t o = 14;//offset
 	if (isMetric)
 	{
-		if (temperature < 0.0)
+		if (temperature < -2.0)
 		{
 			color0 = TEMP_COLD_COLOR;
-			color1 = BACKGROUND_COLOR;
 		}
-		else if (temperature < 10.0)
+		else if (temperature < 6.0)
 		{
-			color0 = color1 = TEMP_COOL_COLOR;
+			color0 = TEMP_COOL_COLOR;
+		}
+		else if (temperature > 16.0)
+		{
+			color0 = TEMP_WARM_COLOR;
 		}
 		else if (temperature > 26.0)
 		{
-			color0 = color1 = color2 = TEMP_HOT_COLOR;
+			color0 = TEMP_HOT_COLOR;
 		}
+
+		// percentage mapped -10 to 30 celsius
+		p = min((temperature + 10.0) / 40.0, 1.0);		
 	}
 	else if (temperature > 65)
 	{
 		if (temperature < 32.0)
 		{
 			color0 = TEMP_COLD_COLOR;
-			color1 = BACKGROUND_COLOR;
 		}
 		else if (temperature < 52.0)
 		{
-			color0 = color1 = TEMP_COOL_COLOR;
+			color0 = TEMP_COOL_COLOR;
 		}
 		else if (temperature > 84.0)
 		{
-			color0 = color1 = color2 = TEMP_HOT_COLOR;
+			color0 = TEMP_HOT_COLOR;
 		}
+
+		// percentage mapped 14 to 86 fahrenheit
+		p = min((temperature + 18.0) / 104.0, 1.0);
 	}
 
+	o = max(floor(14.0*(1.0-p)), 2);// calc offset, but no less than 2
 	DisplayGFX->fillRoundRect(x+6*size, y+3*size, 6*size, size, 0.5*size, FOREGROUND_COLOR);
 	DisplayGFX->fillRoundRect(x+6*size, y+6*size, 5*size, size, 0.5*size, FOREGROUND_COLOR);
 	DisplayGFX->fillRoundRect(x+6*size, y+9*size, 6*size, size, 0.5*size, FOREGROUND_COLOR);
 	DisplayGFX->fillRoundRect(x+3*size, y, 6*size, 16*size, 3*size, FOREGROUND_COLOR);
 	DisplayGFX->fillCircle(x+6*size, y+17*size, 5*size, FOREGROUND_COLOR);
-	DisplayGFX->fillRoundRect(x+4*size, y+1*size, 4*size, 14*size, 2*size, color2);
-	DisplayGFX->fillRect(x+4*size, y+7*size, 4*size, 7*size, color1);
+	DisplayGFX->fillRoundRect(x+4*size, y+1*size, 4*size, 14*size, 2*size, BACKGROUND_COLOR);
+	DisplayGFX->fillRoundRect(x+4*size, y+(1+o)*size, 4*size, (14-o)*size, 2*size, color0);
 	DisplayGFX->fillCircle(x+6*size, y+17*size, 4*size, color0);
 }
 
