@@ -5,8 +5,12 @@ WiFiClient client;
 #ifdef SHT_3X
 	// SHTSensor SHT3X (0x44) or SHT3X_ALT (0x45)
 	Adafruit_SHT31 sht3x;
+	// Sensor(S) 1: -4.1
+	// Sensor(s) 2: ?
 	#define SHT_TEMPOFFSET -4.1
-	#define SHT_HMDOFFSET 9
+	// Sensor 1: 9.0
+	// Sensor 2: ?
+	#define SHT_HMDOFFSET 9.0
 #endif
 #ifdef BME_280
 	const float SEALEVELPRESSURE_HPA = 1021.1;
@@ -15,7 +19,6 @@ WiFiClient client;
 	// Sensor(S) 1: -1.5
 	// Sensor(s) 2: -2.2
 	#define BME_TEMPOFFSET -2.2
-	// BME280 Sensors
 	// Sensor: 1 Low: 31.1 High: 84.6
 	// Sensor: 2 Low: 31.7 High: 78.0
 	#define BME_HMDLOW_T 32.0
