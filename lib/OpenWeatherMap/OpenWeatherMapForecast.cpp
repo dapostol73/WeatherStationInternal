@@ -143,16 +143,33 @@ void OpenWeatherMapForecast::value(String value) {
       struct tm* timeInfo;
       timeInfo = gmtime(&time);
       uint8_t currentHour = timeInfo->tm_hour;
+      isCurrentForecastAllowed = false;
       for (uint8_t i = 0; i < allowedHoursCount; i++) {
         if (currentHour == allowedHours[i]) {
           isCurrentForecastAllowed = true;
-          return;
         }
       }
-      isCurrentForecastAllowed = false;
+
+      // Handle data change for next entry.
+      if (currentMonthDay == 0) {
+        currentMonthDay = timeInfo->tm_mday;
+      }
+      if (timeInfo->tm_mday != currentMonthDay) {
+        currentMonthDay = timeInfo->tm_mday;
+        currentForecast++;
+      }
       return;
     }
   }
+
+  // Check the min/max for the entire day...update if newer values is more accurate.
+  if (currentKey == "temp_min") {
+    data[currentForecast].tempMin = min(value.toFloat(), data[currentForecast].tempMin);
+  }
+  if (currentKey == "temp_max") {
+    data[currentForecast].tempMax = max(value.toFloat(), data[currentForecast].tempMax);
+  }
+
   if (!isCurrentForecastAllowed) {
     return;
   }
@@ -237,7 +254,7 @@ void OpenWeatherMapForecast::value(String value) {
   if (currentKey == "dt_txt") {
     data[currentForecast].observationTimeText = value;
     // this is not super save, if there is no dt_txt item we'll never get all forecasts;
-    currentForecast++;
+    // currentForecast++;
   }
 }
 
