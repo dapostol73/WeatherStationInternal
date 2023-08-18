@@ -32,13 +32,13 @@ typedef struct OpenWeatherMapForecastData {
   uint32_t observationTime;
   // "main":{
   //   "temp":17.35,
-  float temp;
+  float temp = 0.0;
   //   "feels_like": 16.99,
   //float feelsLike;
   //   "temp_min":16.89,
-  //float tempMin;
+  float tempMin = 100.0;
   //   "temp_max":17.35,
-  //float tempMax;
+  float tempMax = -100.0;
   //   "pressure":970.8,
   float pressure;
   //   "sea_level":1030.62,
@@ -86,6 +86,7 @@ class OpenWeatherMapForecast : public JsonListener {
     uint8_t weatherItemCounter = 0;
     uint8_t maxForecasts;
     uint8_t currentForecast;
+    uint8_t currentMonthDay;
     boolean metric = true;
     String language = "en";
     const uint8_t *allowedHours;
