@@ -672,8 +672,8 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	drawString(WDAY_NAMES[day], x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 	setFont(&CalibriBold16pt7b);
 	
-	drawTemperatureIcon(forecastWeather[dayIndex].tempMax, forecastWeather[dayIndex].isMetric, x - 114 - 10, y + 330 - 22, 2);
-	drawTemperature(forecastWeather[dayIndex].tempMax, forecastWeather[dayIndex].isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawTemperatureIcon(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 114 - 10, y + 330 - 22, 2);
+	drawTemperature(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 	
 	drawHumidityIcon(forecastWeather[dayIndex].humidity, x + 16 - 16, y + 330 - 22, 2);
 	drawHumidity(forecastWeather[dayIndex].humidity, x + 40, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
