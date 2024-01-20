@@ -595,15 +595,27 @@ void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlig
 void DisplayWeather::drawSensorData(int16_t x, int16_t y, SensorData *internalSensorData, SensorData *externalSensorData)
 {
     y = 20;
+	x = 200;
 	fillScreen(BACKGROUND_COLOR);
 	setFont(&CalibriBold24pt7b);
-	drawString("Inside", 200, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawTemperature(internalSensorData->Temp, internalSensorData->IsMetric, 200, y + 160, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
-	drawHumidity(internalSensorData->Hmd, 200, y + 240, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
+	drawString("Local", 400, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 
-	drawString("Outside", 600, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawTemperature(externalSensorData->Temp, externalSensorData->IsMetric, 600, y + 160, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
-	drawHumidity(externalSensorData->Hmd, 600, y + 240, TEXT_CENTER_MIDDLE, TEXT_ALT_COLOR);
+	drawString("Inside", x, y + 100, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
+	
+	drawTemperatureIcon(internalSensorData->Temp, internalSensorData->IsMetric, x - 100 - 18, y + 200 - 33, 3);
+	drawTemperature(internalSensorData->Temp, internalSensorData->IsMetric, x - 40, y + 200, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	
+	drawHumidityIcon(internalSensorData->Hmd, x - 100 - 24, y + 300 - 33, 3);
+	drawHumidity(internalSensorData->Hmd, x - 40, y + 300, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+
+	x = 600;
+	drawString("Outside", x, y + 100, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
+
+	drawTemperatureIcon(externalSensorData->Temp, externalSensorData->IsMetric, x - 100 - 18, y + 200 - 33, 3);
+	drawTemperature(externalSensorData->Temp, externalSensorData->IsMetric, x - 40, y + 200, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+
+	drawHumidityIcon(externalSensorData->Hmd, x - 100 - 24, y + 300 - 33, 3);
+	drawHumidity(externalSensorData->Hmd, x - 40, y + 300, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 }
 
 /// @brief Draw current forecast, which is 20 and the bottom most is 420 which means we have and area to 
