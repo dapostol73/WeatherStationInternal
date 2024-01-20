@@ -5,12 +5,12 @@ WiFiClient client;
 #ifdef SHT_3X
 	// SHTSensor SHT3X (0x44) or SHT3X_ALT (0x45)
 	Adafruit_SHT31 sht3x;
-	// Sensor(S) 1: -4.1
-	// Sensor(s) 2: ?
-	#define SHT_TEMPOFFSET -4.1
-	// Sensor 1: 9.0
-	// Sensor 2: ?
-	#define SHT_HMDOFFSET 9.0
+	// Sensor Home: -4.1
+	// Sensor Whistler: -4.6
+	#define SHT_TEMPOFFSET -4.6
+	// Sensor Home: 9.0
+	// Sensor Whistler: 8.0
+	#define SHT_HMDOFFSET 8.0
 #endif
 #ifdef BME_280
 	const float SEALEVELPRESSURE_HPA = 1021.1;
@@ -60,7 +60,7 @@ void initSensors()
 	#ifdef BME_280
 		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
-			//Serial.println("Could not find BME280 sensor at 0x76");
+			Serial.println("Could not find BME280 sensor at 0x76");
 		}
 	#endif
 	#ifdef DHT_22
@@ -98,15 +98,16 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	{
 		sensorData->IsUpdated = true;
 		//Serial.println("Reading from ThinkSpeak " + String(channelID));
-		//Serial.println("Temperature: " + String(externalTemp) + " °C");
-		//Serial.println("Humidity: " + String(externalHmd) + " %");
-		//Serial.println("Light: " + String(externalLux) + " lux");
-		//Serial.println("Atmosphere: " + String(externalHPa) + " hPa");
+		//Serial.println("Temperature: " + String(sensorData->Temp) + " °C");
+		//Serial.println("Humidity: " + String(sensorData->Hmd) + " %");
+		//Serial.println("Light: " + String(sensorData->Lux) + " lux");
+		//Serial.println("Atmosphere: " + String(sensorData->HPa) + " hPa");
+		//Serial.println("Altitude: " + String(sensorData->Alt) + " m");
 	}
 	else
 	{
 		sensorData->IsUpdated = false;
-		//Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
+		Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
 	}
 }
 
@@ -117,6 +118,10 @@ void readInternalSensors(SensorData *sensorData)
 	sensorData->Temp = roundUpDecimal(sht3x.readTemperature() + SHT_TEMPOFFSET);
 	sensorData->Hmd = roundUpDecimal(sht3x.readHumidity() + SHT_HMDOFFSET);
 	sensorData->IsUpdated = true;
+
+	//Serial.println("Updated Internal Sensor Data");
+	//Serial.println("Temperature: " + String(sensorData->Temp) + " °C");
+	//Serial.println("Humidity: " + String(sensorData->Hmd) + " %");
 }
 #endif
 #ifdef BME_280
@@ -134,22 +139,22 @@ void readInternalSensors(SensorData *sensorData)
 	bme280.getTemperatureSensor()->getEvent(&event);
 	if (isnan(event.temperature))
 	{
-		//Serial.println(F("Error reading temperature!"));
+		Serial.println(F("Error reading temperature!"));
 		sensorData->IsUpdated = false;		
 	}
 	else
 	{
 		sensorData->Temp = roundUpDecimal(event.temperature + BME_TEMPOFFSET);
 		sensorData->IsUpdated = true;
-		//Serial.print(F("Temperature: "));
-		//Serial.print(sensorData->Temp);
-		//Serial.println(F("°C"));
+		Serial.print(F("Temperature: "));
+		Serial.print(sensorData->Temp);
+		Serial.println(F("°C"));
 	}
 
   	bme280.getHumiditySensor()->getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
-		//Serial.println(F("Error reading humidity!"));
+		Serial.println(F("Error reading humidity!"));
 		sensorData->IsUpdated = false;
 	}
 	else
@@ -157,15 +162,15 @@ void readInternalSensors(SensorData *sensorData)
 		sensorData->Hmd = map(event.relative_humidity, BME_HMDLOW_S, BME_HMDHIGH_S, BME_HMDLOW_T, BME_HMDHIGH_T);
 		sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
 		sensorData->IsUpdated = true;
-		//Serial.print(F("Humidity: "));
-		//Serial.print(sensorData->Hmd);
-		//Serial.println(F("%"));
+		Serial.print(F("Humidity: "));
+		Serial.print(sensorData->Hmd);
+		Serial.println(F("%"));
 	}
 
 	bme280.getPressureSensor()->getEvent(&event);
 	if (isnan(event.pressure))
 	{
-		//Serial.println(F("Error reading pressure!"));
+		Serial.println(F("Error reading pressure!"));
 		sensorData->IsUpdated = false;
 	}
 	else
@@ -174,9 +179,9 @@ void readInternalSensors(SensorData *sensorData)
 		// approx low from https://vancouver.weatherstats.ca/charts/pressure_sea-hourly.html
 		sensorData->Alt = roundUpDecimal(bme280.readAltitude(SEALEVELPRESSURE_HPA));
 		sensorData->IsUpdated = true;
-		//Serial.print(F("Pressure: "));
-		//Serial.print(sensorData->HPa);
-		//Serial.println(F(" HPa"));
+		Serial.print(F("Pressure: "));
+		Serial.print(sensorData->HPa);
+		Serial.println(F(" HPa"));
 	}
 }
 #endif
@@ -187,22 +192,22 @@ void readInternalSensors(SensorData *sensorData)
 	dht22.temperature().getEvent(&event);
 	if (isnan(event.temperature))
 	{
-		//Serial.println(F("Error reading temperature!"));
+		Serial.println(F("Error reading temperature!"));
 		sensorData->IsUpdated = false;
 	}
 	else
 	{
 		sensorData->Temp = roundUpDecimal(event.temperature + DHT_TEMPOFFSET);
 		sensorData->IsUpdated = true;
-		//Serial.print(F("Temperature: "));
-		//Serial.print(sensorData->Temp);
-		//Serial.println(F("°C"));
+		Serial.print(F("Temperature: "));
+		Serial.print(sensorData->Temp);
+		Serial.println(F("°C"));
 	}
 
 	dht22.humidity().getEvent(&event);
 	if (isnan(event.relative_humidity))
 	{
-		//Serial.println(F("Error reading humidity!"));
+		Serial.println(F("Error reading humidity!"));
 		sensorData->IsUpdated = false;
 	}
 	else
@@ -210,9 +215,9 @@ void readInternalSensors(SensorData *sensorData)
 		sensorData->Hmd = map(event.relative_humidity, DHT_HMDLOW_S, DHT_HMDHIGH_S, DHT_HMDLOW_T, DHT_HMDHIGH_T);
 		sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
 		sensorData->IsUpdated = true;
-		//Serial.print(F("Humidity: "));
-		//Serial.print(sensorData->Hmd);
-		//Serial.println(F("%"));
+		Serial.print(F("Humidity: "));
+		Serial.print(sensorData->Hmd);
+		Serial.println(F("%"));
 	}
 }
 #endif
