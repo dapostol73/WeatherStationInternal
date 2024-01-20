@@ -80,7 +80,9 @@ TouchResult touchTest()
 
     if (touched && millis() - lastTouchTime > 100)
 	{
+		#ifdef SERIAL_LOGGING
 		Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
+		#endif
 
 		if (xValue > 300 && xValue < 500 && yValue < 20)
 		{
