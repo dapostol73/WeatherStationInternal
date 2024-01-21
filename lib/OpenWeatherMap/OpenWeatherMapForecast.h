@@ -92,7 +92,7 @@ class OpenWeatherMapForecast : public JsonListener {
     uint8_t allowedHoursCount = 0;
     boolean isCurrentForecastAllowed = true;
 
-    bool doUpdate(OpenWeatherMapForecastData *data, String path);
+    bool doUpdate(OpenWeatherMapForecastData *data, String path, WiFiClient client = WiFiClient());
     String buildPath(String appId, String locationParameter);
     String toPascalCase(String value);
 

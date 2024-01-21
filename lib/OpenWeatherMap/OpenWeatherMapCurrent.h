@@ -80,7 +80,7 @@ class OpenWeatherMapCurrent : public JsonListener {
     boolean metric = true;
     String language;
 
-    bool doUpdate(OpenWeatherMapCurrentData *data, String path);
+    bool doUpdate(OpenWeatherMapCurrentData *data, String path, WiFiClient client = WiFiClient());
     String buildPath(String appId, String locationParameter);
     String toPascalCase(String value);
 

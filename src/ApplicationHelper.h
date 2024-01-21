@@ -28,4 +28,8 @@ extern TouchResult touchTest();
 
 extern void updateSystemTime();
 
+extern int availableMemory();
+
+extern void printMemory();
+
 #endif

@@ -86,7 +86,7 @@ class DisplayWeather : public DisplayControl
         void drawHumidityGauge(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
-        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
+        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t index);
         void drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t backgroundColor = NULL);        
     public:
         DisplayWeather();
@@ -95,7 +95,7 @@ class DisplayWeather : public DisplayControl
         void drawSensorData(int16_t x, int16_t y, SensorData *internalSensorData, SensorData *externalSensorData);
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
         void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
-        void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastUpdated, time_t timeUpdated);
+        void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastHourlyUpdated, bool forecastDailyUpdated, time_t timeUpdated);
         void drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather);
 };
 

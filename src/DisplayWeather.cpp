@@ -674,23 +674,23 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 /// @param forecastWeather 
 /// @param x 
 /// @param y 
-/// @param dayIndex 
-void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex) 
+/// @param index 
+void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t index) 
 {
-	time_t observationTimestamp = forecastWeather[dayIndex].observationTime;
+	time_t observationTimestamp = forecastWeather[index].observationTime;
 	int16_t day = weekday(observationTimestamp)-1;
-	drawWeatherIcon(x, y + 180, forecastWeather[dayIndex].icon, true, 3);
+	drawWeatherIcon(x, y + 180, forecastWeather[index].icon, true, 3);
 	setFont(&CalibriBold24pt7b);
 	drawString(WDAY_NAMES[day], x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 	setFont(&CalibriBold16pt7b);
 	
-	drawTemperatureIcon(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 114 - 10, y + 330 - 22, 2);
-	drawTemperature(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawTemperatureIcon(forecastWeather[index].temp, forecastWeather[index].isMetric, x - 114 - 10, y + 330 - 22, 2);
+	drawTemperature(forecastWeather[index].temp, forecastWeather[index].isMetric, x - 90, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 	
-	drawHumidityIcon(forecastWeather[dayIndex].humidity, x + 16 - 16, y + 330 - 22, 2);
-	drawHumidity(forecastWeather[dayIndex].humidity, x + 40, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawHumidityIcon(forecastWeather[index].humidity, x + 16 - 16, y + 330 - 22, 2);
+	drawHumidity(forecastWeather[index].humidity, x + 40, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 	
-	drawString(forecastWeather[dayIndex].description, x, y + 360, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);	
+	drawString(forecastWeather[index].description, x, y + 360, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);	
 }
 
 void DisplayWeather::drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
@@ -743,7 +743,7 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t
 	}
 }
 
-void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool forecastUpdated, time_t timeUpdated)
+void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool forecastHourlyUpdated, bool forecastDailyUpdated, time_t timeUpdated)
 {
 	DisplayGFX->fillRect(0, 0, 800, 18, OVERLAY_COLOR);
 	DisplayGFX->drawFastHLine(0, 19, 800, TEXT_ALT_COLOR);
@@ -752,7 +752,8 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 	setFont(&CalibriBold8pt7b);
 	drawChar(10, 10, 'E', TEXT_CENTER_MIDDLE, externalUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawChar(25, 10, 'C', TEXT_CENTER_MIDDLE, currentUpdated ? SUCCESS_COLOR : ERROR_COLOR);
-	drawChar(40, 10, 'F', TEXT_CENTER_MIDDLE, forecastUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(40, 10, 'H', TEXT_CENTER_MIDDLE, forecastHourlyUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(55, 10, 'D', TEXT_CENTER_MIDDLE, forecastDailyUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawString(WiFi.SSID(), 400, 10, TEXT_CENTER_MIDDLE);
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 

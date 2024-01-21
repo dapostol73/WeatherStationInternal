@@ -43,7 +43,7 @@ String OpenWeatherMapForecast::buildPath(String appId, String locationParameter)
   return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language + "&cnt=" + String(this->maxForecasts*8);
 }
 
-bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path) {
+bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path, WiFiClient client) {
   bool success = true;
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
@@ -57,7 +57,7 @@ bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String p
 	sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
 	Serial.println(connectInfo);
 
-  WiFiClient client;
+  //WiFiClient client;
   if(client.connect(host.c_str(), port)) {
     bool isBody = false;
     uint8_t eof = 0;

@@ -41,7 +41,7 @@ String OpenWeatherMapCurrent::buildPath(String appId, String locationParameter) 
   return "/data/2.5/weather?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
 }
 
-bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String path) {
+bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String path, WiFiClient client) {
   bool success = true;
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
@@ -54,7 +54,8 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
   sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
   Serial.println(connectInfo);
 
-  WiFiClient client;
+  //WiFiClient client;
+  
   if(client.connect(host.c_str(), port)) {
     bool isBody = false;
     uint8_t eof = 0;

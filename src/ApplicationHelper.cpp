@@ -26,6 +26,10 @@
 	TFT_Touch touch(TP_CS, TP_CLK, TP_IN, TP_OUT);
 #endif
 
+// 1024 with ATmega168
+// 2048 with ATmega328P
+// 8192 with ATmega2560
+#define MEMORY_SIZE 2048
 
 long lastTouchTime = LONG_MIN;
 
@@ -132,4 +136,19 @@ void updateSystemTime()
 	{
 		adjustTime(3600);
 	}
+}
+
+int availableMemory()
+{
+	int size = MEMORY_SIZE;
+	byte *buf;
+	while ((buf = (byte *) malloc(--size)) == NULL);
+	free(buf);
+	return size;
+}
+
+void printMemory()
+{
+	int free = availableMemory();
+	Serial.println(String(free) + " of " + String(MEMORY_SIZE));
 }
