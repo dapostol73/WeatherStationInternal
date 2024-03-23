@@ -1,5 +1,5 @@
-#ifndef _DISPLAY_WEATHER_
-#define _DISPLAY_WEATHER_
+#ifndef _DISPLAY_WEATHER_H_
+#define _DISPLAY_WEATHER_H_
 
 #include <Arduino.h>
 #include <WiFiEspAT.h>
