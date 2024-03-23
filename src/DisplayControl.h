@@ -1,5 +1,5 @@
-#ifndef _DISPLAY_CONTROL_
-#define _DISPLAY_CONTROL_
+#ifndef _DISPLAY_CONTROL_H_
+#define _DISPLAY_CONTROL_H_
 
 //#define LCDWIKI
 #ifdef LCDWIKI
