@@ -84,6 +84,7 @@ class OpenWeatherMapForecast : public JsonListener {
     String currentParent;
     OpenWeatherMapForecastData *data;
     uint8_t weatherItemCounter = 0;
+    uint8_t maxDays = 4;
     uint8_t maxForecasts;
     uint8_t currentForecast;
     boolean metric = true;
