@@ -665,7 +665,9 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	// Wind direction
 	int dir = roundf(currentWeather->windDeg/22.5)%16;
 	drawCompassArrow(xIcon, y + 360, currentWeather->windDeg, 5);
-	drawString(WIND_DIR[dir].c_str(), xText, y + 360, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	char windStr[4];
+	readWindDirectionString(windStr, dir);
+	drawString(windStr, xText, y + 360, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 }
 
 /// @brief Draw the 1 of the 3 details forecast, we pass in the top\center of the up most
@@ -681,7 +683,9 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	int16_t day = weekday(observationTimestamp)-1;
 	drawWeatherIcon(x, y + 180, forecastWeather[dayIndex].icon, true, 3);
 	setFont(&CalibriBold24pt7b);
-	drawString(WDAY_NAMES[day], x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	char dayStr[10];
+	readDaysString(dayStr, day);
+	drawString(dayStr, x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 	setFont(&CalibriBold16pt7b);
 	
 	drawTemperatureIcon(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 114 - 10, y + 330 - 22, 2);
@@ -765,9 +769,11 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 void DisplayWeather::drawFooter(SensorData *sensorData, OpenWeatherMapCurrentData *currentWeather)
 {
 	char datetime[30];
+	char monthStr[4];
+	readMonthString(monthStr, month()-1);
 	sprintf_P(datetime,
 			  PSTR("%s %d, %d  %d:%02d %s"),
-			  MONTH_NAMES[month()-1].c_str(),
+			  monthStr,
 			  day(),
 			  year(),
 			  hourFormat12(),
