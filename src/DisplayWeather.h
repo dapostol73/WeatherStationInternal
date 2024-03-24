@@ -45,9 +45,46 @@
 #define ERROR_COLOR 0xF800
 
 // Adjust according to your language
-const String WDAY_NAMES[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-const String MONTH_NAMES[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-const String WIND_DIR[] = {"N", "NNE", "NE", "NEE", "E", "SEE", "SE", "SSE", "S", "SSW", "SW", "SWW", "W", "NWW", "NW", "NNW"};
+const char WDAY1[] PROGMEM = "Sunday";
+const char WDAY2[] PROGMEM = "Monday";
+const char WDAY3[] PROGMEM = "Tuesday";
+const char WDAY4[] PROGMEM = "Wednesday";
+const char WDAY5[] PROGMEM = "Thursday";
+const char WDAY6[] PROGMEM = "Friday";
+const char WDAY7[] PROGMEM = "Saturday";
+const char* const WDAY_NAMES[7] PROGMEM = {WDAY1, WDAY2, WDAY3, WDAY4, WDAY5, WDAY6, WDAY7};
+
+const char MON01[] PROGMEM = "Jan";
+const char MON02[] PROGMEM = "Feb";
+const char MON03[] PROGMEM = "Mar";
+const char MON04[] PROGMEM = "Apr";
+const char MON05[] PROGMEM = "May";
+const char MON06[] PROGMEM = "Jun";
+const char MON07[] PROGMEM = "Jul";
+const char MON08[] PROGMEM = "Aug";
+const char MON09[] PROGMEM = "Sep";
+const char MON10[] PROGMEM = "Oct";
+const char MON11[] PROGMEM = "Nov";
+const char MON12[] PROGMEM = "Dec";
+const char* const MONTH_NAMES[12] PROGMEM = {MON01, MON02, MON03, MON04, MON05, MON06, MON07, MON08, MON09, MON10, MON11, MON12};
+
+const char WD01[] PROGMEM = "N";
+const char WD02[] PROGMEM = "NNE";
+const char WD03[] PROGMEM = "NE";
+const char WD04[] PROGMEM = "NEE";
+const char WD05[] PROGMEM = "E";
+const char WD06[] PROGMEM = "SEE";
+const char WD07[] PROGMEM = "SE";
+const char WD08[] PROGMEM = "SSE";
+const char WD09[] PROGMEM = "S";
+const char WD10[] PROGMEM = "SSW";
+const char WD11[] PROGMEM = "SW";
+const char WD12[] PROGMEM = "SWW";
+const char WD13[] PROGMEM = "W";
+const char WD14[] PROGMEM = "NWW";
+const char WD15[] PROGMEM = "NW";
+const char WD16[] PROGMEM = "NNW";
+const char* const WIND_DIR[16] PROGMEM = {WD01, WD02, WD03, WD04, WD05, WD06, WD07, WD08, WD09, WD10, WD11, WD12, WD14, WD15, WD16};
 
 class DisplayWeather : public DisplayControl
 {
@@ -57,6 +94,30 @@ class DisplayWeather : public DisplayControl
         time_t m_timeUpdated;
         char m_lastTimeUpdated[40] = "?Unkown";
         //bool m_isMetric = true;
+
+        void readDaysString(char* buffer, int16_t index)
+        {
+            if (index < 7)
+            {
+                strcpy_P(buffer, (char*)pgm_read_word(&(WDAY_NAMES[index])));
+            }            
+        }
+
+        void readMonthString(char* buffer, int16_t index)
+        {
+            if (index < 12)
+            {
+                strncpy_P(buffer, (char*)pgm_read_ptr(&(MONTH_NAMES[index])), 4);
+            }            
+        }
+
+        void readWindDirectionString(char* buffer, int16_t index)
+        {
+            if (index < 16)
+            {
+                strncpy_P(buffer, (char*)pgm_read_ptr(&(WIND_DIR[index])), 4);
+            }            
+        }
 
         void drawRainDrop(int16_t x, int16_t y, int16_t size, uint16_t color);
         void drawRainLight(int16_t x, int16_t y, int16_t size = 1, uint16_t color = RAIN_COLOR);
