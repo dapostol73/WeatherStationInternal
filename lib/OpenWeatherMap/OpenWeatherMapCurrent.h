@@ -34,7 +34,7 @@ typedef struct OpenWeatherMapCurrentData {
   // "id": 521,
   uint16_t weatherId;
   // "main": "Rain",
-  String main = "Unknown";
+  char main[16] = "Unknown";
   // "description": "shower rain",
   String description = "unknown";
   // "icon": "09d"
@@ -60,13 +60,13 @@ typedef struct OpenWeatherMapCurrentData {
   // "dt": 1527015000,
   uint32_t observationTime;
   // "country": "CH",
-  String country;
+  char country[6];
   // "sunrise": 1526960448,
   uint32_t sunrise;
   // "sunset": 1527015901
   uint32_t sunset;
   // "name": "Zurich",
-  String cityName = "Unknown";
+  char cityName[32] = "Unknown";
 } OpenWeatherMapCurrentData;
 
 class OpenWeatherMapCurrent : public JsonListener {

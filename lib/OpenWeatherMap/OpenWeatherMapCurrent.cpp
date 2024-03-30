@@ -38,7 +38,10 @@ bool OpenWeatherMapCurrent::updateCurrentById(OpenWeatherMapCurrentData *data, S
 
 String OpenWeatherMapCurrent::buildPath(String appId, String locationParameter) {
   String units = metric ? "metric" : "imperial";
-  return "/data/2.5/weather?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
+  char path[128] = "";
+  sprintf(path, "/data/2.5/weather?%s&appid=%s&units=%s&lang=%s", locationParameter.c_str(), appId.c_str(), units.c_str(), language.c_str());
+  return path;
+  //return "/data/2.5/weather?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
 }
 
 bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String path) {
@@ -50,7 +53,7 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
   this->data->isMetric = isMetric();
   JsonStreamingParser parser;
   parser.setListener(this);
-  char connectInfo[256] = "";
+  char connectInfo[196] = "";
   sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
   Serial.println(connectInfo);
 
@@ -144,7 +147,7 @@ void OpenWeatherMapCurrent::value(String value) {
     }
     // "main": "Rain", String main;
     if (currentKey == "main") {
-      this->data->main = value;
+      strcpy(this->data->main, value.c_str());
     }
     // "description": "shower rain", String description;
     if (currentKey == "description") {
@@ -200,7 +203,7 @@ void OpenWeatherMapCurrent::value(String value) {
   }
   // "country": "CH", String country;
   if (currentKey == "country") {
-    this->data->country = value;
+    strcpy(this->data->country, value.c_str());
   }
   // "sunrise": 1526960448, uint32_t sunrise;
   if (currentKey == "sunrise") {
@@ -212,7 +215,7 @@ void OpenWeatherMapCurrent::value(String value) {
   }
   // "name": "Zurich", String cityName;
   if (currentKey == "name") {
-    this->data->cityName = value;
+    strcpy(this->data->cityName, value.c_str());
   }
 }
 

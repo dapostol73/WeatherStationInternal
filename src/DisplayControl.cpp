@@ -554,8 +554,8 @@ void DisplayControl::print(String str, uint16_t foregroundColor, uint16_t backgr
 {
     m_gfxFontTemp = m_gfxFont;
     setFont(m_gfxFontDefault);
-    int x = DisplayGFX->getCursorX();
-    int y = m_currentLine*m_lineHeight;
+    int16_t x = DisplayGFX->getCursorX();
+    int16_t y = m_currentLine*m_lineHeight;
     drawString(str, x, y, TEXT_LEFT_TOP, foregroundColor, backgroundColor, invert);
     // check if the text cursor over flowed and by how many lines
     while (DisplayGFX->getCursorY() < m_currentLine*m_lineHeight - 2)

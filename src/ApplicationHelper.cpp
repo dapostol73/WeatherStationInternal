@@ -106,10 +106,10 @@ void updateSystemTime()
 {
 	timeClient.update();
 	setTime((time_t)timeClient.getEpochTime());
-	int m = month();
-	int d = day();
-	int w = weekday();
-	int h = hour();
+	uint8_t m = month();
+	uint8_t d = day();
+	uint8_t w = weekday();
+	uint8_t h = hour();
 
 	// Check to see if we are in Daylight Saving Time (DST)
 	bool inDST = false;

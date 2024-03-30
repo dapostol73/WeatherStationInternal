@@ -6,6 +6,7 @@
 
 #include <TimeLib.h>
 #include <NTPClient.h>
+#include <MemoryUsage.h>
 
 #include "ApplicationSensor.h"
 #include "DisplayControl.h"
@@ -147,16 +148,18 @@ class DisplayWeather : public DisplayControl
         void drawHumidityGauge(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
-        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex);
-        void drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t backgroundColor = NULL);        
+        void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t index, bool showTime);        
+        void drawMemoryBar(int16_t x, int16_t y, int16_t size);
+        void drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t backgroundColor = UINT16_MAX);        
     public:
         DisplayWeather();
         void init();
         void drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t scale = 1);
         void drawSensorData(int16_t x, int16_t y, SensorData *internalSensorData, SensorData *externalSensorData);
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
-        void drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
-        void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastUpdated, time_t timeUpdated);
+        void drawForecastHourly(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);        
+        void drawForecastDaily(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
+        void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastHourlyUpdated, bool forecastDailyUpdated, time_t timeUpdated);
         void drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather);
 };
 

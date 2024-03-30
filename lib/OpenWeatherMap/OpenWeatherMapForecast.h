@@ -29,7 +29,7 @@
 typedef struct OpenWeatherMapForecastData {
   bool isMetric = true;
   // {"dt":1527066000,
-  uint32_t observationTime;
+  uint32_t observationTime = 0;
   // "main":{
   //   "temp":17.35,
   float temp;
@@ -52,7 +52,7 @@ typedef struct OpenWeatherMapForecastData {
   //   "id":802,
   uint16_t weatherId;
   //   "main":"Clouds",
-  String main = "Unknown";
+  char main[16] = "Unknown";
   //   "description":"scattered clouds",
   String description = "unknown";
   //   "icon":"03d"
@@ -72,7 +72,7 @@ typedef struct OpenWeatherMapForecastData {
   //String cityName;
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"
-  String observationTimeText;
+  char observationTimeText[24];
 
 } OpenWeatherMapForecastData;
 
