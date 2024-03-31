@@ -15,12 +15,23 @@
 #include "OpenWeatherMapForecast.h"
 //#include "OpenWeatherMapOneCall.h"
 
-//#define SERIAL_LOGGING
-//#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
 #include "SoftwareSerial.h"
 SoftwareSerial Serial1(6, 7) //RX, TX
+#endif
+
+//#define DEBUG
+//#define SERIAL_LOGGING
+#ifndef SERIAL_LOGGING
+// disable Serial output
+#define Serial KillDefaultSerial
+static class {
+public:
+    void begin(...) {}
+    void print(...) {}
+    void println(...) {}
+} Serial;
 #endif
 
 ApplicationSettings appSettings;
@@ -136,7 +147,7 @@ void loop()
 void setup()
 {
 	Serial.begin(SERIAL_BAUD_RATE);
-
+	
 	displayProgress.x = 0;
 	displayProgress.y = 420;
 	displayProgress.width = 800;
@@ -280,7 +291,7 @@ bool updateData()
 
 	if (updateCurrentWeather)
 	{
-		displayWeather.drawProgress(50, "Updating weather...");
+		displayWeather.drawProgress(50, "Updating current weather...");
 		currentWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		currentWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location);
@@ -298,6 +309,7 @@ bool updateData()
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		forecastWeatherClient.setAllowedHours(HOURLY_FORECAST_HOURS, sizeof(HOURLY_FORECAST_HOURS));
+		forecastWeatherClient.setMaxDays(1);
 		forecastWeatherHourlyUpdated = forecastWeatherClient.updateForecastsById(forecastWeatherHourlyQuerry, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, HOURLY_MAX_FORECASTS);
 
 		for(int i = 0; i < HOURLY_MAX_FORECASTS; i++)
@@ -309,8 +321,10 @@ bool updateData()
 			}
 		}
 
+		// the first slot is 9 hours pass...and we are look for 12th hour ahead.
+		// so when the current hour == our hours do a check.
 		time_t observationTimestamp = forecastWeatherHourly[0].observationTime;
-		if ((hour() + 9) % 24 > hour(observationTimestamp))
+		if (hour() > hour(observationTimestamp))
 		{
 			forecastWeatherHourly[0] = forecastWeatherHourly[1];
 			forecastWeatherHourly[1] = forecastWeatherHourly[2];
@@ -331,6 +345,7 @@ bool updateData()
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		forecastWeatherClient.setAllowedHours(DAILY_FORECAST_HOURS, sizeof(DAILY_FORECAST_HOURS));
+		forecastWeatherClient.setMaxDays(4);
 		forecastWeatherDailyUpdated = forecastWeatherClient.updateForecastsById(forecastWeatherDaily, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, DAILY_FORECAST_HOURS);
 		if (!forecastWeatherDailyUpdated)
 		{

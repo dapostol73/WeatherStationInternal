@@ -29,12 +29,12 @@ OpenWeatherMapForecast::OpenWeatherMapForecast() {
 }
 
 bool OpenWeatherMapForecast::updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts) {
-  this->maxForecasts = maxForecasts;
+  this->maxForecasts = min(maxForecasts, maxDays*8);
   return doUpdate(data, buildPath(appId, "q=" + location));
 }
 
 bool OpenWeatherMapForecast::updateForecastsById(OpenWeatherMapForecastData *data, String appId, String locationId, uint8_t maxForecasts) {
-  this->maxForecasts = maxForecasts;
+  this->maxForecasts = min(maxForecasts, maxDays*8);
   return doUpdate(data, buildPath(appId, "id=" + locationId));
 }
 
@@ -43,9 +43,14 @@ bool OpenWeatherMapForecast::updateForecastsById(OpenWeatherMapForecastData *dat
 /// @param locationParameter 
 /// @return 
 String OpenWeatherMapForecast::buildPath(String appId, String locationParameter) {
-  String units = metric ? "metric" : "imperial";
   char path[128] = "";
-  sprintf(path, "/data/2.5/forecast?%s&appid=%s&units=%s&lang=%s&cnt=%u", locationParameter.c_str(), appId.c_str(), units.c_str(), language.c_str(), this->maxDays*8);
+  sprintf(path,
+          "/data/2.5/forecast?%s&appid=%s&units=%s&lang=%s&cnt=%u",
+          locationParameter.c_str(),
+          appId.c_str(),
+          metric ? "metric" : "imperial",
+          language.c_str(),
+          this->maxDays*8);
   return path;
   //return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language + "&cnt=" + String(this->maxDays*8);
 }
@@ -193,11 +198,11 @@ void OpenWeatherMapForecast::value(String value) {
     }
     //   "description":"scattered clouds",String description;
     if (currentKey == "description") {
-      data[currentForecast].description = toPascalCase(value);
+      strcpy(data[currentForecast].description, toPascalCase(value).c_str());
     }
     //   "icon":"03d" String icon; String iconMeteoCon;
     if (currentKey == "icon") {
-      data[currentForecast].icon = value;
+      strcpy(data[currentForecast].icon, value.c_str());
     }
   }
   /*

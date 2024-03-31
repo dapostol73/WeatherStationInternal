@@ -54,13 +54,17 @@ void initSensors()
 	#ifdef SHT_3X
 		if (!sht3x.begin())
 		{
+			#ifdef SERIAL_LOGGING
 			Serial.println("Could not find SHT3X-DIS sensor");
+			#endif
 		}
 	#endif
 	#ifdef BME_280
 		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
+			#ifdef SERIAL_LOGGING
 			Serial.println("Could not find BME280 sensor at 0x76");
+			#endif
 		}
 	#endif
 	#ifdef DHT_22
@@ -109,7 +113,9 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	else
 	{
 		sensorData->IsUpdated = false;
-		Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
+		#ifdef SERIAL_LOGGING
+		Serial.println("Problem reading channel. HTTP error code " + String(statusCode));
+		#endif
 	}
 }
 

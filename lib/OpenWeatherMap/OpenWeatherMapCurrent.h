@@ -36,9 +36,9 @@ typedef struct OpenWeatherMapCurrentData {
   // "main": "Rain",
   char main[16] = "Unknown";
   // "description": "shower rain",
-  String description = "unknown";
+  char description[32] = "unknown";
   // "icon": "09d"
-  String icon;
+  char icon[4];
   // "temp": 290.56,
   float temp;
   // "pressure": 1013,

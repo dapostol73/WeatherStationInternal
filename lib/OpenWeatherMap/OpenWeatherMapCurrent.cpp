@@ -37,9 +37,13 @@ bool OpenWeatherMapCurrent::updateCurrentById(OpenWeatherMapCurrentData *data, S
 }
 
 String OpenWeatherMapCurrent::buildPath(String appId, String locationParameter) {
-  String units = metric ? "metric" : "imperial";
   char path[128] = "";
-  sprintf(path, "/data/2.5/weather?%s&appid=%s&units=%s&lang=%s", locationParameter.c_str(), appId.c_str(), units.c_str(), language.c_str());
+  sprintf(path, 
+          "/data/2.5/weather?%s&appid=%s&units=%s&lang=%s",
+          locationParameter.c_str(),
+          appId.c_str(),
+          metric ? "metric" : "imperial",
+          language.c_str());
   return path;
   //return "/data/2.5/weather?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language;
 }
@@ -151,12 +155,12 @@ void OpenWeatherMapCurrent::value(String value) {
     }
     // "description": "shower rain", String description;
     if (currentKey == "description") {
-      this->data->description = toPascalCase(value);
+      strcpy(this->data->description, toPascalCase(value).c_str());
     }
     // "icon": "09d" String icon;
    //String iconMeteoCon;
     if (currentKey == "icon") {
-      this->data->icon = value;
+      strcpy(this->data->icon, value.c_str());
     }
 
   }
