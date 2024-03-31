@@ -346,7 +346,7 @@ bool updateData()
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		forecastWeatherClient.setAllowedHours(DAILY_FORECAST_HOURS, sizeof(DAILY_FORECAST_HOURS));
 		forecastWeatherClient.setMaxDays(4);
-		forecastWeatherDailyUpdated = forecastWeatherClient.updateForecastsById(forecastWeatherDaily, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, DAILY_FORECAST_HOURS);
+		forecastWeatherDailyUpdated = forecastWeatherClient.updateForecastsById(forecastWeatherDaily, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, DAILY_MAX_FORECASTS);
 		if (!forecastWeatherDailyUpdated)
 		{
 			displayProgress.foregroundColor = ERROR_COLOR;
