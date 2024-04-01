@@ -851,6 +851,7 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 	drawChar(40, 10, 'H', TEXT_CENTER_MIDDLE, forecastHourlyUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawChar(55, 10, 'F', TEXT_CENTER_MIDDLE, forecastDailyUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawString(WiFi.SSID(), 400, 10, TEXT_CENTER_MIDDLE);
+	char m_lastTimeUpdated[24] = "?Unkown";
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
@@ -862,7 +863,7 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 
 void DisplayWeather::drawFooter(SensorData *sensorData, OpenWeatherMapCurrentData *currentWeather)
 {
-	char datetime[30];
+	char datetime[24];
 	char monthStr[4];
 	readMonthString(monthStr, month()-1);
 	sprintf_P(datetime,

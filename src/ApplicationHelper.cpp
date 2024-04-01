@@ -102,6 +102,7 @@ TouchResult touchTest()
     return NONE;
 }
 
+// TODO: Figure out bug on switch over.
 void updateSystemTime()
 {
 	timeClient.update();

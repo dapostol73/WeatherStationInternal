@@ -94,7 +94,6 @@ class DisplayWeather : public DisplayControl
         uint16_t palette[4] = {BACKGROUND_COLOR, CLOUD_LIGHT_COLOR, SUN_COLOR, RAIN_COLOR};
         NTPClient *m_timeClient;
         time_t m_timeUpdated;
-        char m_lastTimeUpdated[40] = "?Unkown";
         //bool m_isMetric = true;
 
         void readDaysString(char* buffer, int16_t index)

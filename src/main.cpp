@@ -324,7 +324,7 @@ bool updateData()
 		// the first slot is 9 hours pass...and we are look for 12th hour ahead.
 		// so when the current hour == our hours do a check.
 		time_t observationTimestamp = forecastWeatherHourly[0].observationTime;
-		if (hour() > hour(observationTimestamp))
+		if (now() > observationTimestamp)
 		{
 			forecastWeatherHourly[0] = forecastWeatherHourly[1];
 			forecastWeatherHourly[1] = forecastWeatherHourly[2];
