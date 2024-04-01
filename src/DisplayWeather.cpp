@@ -108,6 +108,45 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 	DisplayGFX->fillCircle(x+radius, y+radius, radius, color);
 }
 
+/// @brief Moon 24*24
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
+void DisplayWeather::drawMoon(int16_t x, int16_t y, int16_t size, int16_t radius, uint16_t color)
+{
+	size = max(size, 1);
+	radius *= size;
+	DisplayGFX->fillCircle(x+radius, y+radius, radius, color);
+	RGBColor rgbColor = colorRGB(color);
+	rgbColor.R *= 0.75;
+	rgbColor.G *= 0.75;
+	rgbColor.B *= 0.75;
+	uint16_t craterColor = color565(rgbColor);
+	DisplayGFX->fillCircle(x+(radius*0.5), y+(radius*1.2), radius*0.2, craterColor);
+	DisplayGFX->fillCircle(x+(radius*1.3), y+(radius*1.4), radius*0.18, craterColor);
+	DisplayGFX->fillCircle(x+(radius*0.6), y+(radius*0.7), radius*0.1, craterColor);
+	DisplayGFX->fillCircle(x+(radius*1.2), y+(radius*0.7), radius*0.3, craterColor);
+}
+
+/// @brief Asterial icon depending on day or night 24*24
+/// @param x 
+/// @param y 
+/// @param radius 
+/// @param size 
+/// @param day 
+void DisplayWeather::drawAsterial(int16_t x, int16_t y, int16_t radius, int16_t size, bool day)
+{
+	if (day)
+	{
+		drawSun(x, y, radius, size);
+	}
+	else
+	{
+		drawMoon(x, y, radius, size);
+	}
+}
+
 /// @brief Cloud is 58*36 at size 1
 /// @param x 
 /// @param y 
@@ -318,7 +357,7 @@ void DisplayWeather::drawCompassArrow(int16_t x, int16_t y, int16_t direction, i
 	DisplayGFX->fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx3, y+cy3, ERROR_COLOR);
 }
 
-void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 29*size;
 	y -= 18*size;
@@ -327,28 +366,28 @@ void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 	DisplayGFX->fillCircle(x+29*size, y+30*size, 3*size, ERROR_COLOR);
 }
 
-void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size, bool day)
 {
 	int16_t radius = 24;
-	drawSun(x-radius*size, y-radius*size, radius, size);
+	drawAsterial(x-radius*size, y-radius*size, radius, size, day);
 }
 
-void DisplayWeather::draw02FewClouds(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw02FewClouds(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 31*size;
 	y -= 21*size;
-	drawSun(30*size+x, y, 16, size);
+	drawAsterial(30*size+x, y, 16, size, day);
 	drawCloud(x, 6*size+y, size);
 }
 
-void DisplayWeather::draw03ScatteredClouds(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw03ScatteredClouds(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 29*size;
 	y -= 18*size;
 	drawCloud(x, y, size);
 }
 
-void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 21*size;
@@ -356,7 +395,7 @@ void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size)
 	drawCloud(x, 6*size+y, size);
 }
 
-void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 34*size;
@@ -365,16 +404,16 @@ void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size)
 	drawRainHeavy(12*size+x, 40*size+y, size);
 }
 
-void DisplayWeather::draw10Rain(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw10Rain(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 30*size;
-	drawSun(30*size+x, y, 16, size);
+	drawAsterial(30*size+x, y, 16, size, day);
 	drawCloud(x, 6*size+y, size);
 	drawRainLight(12*size+x, 42*size+y, size);
 }
 
-void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 29*size;
@@ -383,7 +422,7 @@ void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size)
 	drawThunder(18*size+x, 34*size+y, size);
 }
 
-void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 31*size;
@@ -392,7 +431,7 @@ void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size)
 	drawSnow(12*size+x, 44*size+y, size);
 }
 
-void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 26*size;
 	y -= 16*size;
@@ -401,15 +440,16 @@ void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size)
 
 void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t size)
 {
-	if (iconName == "01d" || iconName == "01n") draw01Clear(x, y, size);
-	else if (iconName == "02d" || iconName == "02n") draw02FewClouds(x, y, size);
-	else if (iconName == "03d" || iconName == "03n") draw03ScatteredClouds(x, y, size);
-	else if (iconName == "04d" || iconName == "04n") draw04BrokenClouds(x, y, size);
-	else if (iconName == "09d" || iconName == "09n") draw09ShowerRain(x, y, size);
-	else if (iconName == "10d" || iconName == "10n") draw10Rain(x, y, size);
-	else if (iconName == "11d" || iconName == "11n") draw11ThunderStorm(x, y, size);
-	else if (iconName == "13d" || iconName == "13n") draw13Snow(x, y, size);
-	else if (iconName == "50d" || iconName == "50n") draw50Mist(x, y, size);
+	bool day = iconName[2] != 'n';
+	if (iconName == "01d" || iconName == "01n") draw01Clear(x, y, size, day);
+	else if (iconName == "02d" || iconName == "02n") draw02FewClouds(x, y, size, day);
+	else if (iconName == "03d" || iconName == "03n") draw03ScatteredClouds(x, y, size, day);
+	else if (iconName == "04d" || iconName == "04n") draw04BrokenClouds(x, y, size, day);
+	else if (iconName == "09d" || iconName == "09n") draw09ShowerRain(x, y, size, day);
+	else if (iconName == "10d" || iconName == "10n") draw10Rain(x, y, size, day);
+	else if (iconName == "11d" || iconName == "11n") draw11ThunderStorm(x, y, size, day);
+	else if (iconName == "13d" || iconName == "13n") draw13Snow(x, y, size, day);
+	else if (iconName == "50d" || iconName == "50n") draw50Mist(x, y, size, day);
 	else draw00Unknown(x, y, size);
 }
 

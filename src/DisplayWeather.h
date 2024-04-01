@@ -16,20 +16,21 @@
 #include "OpenWeatherMapOneCall.h"
 
 #define BACKGROUND_COLOR 0x0000
-#define FOREGROUND_COLOR 0xFFFF
-#define OVERLAY_COLOR 0x2945
-#define TEXT_TITLE_COLOR 0xFFE0
+#define FOREGROUND_COLOR 0xEF5D
+#define OVERLAY_COLOR 0x1082
+#define TEXT_TITLE_COLOR 0xFF20
 #define TEXT_MAIN_COLOR 0xFD20
 #define TEXT_ALT_COLOR 0x07FF
 
 #define RAIN_COLOR 0x05FF
 #define SUN_COLOR 0xFA20
-#define CLOUD_LIGHT_COLOR 0xFFFF
-#define CLOUD_DARK_COLOR 0xAD55
-#define SNOW_COLOR 0xFFFF
+#define MOON_COLOR 0xC638
+#define CLOUD_LIGHT_COLOR 0xEF5D
+#define CLOUD_DARK_COLOR 0x738E
+#define SNOW_COLOR 0xEF5D
 #define THUNDER_COLOR 0xFD20
-#define FOG_COLOR 0xAD55
-#define WIND_COLOR 0xAD55
+#define FOG_COLOR 0xC638
+#define WIND_COLOR 0xC638
 #define EYE_COLOR 0x05FF
 
 #define TEMP_COLD_COLOR 0x841F
@@ -126,22 +127,24 @@ class DisplayWeather : public DisplayControl
         void drawSnowflake(int16_t x, int16_t y, int16_t size, uint16_t color);
         void drawSnow(int16_t x, int16_t y, int16_t size = 1, uint16_t color = SNOW_COLOR);
         void drawSun(int16_t x, int16_t y, int16_t radius = 12, int16_t size = 1, uint16_t color = SUN_COLOR);
+        void drawMoon(int16_t x, int16_t y, int16_t radius = 12, int16_t size = 1, uint16_t color = MOON_COLOR);
+        void drawAsterial(int16_t x, int16_t y, int16_t radius = 12, int16_t size = 1, bool day = true);
         void drawCloud(int16_t x, int16_t y, int16_t size = 1, uint16_t color = CLOUD_LIGHT_COLOR);
         void drawThunder(int16_t x, int16_t y, int16_t size = 1, uint16_t color = THUNDER_COLOR);
         void drawFog(int16_t x, int16_t y, int16_t size = 1, uint16_t color = FOG_COLOR);
         void drawWind(int16_t x, int16_t y, int16_t size = 1, uint16_t color = WIND_COLOR);
         void drawVisibility(int16_t x, int16_t y, int16_t size = 1);
         void drawCompassArrow(int16_t x, int16_t y, int16_t start_angle, int16_t size = 1);
-        void draw00Unknown(int16_t x, int16_t y, int16_t size = 1);
-        void draw01Clear(int16_t x, int16_t y, int16_t size = 1);
-        void draw02FewClouds(int16_t x, int16_t y, int16_t size = 1);
-        void draw03ScatteredClouds(int16_t x, int16_t y, int16_t size = 1);
-        void draw04BrokenClouds(int16_t x, int16_t y, int16_t size = 1);
-        void draw09ShowerRain(int16_t x, int16_t y, int16_t size = 1);
-        void draw10Rain(int16_t x, int16_t y, int16_t size = 1);
-        void draw11ThunderStorm(int16_t x, int16_t y, int16_t size = 1);
-        void draw13Snow(int16_t x, int16_t y, int16_t size = 1);
-        void draw50Mist(int16_t x, int16_t y, int16_t size = 1);
+        void draw00Unknown(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw01Clear(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw02FewClouds(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw03ScatteredClouds(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw04BrokenClouds(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw09ShowerRain(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw10Rain(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw11ThunderStorm(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw13Snow(int16_t x, int16_t y, int16_t size = 1, bool day = true);
+        void draw50Mist(int16_t x, int16_t y, int16_t size = 1, bool day = true);
         void drawTemperatureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
         void drawTemperatureIcon(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size = 1);
         void drawTemperature(float temperature, bool isMetric, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
