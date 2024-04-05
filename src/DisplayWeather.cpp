@@ -108,6 +108,45 @@ void DisplayWeather::drawSun(int16_t x, int16_t y, int16_t size, int16_t radius,
 	DisplayGFX->fillCircle(x+radius, y+radius, radius, color);
 }
 
+/// @brief Moon 24*24
+/// @param x 
+/// @param y 
+/// @param size 
+/// @param color 
+void DisplayWeather::drawMoon(int16_t x, int16_t y, int16_t size, int16_t radius, uint16_t color)
+{
+	size = max(size, 1);
+	radius *= size;
+	DisplayGFX->fillCircle(x+radius, y+radius, radius, color);
+	RGBColor rgbColor = colorRGB(color);
+	rgbColor.R *= 0.75;
+	rgbColor.G *= 0.75;
+	rgbColor.B *= 0.75;
+	uint16_t craterColor = color565(rgbColor);
+	DisplayGFX->fillCircle(x+(radius*0.5), y+(radius*1.2), radius*0.2, craterColor);
+	DisplayGFX->fillCircle(x+(radius*1.3), y+(radius*1.4), radius*0.18, craterColor);
+	DisplayGFX->fillCircle(x+(radius*0.6), y+(radius*0.7), radius*0.1, craterColor);
+	DisplayGFX->fillCircle(x+(radius*1.2), y+(radius*0.7), radius*0.3, craterColor);
+}
+
+/// @brief Asterial icon depending on day or night 24*24
+/// @param x 
+/// @param y 
+/// @param radius 
+/// @param size 
+/// @param day 
+void DisplayWeather::drawAsterial(int16_t x, int16_t y, int16_t radius, int16_t size, bool day)
+{
+	if (day)
+	{
+		drawSun(x, y, radius, size);
+	}
+	else
+	{
+		drawMoon(x, y, radius, size);
+	}
+}
+
 /// @brief Cloud is 58*36 at size 1
 /// @param x 
 /// @param y 
@@ -318,7 +357,7 @@ void DisplayWeather::drawCompassArrow(int16_t x, int16_t y, int16_t direction, i
 	DisplayGFX->fillTriangle(x+cx0, y+cy0, x+cx1, y+cy1, x+cx3, y+cy3, ERROR_COLOR);
 }
 
-void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 29*size;
 	y -= 18*size;
@@ -327,28 +366,28 @@ void DisplayWeather::draw00Unknown(int16_t x, int16_t y, int16_t size)
 	DisplayGFX->fillCircle(x+29*size, y+30*size, 3*size, ERROR_COLOR);
 }
 
-void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw01Clear(int16_t x, int16_t y, int16_t size, bool day)
 {
 	int16_t radius = 24;
-	drawSun(x-radius*size, y-radius*size, radius, size);
+	drawAsterial(x-radius*size, y-radius*size, radius, size, day);
 }
 
-void DisplayWeather::draw02FewClouds(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw02FewClouds(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 31*size;
 	y -= 21*size;
-	drawSun(30*size+x, y, 16, size);
+	drawAsterial(30*size+x, y, 16, size, day);
 	drawCloud(x, 6*size+y, size);
 }
 
-void DisplayWeather::draw03ScatteredClouds(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw03ScatteredClouds(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 29*size;
 	y -= 18*size;
 	drawCloud(x, y, size);
 }
 
-void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 21*size;
@@ -356,7 +395,7 @@ void DisplayWeather::draw04BrokenClouds(int16_t x, int16_t y, int16_t size)
 	drawCloud(x, 6*size+y, size);
 }
 
-void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 34*size;
@@ -365,16 +404,16 @@ void DisplayWeather::draw09ShowerRain(int16_t x, int16_t y, int16_t size)
 	drawRainHeavy(12*size+x, 40*size+y, size);
 }
 
-void DisplayWeather::draw10Rain(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw10Rain(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 30*size;
-	drawSun(30*size+x, y, 16, size);
+	drawAsterial(30*size+x, y, 16, size, day);
 	drawCloud(x, 6*size+y, size);
 	drawRainLight(12*size+x, 42*size+y, size);
 }
 
-void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 29*size;
@@ -383,7 +422,7 @@ void DisplayWeather::draw11ThunderStorm(int16_t x, int16_t y, int16_t size)
 	drawThunder(18*size+x, 34*size+y, size);
 }
 
-void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 30*size;
 	y -= 31*size;
@@ -392,7 +431,7 @@ void DisplayWeather::draw13Snow(int16_t x, int16_t y, int16_t size)
 	drawSnow(12*size+x, 44*size+y, size);
 }
 
-void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size)
+void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size, bool day)
 {
 	x -= 26*size;
 	y -= 16*size;
@@ -401,15 +440,16 @@ void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size)
 
 void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t size)
 {
-	if (iconName == "01d" || iconName == "01n") draw01Clear(x, y, size);
-	else if (iconName == "02d" || iconName == "02n") draw02FewClouds(x, y, size);
-	else if (iconName == "03d" || iconName == "03n") draw03ScatteredClouds(x, y, size);
-	else if (iconName == "04d" || iconName == "04n") draw04BrokenClouds(x, y, size);
-	else if (iconName == "09d" || iconName == "09n") draw09ShowerRain(x, y, size);
-	else if (iconName == "10d" || iconName == "10n") draw10Rain(x, y, size);
-	else if (iconName == "11d" || iconName == "11n") draw11ThunderStorm(x, y, size);
-	else if (iconName == "13d" || iconName == "13n") draw13Snow(x, y, size);
-	else if (iconName == "50d" || iconName == "50n") draw50Mist(x, y, size);
+	bool day = iconName[2] != 'n';
+	if (iconName == "01d" || iconName == "01n") draw01Clear(x, y, size, day);
+	else if (iconName == "02d" || iconName == "02n") draw02FewClouds(x, y, size, day);
+	else if (iconName == "03d" || iconName == "03n") draw03ScatteredClouds(x, y, size, day);
+	else if (iconName == "04d" || iconName == "04n") draw04BrokenClouds(x, y, size, day);
+	else if (iconName == "09d" || iconName == "09n") draw09ShowerRain(x, y, size, day);
+	else if (iconName == "10d" || iconName == "10n") draw10Rain(x, y, size, day);
+	else if (iconName == "11d" || iconName == "11n") draw11ThunderStorm(x, y, size, day);
+	else if (iconName == "13d" || iconName == "13n") draw13Snow(x, y, size, day);
+	else if (iconName == "50d" || iconName == "50n") draw50Mist(x, y, size, day);
 	else draw00Unknown(x, y, size);
 }
 
@@ -485,8 +525,9 @@ void DisplayWeather::drawTemperature(float temperature, bool isMetric, int16_t x
 	int16_t x1, y1 = 0;
     uint16_t w, h = 0;
     DisplayGFX->getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
-	String temp = String(temperature, 1);
-	int16_t sw = w * (temp.length() + 2);
+	char temp[6];
+	dtostrf(temperature, 2, 1, temp);
+	int16_t sw = w * (strlen(temp) + 2);
     switch (align)
     {
         case TEXT_LEFT_TOP:
@@ -588,7 +629,10 @@ void DisplayWeather::drawHumidityIcon(float humidity, int16_t x, int16_t y, int1
     
 void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
 {
-	String humi = String(humidity, 1) + "%";
+	char humi[6];
+	dtostrf(humidity, 2, 1, humi);
+	strcat(humi, "%");
+	//String humi = String(humidity, 1) + "%";
 	drawString(humi, x, y, align, foregroundColor);
 }
 
@@ -663,9 +707,11 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	drawString(info, xText, y + 300, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 
 	// Wind direction
-	int dir = roundf(currentWeather->windDeg/22.5)%16;
+	uint16_t dir = roundf(currentWeather->windDeg/22.5)%16;
 	drawCompassArrow(xIcon, y + 360, currentWeather->windDeg, 5);
-	drawString(WIND_DIR[dir].c_str(), xText, y + 360, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	char windStr[4];
+	readWindDirectionString(windStr, dir);
+	drawString(windStr, xText, y + 360, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 }
 
 /// @brief Draw the 1 of the 3 details forecast, we pass in the top\center of the up most
@@ -675,13 +721,26 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 /// @param x 
 /// @param y 
 /// @param dayIndex 
-void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex) 
+void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t dayIndex, bool showTime = false) 
 {
 	time_t observationTimestamp = forecastWeather[dayIndex].observationTime;
 	int16_t day = weekday(observationTimestamp)-1;
-	drawWeatherIcon(x, y + 180, forecastWeather[dayIndex].icon, true, 3);
+	char header[10];
+	readDaysString(header, day);
+	if (showTime)
+	{
+		header[3] = '\0';
+		sprintf_P(header,
+			PSTR("%s %d %s"),
+			header,
+			hourFormat12(observationTimestamp),
+			(isAM(observationTimestamp) ? "AM" : "PM"));
+	}
+
 	setFont(&CalibriBold24pt7b);
-	drawString(WDAY_NAMES[day], x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	drawString(header, x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	drawWeatherIcon(x, y + 180, forecastWeather[dayIndex].icon, true, 3);
+
 	setFont(&CalibriBold16pt7b);
 	
 	drawTemperatureIcon(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 114 - 10, y + 330 - 22, 2);
@@ -693,14 +752,51 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	drawString(forecastWeather[dayIndex].description, x, y + 360, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);	
 }
 
-void DisplayWeather::drawForecast(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
+void DisplayWeather::drawForecastHourly(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
 {
 	fillScreen(BACKGROUND_COLOR);
-	//setFont(&CalibriBold24pt7b);
-	//drawString(forecastWeather[0].cityName, 240, 40, TEXT_CENTER_MIDDLE, WHITE);
+	drawForecastDetails(forecastWeather, 130, 20, 0, true);
+	drawForecastDetails(forecastWeather, 400, 20, 1, true);
+	drawForecastDetails(forecastWeather, 670, 20, 2, true);	
+}
+
+void DisplayWeather::drawForecastDaily(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
+{
+	fillScreen(BACKGROUND_COLOR);
 	drawForecastDetails(forecastWeather, 130, 20, 0);
 	drawForecastDetails(forecastWeather, 400, 20, 1);
 	drawForecastDetails(forecastWeather, 670, 20, 2);	
+}
+
+void DisplayWeather::drawMemoryBar(int16_t x, int16_t y, int16_t size)
+{
+	int fRam = mu_freeRam();
+	int pRam = ((8192.0-fRam)/8192.0)*100.0;
+	char ramUsed[4];
+	itoa(pRam, ramUsed, 10);
+	strcat(ramUsed, "%");
+
+	// draw ram free bar
+	DisplayGFX->fillRoundRect(x, y, 100*size, 6*size, 3*size, BACKGROUND_COLOR);
+	DisplayGFX->fillRoundRect(x, y, pRam*size, 6*size, 3*size, pRam < 85 ? SUCCESS_COLOR : ERROR_COLOR);
+	switch (size)
+	{
+		case 2:
+			setFont(&CalibriBold8pt7b);
+			drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
+			break;
+		case 3:
+			setFont(&CalibriBold16pt7b);
+			drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
+			break;
+		case 4:
+			setFont(&CalibriBold24pt7b);
+			drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
+			break;	
+		default:
+			break;
+	}
+	
 }
 
 /// @brief Default size when set to 1 is 12x12
@@ -712,7 +808,7 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t
 	size = max(size, 1);
 	uint16_t gray = colorLerp(FOREGROUND_COLOR, BACKGROUND_COLOR, 128);
 
-	if (backgroundColor != NULL)
+	if (backgroundColor != UINT16_MAX)
 	{
 		DisplayGFX->fillRect(x, y, size*12, size*12, backgroundColor);
 	}
@@ -743,7 +839,7 @@ void DisplayWeather::drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t
 	}
 }
 
-void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool forecastUpdated, time_t timeUpdated)
+void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool forecastHourlyUpdated, bool forecastDailyUpdated, time_t timeUpdated)
 {
 	DisplayGFX->fillRect(0, 0, 800, 18, OVERLAY_COLOR);
 	DisplayGFX->drawFastHLine(0, 19, 800, TEXT_ALT_COLOR);
@@ -752,22 +848,27 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 	setFont(&CalibriBold8pt7b);
 	drawChar(10, 10, 'E', TEXT_CENTER_MIDDLE, externalUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawChar(25, 10, 'C', TEXT_CENTER_MIDDLE, currentUpdated ? SUCCESS_COLOR : ERROR_COLOR);
-	drawChar(40, 10, 'F', TEXT_CENTER_MIDDLE, forecastUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(40, 10, 'H', TEXT_CENTER_MIDDLE, forecastHourlyUpdated ? SUCCESS_COLOR : ERROR_COLOR);
+	drawChar(55, 10, 'F', TEXT_CENTER_MIDDLE, forecastDailyUpdated ? SUCCESS_COLOR : ERROR_COLOR);
 	drawString(WiFi.SSID(), 400, 10, TEXT_CENTER_MIDDLE);
+	char m_lastTimeUpdated[24] = "?Unkown";
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
 	drawString(m_lastTimeUpdated, 800, 10, TEXT_RIGHT_MIDDLE);
 
+	drawMemoryBar(80, 3, 2);
 	drawWiFiSignal(764, 28, 3, BACKGROUND_COLOR);
 }
 
 void DisplayWeather::drawFooter(SensorData *sensorData, OpenWeatherMapCurrentData *currentWeather)
 {
-	char datetime[30];
+	char datetime[24];
+	char monthStr[4];
+	readMonthString(monthStr, month()-1);
 	sprintf_P(datetime,
 			  PSTR("%s %d, %d  %d:%02d %s"),
-			  MONTH_NAMES[month()-1].c_str(),
+			  monthStr,
 			  day(),
 			  year(),
 			  hourFormat12(),

@@ -7,10 +7,10 @@ WiFiClient client;
 	Adafruit_SHT31 sht3x;
 	// Sensor Home: -4.1
 	// Sensor Whistler: -4.6
-	#define SHT_TEMPOFFSET -4.6
-	// Sensor Home: 9.0
+	#define SHT_TEMPOFFSET -4.1
+	// Sensor Home: 10.0
 	// Sensor Whistler: 8.0
-	#define SHT_HMDOFFSET 8.0
+	#define SHT_HMDOFFSET 10.0
 #endif
 #ifdef BME_280
 	const float SEALEVELPRESSURE_HPA = 1021.1;
@@ -54,13 +54,17 @@ void initSensors()
 	#ifdef SHT_3X
 		if (!sht3x.begin())
 		{
+			#ifdef SERIAL_LOGGING
 			Serial.println("Could not find SHT3X-DIS sensor");
+			#endif
 		}
 	#endif
 	#ifdef BME_280
 		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
+			#ifdef SERIAL_LOGGING
 			Serial.println("Could not find BME280 sensor at 0x76");
+			#endif
 		}
 	#endif
 	#ifdef DHT_22
@@ -69,7 +73,7 @@ void initSensors()
 	ThingSpeak.begin(client);    
 }
 
-float roundUpDecimal(float value, int decimals = 1) 
+float roundUpDecimal(float value, uint8_t decimals = 1) 
 {
 	float multiplier = powf(10.0, decimals);
 	value = roundf(value * multiplier) / multiplier;
@@ -109,7 +113,9 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	else
 	{
 		sensorData->IsUpdated = false;
-		Serial.println("Problem reading channel. HTTP error code " + String(statusCode)); 
+		#ifdef SERIAL_LOGGING
+		Serial.println("Problem reading channel. HTTP error code " + String(statusCode));
+		#endif
 	}
 }
 

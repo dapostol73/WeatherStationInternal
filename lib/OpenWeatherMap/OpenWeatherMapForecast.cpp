@@ -29,18 +29,30 @@ OpenWeatherMapForecast::OpenWeatherMapForecast() {
 }
 
 bool OpenWeatherMapForecast::updateForecasts(OpenWeatherMapForecastData *data, String appId, String location, uint8_t maxForecasts) {
-  this->maxForecasts = maxForecasts;
+  this->maxForecasts = min(maxForecasts, maxDays*8);
   return doUpdate(data, buildPath(appId, "q=" + location));
 }
 
 bool OpenWeatherMapForecast::updateForecastsById(OpenWeatherMapForecastData *data, String appId, String locationId, uint8_t maxForecasts) {
-  this->maxForecasts = maxForecasts;
+  this->maxForecasts = min(maxForecasts, maxDays*8);
   return doUpdate(data, buildPath(appId, "id=" + locationId));
 }
 
+/// @brief example data/2.5/forecast?id=6090785&appid=6ef72f6a0b2b7849e74ac530ce47d067&units=metric&lang=en&cnt=32
+/// @param appId 
+/// @param locationParameter 
+/// @return 
 String OpenWeatherMapForecast::buildPath(String appId, String locationParameter) {
-  String units = metric ? "metric" : "imperial";
-  return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language + "&cnt=" + String(this->maxForecasts*8);
+  char path[128] = "";
+  sprintf(path,
+          "/data/2.5/forecast?%s&appid=%s&units=%s&lang=%s&cnt=%u",
+          locationParameter.c_str(),
+          appId.c_str(),
+          metric ? "metric" : "imperial",
+          language.c_str(),
+          this->maxDays*8);
+  return path;
+  //return "/data/2.5/forecast?" + locationParameter + "&appid=" + appId + "&units=" + units + "&lang=" + language + "&cnt=" + String(this->maxDays*8);
 }
 
 bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String path) {
@@ -53,7 +65,7 @@ bool OpenWeatherMapForecast::doUpdate(OpenWeatherMapForecastData *data, String p
   this->data->isMetric = isMetric();
   JsonStreamingParser parser;
   parser.setListener(this);
-  char connectInfo[256] = "";
+  char connectInfo[196] = "";
 	sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
 	Serial.println(connectInfo);
 
@@ -182,15 +194,15 @@ void OpenWeatherMapForecast::value(String value) {
 
     //   "main":"Clouds",String main;
     if (currentKey == "main") {
-      data[currentForecast].main = value;
+      strcpy(data[currentForecast].main, value.c_str());
     }
     //   "description":"scattered clouds",String description;
     if (currentKey == "description") {
-      data[currentForecast].description = toPascalCase(value);
+      strcpy(data[currentForecast].description, toPascalCase(value).c_str());
     }
     //   "icon":"03d" String icon; String iconMeteoCon;
     if (currentKey == "icon") {
-      data[currentForecast].icon = value;
+      strcpy(data[currentForecast].icon, value.c_str());
     }
   }
   /*
@@ -235,7 +247,7 @@ void OpenWeatherMapForecast::value(String value) {
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"   String observationTimeText;
   if (currentKey == "dt_txt") {
-    data[currentForecast].observationTimeText = value;
+    strcpy(data[currentForecast].observationTimeText, value.c_str());
     // this is not super save, if there is no dt_txt item we'll never get all forecasts;
     currentForecast++;
   }

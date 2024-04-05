@@ -15,12 +15,23 @@
 #include "OpenWeatherMapForecast.h"
 //#include "OpenWeatherMapOneCall.h"
 
-//#define SERIAL_LOGGING
-//#define DEBUG
 #define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
 #include "SoftwareSerial.h"
 SoftwareSerial Serial1(6, 7) //RX, TX
+#endif
+
+//#define DEBUG
+//#define SERIAL_LOGGING
+#ifndef SERIAL_LOGGING
+// disable Serial output
+#define Serial KillDefaultSerial
+static class {
+public:
+    void begin(...) {}
+    void print(...) {}
+    void println(...) {}
+} Serial;
 #endif
 
 ApplicationSettings appSettings;
@@ -41,29 +52,36 @@ bool updateExternalSensors = true;
 //******************************//
 // OpenWeather Map Settings     //
 //******************************//
-const uint8_t MAX_FORECASTS = 4;
-const uint8_t FORECAST_HOURS[] = { 15 };
+const uint8_t DAILY_MAX_FORECASTS = 4;
+const uint8_t HOURLY_MAX_FORECASTS = 3;
+const uint8_t DAILY_FORECAST_HOURS[] = { 15 };
+const uint8_t HOURLY_FORECAST_HOURS[] = { 3, 9, 15, 21 };
 OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
 bool updateCurrentWeather = true;
 bool currentWeatherUpdated = false;
 
-OpenWeatherMapForecastData forecastWeather[MAX_FORECASTS];
+OpenWeatherMapForecastData forecastWeatherDaily[DAILY_MAX_FORECASTS];
+OpenWeatherMapForecastData forecastWeatherHourlyQuerry[HOURLY_MAX_FORECASTS];
+OpenWeatherMapForecastData forecastWeatherHourly[HOURLY_MAX_FORECASTS];
 OpenWeatherMapForecast forecastWeatherClient;
-bool updateForecastWeather = true;
-bool forecastWeatherUpdated = false;
+bool updateForecastDailyWeather = true;
+bool forecastWeatherDailyUpdated = false;
+bool updateForecastHourlyWeather = true;
+bool forecastWeatherHourlyUpdated = false;
 
 DisplayWeather displayWeather;
 DisplayContolProgress displayProgress;
 
 void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
-void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawForecastHourlyFrame(DisplayControlState* state, int16_t x, int16_t y);
+void drawForecastDailyFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
-FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastFrame, drawSensorDataFrame };
-int numberOfFrames = 3;
+FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastHourlyFrame, drawForecastDailyFrame, drawSensorDataFrame };
+int numberOfFrames = 4;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
 int numberOfOverlays = 2;
@@ -71,12 +89,12 @@ int numberOfOverlays = 2;
 /***************************
  * Begin Settings
  **************************/
-// Setup
-const int INTSENSOR_INTERVAL_SECS = 60; // Sensor query every 15 seconds
-const int EXTSENSOR_INTERVAL_SECS = 5 * 60; // Sensor query every 5 minutes
+// Time check setup, slighty off to easy the parsing.
+const int INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
+const int EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
 //const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
-const int CURRENT_INTERVAL_SECS = 10 * 60; // Update every 10 minutes
-const int FORECAST_INTERVAL_SECS = 60 * 60; // Update every 60 minutes
+const int CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
+const int FORECAST_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
 
 bool updateSuccessed = true;
 time_t lastUpdated;
@@ -129,7 +147,7 @@ void loop()
 void setup()
 {
 	Serial.begin(SERIAL_BAUD_RATE);
-
+	
 	displayProgress.x = 0;
 	displayProgress.y = 420;
 	displayProgress.width = 800;
@@ -168,7 +186,7 @@ void loop()
 	{
 		case UPDATE:
 			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
-			updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;// force update
+			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 			break;
 		case FORWARD:
 			displayWeather.navigateForwardFrame();
@@ -194,16 +212,26 @@ void loop()
 			delay(1000);
 			t++;
 		}
-		updateExternalSensors = updateCurrentWeather = updateForecastWeather = true;// force update
+		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 	}
 
 	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
 	{
 		#ifdef SERIAL_LOGGING
-		Serial.println("Setting updateForecastWeather to true");
+		Serial.println("Setting updateForecastDailyWeather to true");
 		#endif
-		updateForecastWeather = true;
+		updateForecastDailyWeather = true;
 		timeSinceForecastUpdate = millis();
+
+		// do the update every 3 hours the hour before.
+		// querry change on the 3 and is 9 hours ahead.
+		if (hour() + 1 % 3 == 0)
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("Setting updateForecastHourlyWeather to true");
+			#endif
+			updateForecastHourlyWeather = true;
+		}
 	}
 
 	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
@@ -228,7 +256,7 @@ void loop()
 		timeSinceInternalUpdate = millis();
 	}
 
-	if (updateExternalSensors || updateCurrentWeather || updateForecastWeather) 
+	if (updateExternalSensors || updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather) 
 	{
 		updateSuccessed = updateData();
 	}
@@ -254,7 +282,7 @@ bool updateData()
 	updateSystemTime();
 	if (updateExternalSensors)
 	{
-		displayWeather.drawProgress(40, "Updating external sensor data...");
+		displayWeather.drawProgress(35, "Updating external sensor data...");
 		readExternalSensorsData(appSettings.ThingSpeakSettings.ChannelID, &externalSensorData);
 		updateExternalSensors = false;
 		success = success && externalSensorData.IsUpdated;
@@ -263,7 +291,7 @@ bool updateData()
 
 	if (updateCurrentWeather)
 	{
-		displayWeather.drawProgress(60, "Updating weather...");
+		displayWeather.drawProgress(50, "Updating current weather...");
 		currentWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		currentWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location);
@@ -275,19 +303,56 @@ bool updateData()
 		success = success && currentWeatherUpdated;
 	}
 
-	if (updateForecastWeather)
+	if (updateForecastHourlyWeather)
 	{
-		displayWeather.drawProgress(80, "Updating forecasts...");
+		displayWeather.drawProgress(65, "Updating hourly forecasts...");
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
-		forecastWeatherClient.setAllowedHours(FORECAST_HOURS, sizeof(FORECAST_HOURS));
-		forecastWeatherUpdated = forecastWeatherClient.updateForecastsById(forecastWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, MAX_FORECASTS);
-		if (!forecastWeatherUpdated)
+		forecastWeatherClient.setAllowedHours(HOURLY_FORECAST_HOURS, sizeof(HOURLY_FORECAST_HOURS));
+		forecastWeatherClient.setMaxDays(1);
+		forecastWeatherHourlyUpdated = forecastWeatherClient.updateForecastsById(forecastWeatherHourlyQuerry, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, HOURLY_MAX_FORECASTS);
+
+		for(int i = 0; i < HOURLY_MAX_FORECASTS; i++)
+		{
+			// observationTime is equal to zero on first pass.
+			if (forecastWeatherHourly[i].observationTime == 0)
+			{
+				forecastWeatherHourly[i] = forecastWeatherHourlyQuerry[i];
+			}
+		}
+
+		// the first slot is 9 hours pass...and we are look for 12th hour ahead.
+		// so when the current hour == our hours do a check.
+		time_t observationTimestamp = forecastWeatherHourly[0].observationTime;
+		if (now() > observationTimestamp)
+		{
+			forecastWeatherHourly[0] = forecastWeatherHourly[1];
+			forecastWeatherHourly[1] = forecastWeatherHourly[2];
+			forecastWeatherHourly[2] = forecastWeatherHourlyQuerry[0];
+		}
+
+		if (!forecastWeatherHourlyUpdated)
 		{
 			displayProgress.foregroundColor = ERROR_COLOR;
 		}
-		updateForecastWeather = false;
-		success = success && forecastWeatherUpdated;
+		updateForecastHourlyWeather = false;
+		success = success && forecastWeatherHourlyUpdated;
+	}
+
+	if (updateForecastDailyWeather)
+	{
+		displayWeather.drawProgress(80, "Updating daily forecasts...");
+		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
+		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
+		forecastWeatherClient.setAllowedHours(DAILY_FORECAST_HOURS, sizeof(DAILY_FORECAST_HOURS));
+		forecastWeatherClient.setMaxDays(4);
+		forecastWeatherDailyUpdated = forecastWeatherClient.updateForecastsById(forecastWeatherDaily, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location, DAILY_MAX_FORECASTS);
+		if (!forecastWeatherDailyUpdated)
+		{
+			displayProgress.foregroundColor = ERROR_COLOR;
+		}
+		updateForecastDailyWeather = false;
+		success = success && forecastWeatherDailyUpdated;
 	}
 
 	lastUpdated = now();
@@ -499,14 +564,19 @@ void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
 	displayWeather.drawCurrentWeather(&currentWeather, x, y);
 }
 
-void drawForecastFrame(DisplayControlState* state, int16_t x, int16_t y)
+void drawForecastHourlyFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
-	displayWeather.drawForecast(forecastWeather, x, y);
+	displayWeather.drawForecastHourly(forecastWeatherHourly, x, y);
+}
+
+void drawForecastDailyFrame(DisplayControlState* state, int16_t x, int16_t y)
+{
+	displayWeather.drawForecastDaily(forecastWeatherDaily, x, y);
 }
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
-	displayWeather.drawHeader(externalSensorData.IsUpdated, currentWeatherUpdated, forecastWeatherUpdated, lastUpdated);
+	displayWeather.drawHeader(externalSensorData.IsUpdated, currentWeatherUpdated, forecastWeatherHourlyUpdated, forecastWeatherDailyUpdated, lastUpdated);
 }
 
 void drawFooterOverlay(DisplayControlState* state)

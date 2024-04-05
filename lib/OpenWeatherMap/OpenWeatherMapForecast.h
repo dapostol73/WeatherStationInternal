@@ -29,7 +29,7 @@
 typedef struct OpenWeatherMapForecastData {
   bool isMetric = true;
   // {"dt":1527066000,
-  uint32_t observationTime;
+  uint32_t observationTime = 0;
   // "main":{
   //   "temp":17.35,
   float temp;
@@ -52,11 +52,11 @@ typedef struct OpenWeatherMapForecastData {
   //   "id":802,
   uint16_t weatherId;
   //   "main":"Clouds",
-  String main = "Unknown";
+  char main[16] = "Unknown";
   //   "description":"scattered clouds",
-  String description = "unknown";
+  char description[32] = "unknown";
   //   "icon":"03d"
-  String icon;
+  char icon[4];
   // }],"clouds":{"all":44},
   //uint8_t clouds;
   // "wind":{
@@ -72,7 +72,7 @@ typedef struct OpenWeatherMapForecastData {
   //String cityName;
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"
-  String observationTimeText;
+  char observationTimeText[24];
 
 } OpenWeatherMapForecastData;
 
@@ -84,6 +84,7 @@ class OpenWeatherMapForecast : public JsonListener {
     String currentParent;
     OpenWeatherMapForecastData *data;
     uint8_t weatherItemCounter = 0;
+    uint8_t maxDays = 4;
     uint8_t maxForecasts;
     uint8_t currentForecast;
     boolean metric = true;
@@ -105,6 +106,7 @@ class OpenWeatherMapForecast : public JsonListener {
     boolean isMetric() { return this->metric; }
     void setLanguage(String language) { this->language = language; }
     String getLanguage() { return this->language; }
+    void setMaxDays(uint8_t maxDays) { this->maxDays = min(maxDays, 4); }
     void setAllowedHours(const uint8_t *allowedHours, uint8_t allowedHoursCount) {
       this->allowedHours = allowedHours;
       this->allowedHoursCount = allowedHoursCount;
