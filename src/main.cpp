@@ -225,7 +225,7 @@ void loop()
 
 		// do the update every 3 hours the hour before.
 		// querry change on the 3 and is 9 hours ahead.
-		if (hour() + 1 % 3 == 0)
+		if ((hour() + 1) % 3 == 0)
 		{
 			#ifdef SERIAL_LOGGING
 			Serial.println("Setting updateForecastHourlyWeather to true");
@@ -324,7 +324,7 @@ bool updateData()
 		// the first slot is 9 hours pass...and we are look for 12th hour ahead.
 		// so when the current hour == our hours do a check.
 		time_t observationTimestamp = forecastWeatherHourly[0].observationTime;
-		if (now() > observationTimestamp)
+		if (difftime(now(), observationTimestamp) > 0)
 		{
 			forecastWeatherHourly[0] = forecastWeatherHourly[1];
 			forecastWeatherHourly[1] = forecastWeatherHourly[2];
