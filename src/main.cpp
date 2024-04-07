@@ -328,7 +328,27 @@ bool updateData()
 		{
 			forecastWeatherHourly[0] = forecastWeatherHourly[1];
 			forecastWeatherHourly[1] = forecastWeatherHourly[2];
-			forecastWeatherHourly[2] = forecastWeatherHourlyQuerry[0];
+
+			// Find the next entry after our current forcast.
+			bool found = false;
+			for(int i = 0; i < HOURLY_MAX_FORECASTS || !found; i++)
+			{
+				if (difftime(forecastWeatherHourlyQuerry[i].observationTime, forecastWeatherHourly[1].observationTime) > 0)
+				{
+					forecastWeatherHourly[2] = forecastWeatherHourlyQuerry[i];
+					found = true;
+					break;
+				}
+			}
+
+			// if we didn't find one, then just use the first...this should never happen.
+			if (!found)
+			{
+				forecastWeatherHourly[2] = forecastWeatherHourlyQuerry[0];
+				#ifdef SERIAL_LOGGING
+				Serial.println("Failed to find the next valid forcast, this shouldn't happen");
+				#endif
+			}
 		}
 
 		if (!forecastWeatherHourlyUpdated)
