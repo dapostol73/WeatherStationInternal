@@ -5,9 +5,9 @@ WiFiClient client;
 #ifdef SHT_3X
 	// SHTSensor SHT3X (0x44) or SHT3X_ALT (0x45)
 	Adafruit_SHT31 sht3x;
-	// Sensor Home: -4.1
+	// Sensor Home: -5.6
 	// Sensor Whistler: -4.6
-	#define SHT_TEMPOFFSET -4.1
+	#define SHT_TEMPOFFSET -5.6
 	// Sensor Home: 10.0
 	// Sensor Whistler: 8.0
 	#define SHT_HMDOFFSET 10.0

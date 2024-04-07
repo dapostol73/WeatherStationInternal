@@ -119,13 +119,14 @@ void updateSystemTime()
 	{
 		inDST = true;
   	}
-	// After second Sunday in March
-	if (m == 3 && (h + 24UL * d) >= (3 + 24UL * (14 - w))) 
+	// After the second Sunday in March
+	else if (m == 3 && d >= 14 - w) 
 	{
 		inDST = true;
 	}
-	// After first Sunday in November
-	if (m == 11 && (h + 24UL * d) < (1 + 24UL * (7 - w))) {
+	// Before the first Sunday in November
+	else if (m == 11 && !(d >= 7 - w)) 
+	{
 		inDST = true;
 	}
 
