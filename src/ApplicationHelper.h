@@ -6,6 +6,7 @@
 #include <TimeLib.h>
 #include <WiFiEspAT.h>
 #include <NTPClient.h>
+#include <Timezone.h> 
 
 #define LCDWIKITOUCH
 #ifdef LCDWIKITOUCH

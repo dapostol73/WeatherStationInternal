@@ -13,13 +13,18 @@
 #define TP_IN  51  /* Data in pin (T_DIN) of touch screen */
 #define TP_OUT 50  /* Data out pin (T_DO) of touch screen */
 #define TP_IRQ 44  /* Interupt pin (T_IRQ) of touch screen */
-#define HMIN 0
-#define HMAX 4095
-#define VMIN 0
-#define VMAX 4095
+
 #define HRES 800 /* Default screen resulution for X axis */
 #define VRES 480 /* Default screen resulution for Y axis */
-#define XYSWAP 1 // 0 or 1 (true/false)
+
+#ifndef LCDWIKITOUCH
+	#define HMIN 0
+	#define HMAX 4095
+	#define VMIN 0
+	#define VMAX 4095
+	#define XYSWAP 1 // 0 or 1 (true/false)
+#endif
+
 #ifdef LCDWIKITOUCH
 	LCDWIKI_TOUCH touch(TP_CS, TP_CLK, TP_OUT, TP_IN, TP_IRQ); //tcs,tclk,tdout,tdin,tirq
 #else
@@ -32,17 +37,16 @@ long lastTouchTime = LONG_MIN;
 //******************************//
 // Time Client Settings         //
 //******************************//
-const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
-
-#define TZ              -8     // (utc+) TZ in hours
-#define DST_MN          0      // use 60mn for summer time in some countries
-
-#define TZ_MN           ((TZ)*60)
-#define TZ_SEC          ((TZ)*3600)
-#define DST_SEC         ((DST_MN)*60)
+const unsigned long TIME_INTERVAL_SECS = 30 * 60 * 1000UL; // Check time every 30 minutes
+const long TZ_SEC = 0 * 60 * 60; // First digit is time zone, 0 = UTC time 
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
+
+// North America Pacific Time Zone (Las Vegas, Los Angeles, Vancouver)
+TimeChangeRule naPDT = {"PDT", Second, Sun, Mar, 2, -420};
+TimeChangeRule naPST = {"PST", First, Sun, Nov, 2, -480};
+Timezone naPT(naPDT, naPST);
 
 void initHelpers()
 {
@@ -106,32 +110,6 @@ TouchResult touchTest()
 void updateSystemTime()
 {
 	timeClient.update();
-	setTime((time_t)timeClient.getEpochTime());
-	uint8_t m = month();
-	uint8_t d = day();
-	uint8_t w = weekday();
-	uint8_t h = hour();
-
-	// Check to see if we are in Daylight Saving Time (DST)
-	bool inDST = false;
-	// Between April to October 
-	if (m > 3 && m < 11) 
-	{
-		inDST = true;
-  	}
-	// After the second Sunday in March
-	else if (m == 3 && d >= 14 - w) 
-	{
-		inDST = true;
-	}
-	// Before the first Sunday in November
-	else if (m == 11 && !(d >= 7 - w)) 
-	{
-		inDST = true;
-	}
-
-	if (inDST)
-	{
-		adjustTime(3600);
-	}
+	time_t utc = (time_t)timeClient.getEpochTime();
+	setTime(naPT.toLocal(utc));
 }
