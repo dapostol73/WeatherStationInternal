@@ -94,12 +94,14 @@ const int INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
 const int EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
 //const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
 const int CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
-const int FORECAST_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
+const int FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
+const int FORECAST_DAILY_INTERVAL_SECS = 125 * 60; // Update every 125 minutes
 
 bool updateSuccessed = true;
 time_t lastUpdated;
 long timeSinceCurrentUpdate = LONG_MIN;
-long timeSinceForecastUpdate = LONG_MIN;
+long timeSinceForecastHourlyUpdate = LONG_MIN;
+long timeSinceForecastDailyUpdate = LONG_MIN;
 
 bool updateData();
 void configureWiFi();
@@ -134,7 +136,6 @@ void setup()
 	//pinMode(IRQ_PIN, INPUT);
 	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
 	//displayWeather.drawTemperatureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
-
 }
 
 void loop()
@@ -215,23 +216,22 @@ void loop()
 		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 	}
 
-	if (millis() - timeSinceForecastUpdate > (1000L*FORECAST_INTERVAL_SECS))
+	if (millis() - timeSinceForecastDailyUpdate > (1000L*FORECAST_DAILY_INTERVAL_SECS))
 	{
 		#ifdef SERIAL_LOGGING
 		Serial.println("Setting updateForecastDailyWeather to true");
 		#endif
 		updateForecastDailyWeather = true;
-		timeSinceForecastUpdate = millis();
+		timeSinceForecastDailyUpdate = millis();
+	}
 
-		// do the update every 3 hours the hour before.
-		// querry change on the 3 and is 9 hours ahead.
-		if ((hour() + 1) % 3 == 0)
-		{
-			#ifdef SERIAL_LOGGING
-			Serial.println("Setting updateForecastHourlyWeather to true");
-			#endif
-			updateForecastHourlyWeather = true;
-		}
+	if (millis() - timeSinceForecastHourlyUpdate > (1000L*FORECAST_HOURLY_INTERVAL_SECS))
+	{
+		#ifdef SERIAL_LOGGING
+		Serial.println("Setting updateForecastHourlyWeather to true");
+		#endif
+		updateForecastHourlyWeather = true;
+		timeSinceForecastHourlyUpdate = millis();
 	}
 
 	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
@@ -324,7 +324,7 @@ bool updateData()
 		// the first slot is 9 hours pass...and we are look for 12th hour ahead.
 		// so when the current hour == our hours do a check.
 		time_t observationTimestamp = forecastWeatherHourly[0].observationTime;
-		if (difftime(now(), observationTimestamp) > 0)
+		if (difftime(now(), observationTimestamp) > -3600)
 		{
 			forecastWeatherHourly[0] = forecastWeatherHourly[1];
 			forecastWeatherHourly[1] = forecastWeatherHourly[2];
