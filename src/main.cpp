@@ -209,7 +209,7 @@ void loop()
 		int t = 0;//tries
 		while (WiFi.status() != WL_CONNECTED && t < 10)
 		{
-			displayWeather.DisplayGFX->fillCircle(400 - 45 + (t * 10), 10, 3, TEXT_MAIN_COLOR);
+			displayWeather.DisplayGFX->fillCircle(510 + (t * 10), 10, 3, TEXT_ALT_COLOR);
 			delay(1000);
 			t++;
 		}
