@@ -173,7 +173,7 @@ class DisplayControl
 
 		void fillScreen(uint16_t color);
 
-		void drawChar(int16_t x, int16_t y, unsigned char c, TextAlignment verticalAlign = TEXT_LEFT_TOP, uint16_t foregroundColor = WHITE);
+		void drawChar(int16_t x, int16_t y, char c, TextAlignment verticalAlign = TEXT_LEFT_TOP, uint16_t foregroundColor = WHITE);
 
 		void drawString(String str, int16_t x, int16_t y, TextAlignment align = TEXT_LEFT_TOP, uint16_t foregroundColor = WHITE, uint16_t backgroundColor = BLACK, boolean invert = false, boolean mode = false);
 		

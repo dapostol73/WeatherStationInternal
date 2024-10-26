@@ -413,7 +413,7 @@ void DisplayControl::drawFatCircle(int16_t x, int16_t y, int16_t r, int16_t wd, 
     }
 }
 
-void DisplayControl::drawChar(int16_t x, int16_t y, unsigned char c, TextAlignment verticalAlign, uint16_t foregroundColor)
+void DisplayControl::drawChar(int16_t x, int16_t y, char c, TextAlignment verticalAlign, uint16_t foregroundColor)
 {
     int16_t x1, y1 = 0;
     uint16_t w, h, hIng = 0;

@@ -629,7 +629,7 @@ void DisplayWeather::drawHumidityIcon(float humidity, int16_t x, int16_t y, int1
     
 void DisplayWeather::drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor)
 {
-	char humi[6];
+	char humi[8];
 	dtostrf(humidity, 2, 1, humi);
 	strcat(humi, "%");
 	//String humi = String(humidity, 1) + "%";
@@ -748,8 +748,8 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	
 	drawHumidityIcon(forecastWeather[dayIndex].humidity, x + 16 - 16, y + 330 - 22, 2);
 	drawHumidity(forecastWeather[dayIndex].humidity, x + 40, y + 330, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
-	
-	drawString(forecastWeather[dayIndex].description, x, y + 360, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);	
+
+	drawString(forecastWeather[dayIndex].description, x, y + 360, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
 }
 
 void DisplayWeather::drawForecastHourly(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
