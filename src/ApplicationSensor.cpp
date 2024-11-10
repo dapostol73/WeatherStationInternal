@@ -9,7 +9,7 @@ WiFiClient client;
 	// Sensor Whistler: -4.6
 	#define SHT_TEMPOFFSET -5.6
 	// Sensor Home: 10.0
-	// Sensor Whistler: 8.0
+	// Sensor Whistler: 12.0
 	#define SHT_HMDOFFSET 10.0
 #endif
 #ifdef BME_280
