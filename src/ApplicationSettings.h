@@ -88,6 +88,6 @@ ApplicationSettings Office(WiFiConnection("officessid", "officepw123"),
                            ThingSpeakInfo("officeWriteAPIKey", "officeReadAPIKey", 1234567));
 
 ApplicationSettings AppSettings[] = { Home, Office };
-uint8_t AppSettingsCount = 2;
+uint8_t AppSettingsCount = sizeof(AppSettings) / sizeof(AppSettings[0]);
 
 #endif
