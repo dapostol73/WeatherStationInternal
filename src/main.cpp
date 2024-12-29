@@ -1,15 +1,23 @@
+//*****************************************************************************
+// Copyright (c) 2014 A12 Studios Inc. and Demetrius Apostolopoulos.
+// All rights reserved.
+//
 // Firmware for ESP8266
 // Flash to this version: https://github.com/espressif/ESP8266_NONOS_SDK/
 // This on how to: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
+//
+// If Serial Logging support is required add this build flag to platformio.ini
+//   build_flags = -D SERIAL_LOGGING
+//*****************************************************************************
 
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
-#include <WiFiEspAT.h>
 
 #include "UserSettings.h"
 #include "ApplicationHelper.h"
 #include "ApplicationSensor.h"
+#include "NetworkManager.h"
 #include "DisplayWeather.h"
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
@@ -22,7 +30,6 @@ SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
 //#define DEBUG
-//#define SERIAL_LOGGING
 #ifndef SERIAL_LOGGING
 // disable Serial output
 #define Serial KillDefaultSerial
@@ -35,6 +42,7 @@ public:
 #endif
 
 ApplicationSettings appSettings;
+NetworkManager netManager;
 
 //******************************//
 // Internal Sensor Settings     //
@@ -90,21 +98,23 @@ int numberOfOverlays = 2;
  * Begin Settings
  **************************/
 // Time check setup, slighty off to easy the parsing.
-const int INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
-const int EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
+const uint16_t INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
+const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
 //const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
-const int CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
-const int FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
-const int FORECAST_DAILY_INTERVAL_SECS = 125 * 60; // Update every 125 minutes
+const uint16_t CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
+const uint16_t FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
+const uint16_t FORECAST_DAILY_INTERVAL_SECS = 125 * 60; // Update every 125 minutes
+const uint16_t WIFI_UPDATE_SECS = 120; // wait 2 minutes to reconnect
 
 bool updateSuccessed = true;
 time_t lastUpdated;
 long timeSinceCurrentUpdate = LONG_MIN;
 long timeSinceForecastHourlyUpdate = LONG_MIN;
 long timeSinceForecastDailyUpdate = LONG_MIN;
+long timeSinceWiFiLastUpdate = LONG_MIN;
 
+void initNetwork();
 bool updateData();
-void configureWiFi();
 
 #ifdef DEBUG
 #define IRQ_PIN 44
@@ -148,6 +158,7 @@ void loop()
 void setup()
 {
 	Serial.begin(SERIAL_BAUD_RATE);
+	Serial3.begin(SERIAL_BAUD_RATE);	
 	
 	displayProgress.x = 0;
 	displayProgress.y = 420;
@@ -176,7 +187,7 @@ void setup()
 	displayWeather.drawWeatherIcon(550, 320, "13d", true, 2);
 	displayWeather.drawWeatherIcon(700, 320, "50d", true, 2);
 
-	configureWiFi();
+	initNetwork();
 	initHelpers();// needs WiFi
 	initSensors();
 }
@@ -199,20 +210,19 @@ void loop()
 			break;
 	}
 
-	if (WiFi.status() != WL_CONNECTED || !updateSuccessed)
+	if (!netManager.isConnected() && millis() - timeSinceWiFiLastUpdate > (1000L*WIFI_UPDATE_SECS))
 	{
-		WiFi.disconnect(true);
-		WiFi.reset();
-		delay(3000);
-		WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-		WiFi.sleepMode(WIFI_NONE_SLEEP);
-		int t = 0;//tries
-		while (WiFi.status() != WL_CONNECTED && t < 10)
-		{
-			displayWeather.DisplayGFX->fillCircle(510 + (t * 10), 10, 3, TEXT_ALT_COLOR);
-			delay(1000);
-			t++;
-		}
+        #ifdef SERIAL_LOGGING
+        Serial.println("Attempting to connect to WiFi");
+        #endif
+        if (!netManager.connectWiFi(appSettings.WifiSettings));
+        {
+            //If a connection failed, rescan for new settings.
+            uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
+            appSettings = AppSettings[appSetID];
+        }
+
+        timeSinceWiFiLastUpdate = millis();
 		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 	}
 
@@ -273,6 +283,23 @@ void loop()
 }
 
 #endif
+
+void initNetwork()
+{
+	char info[48] = "";
+	displayWeather.drawProgress(25, "Intializing WiFi module");
+	netManager.init();
+	displayWeather.drawProgress(50, "Scanning for WiFi SSID");
+    uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
+    appSettings = AppSettings[appSetID];
+	sprintf(info, "Connecting to: %s", appSettings.WifiSettings.SSID);
+	displayWeather.drawProgress(75, info);
+    netManager.connectWiFi(appSettings.WifiSettings);
+	displayWeather.printWiFiInfo();
+	sprintf(info, "Connected IP: %s", netManager.getLocalIP().c_str());
+	displayWeather.drawProgress(100, info);
+	delay(2500);
+}
 
 bool updateData() 
 {
@@ -379,199 +406,6 @@ bool updateData()
 	displayWeather.drawProgress(100, "Updating done!");
 	delay(1000);
 	return success;
-}
-
-void resolveAppSettings()
-{
-	int8_t numNetworks = WiFi.scanNetworks();
-	#ifdef SERIAL_LOGGING
-	Serial.println("Number of networks found: " + String(numNetworks));
-	#endif
-
-	if (numNetworks == 0)
-	{
-		delay(2500);
-		numNetworks = WiFi.scanNetworks();
-	}
-
-	for (uint8_t i=0; i<numNetworks; i++)
-	{
-		String ssid = WiFi.SSID(i);
-		#ifdef SERIAL_LOGGING
-		Serial.println(ssid + " (" + String(WiFi.RSSI(i)) + ")");
-		#endif
-		for (uint8_t j=0; j < AppSettingsCount; j++)
-		{
-			const char* appSsid = AppSettings[j].WifiSettings.SSID;
-			#ifdef SERIAL_LOGGING
-			Serial.println("Checking: " + String(appSsid));
-			#endif
-			if (strcasecmp(appSsid, ssid.c_str()) == 0)
-			{
-				#ifdef SERIAL_LOGGING
-				Serial.println("Found: " + String(ssid));
-				#endif
-				AppSettings[j].WifiSettings.Avialable = true;
-				AppSettings[j].WifiSettings.Strength = WiFi.RSSI(i);
-
-				if (AppSettings[j].WifiSettings.Strength > appSettings.WifiSettings.Strength)
-				{
-					appSettings = AppSettings[j];
-				}
-			}
-		}
-	}
-
-	#ifdef SERIAL_LOGGING
-	Serial.println("Using WiFi " + String(appSettings.WifiSettings.SSID));
-	#endif
-	WiFi.disconnect();	
-}
-
-void printConnectInfo()
-{
-	// get your MAC address
-	byte mac[6];
-	WiFi.macAddress(mac);
-	IPAddress ip = WiFi.localIP();
-	
-	// SSID
-	char ssidInfo[34] = "";
-	sprintf(ssidInfo, "WiFi SSID: %s", WiFi.SSID());
-
-	// MAC address
-	char macInfo[34] = "";
-	sprintf(macInfo, "MAC address: %02X:%02X:%02X:%02X:%02X:%02X", mac[5], mac[4], mac[3], mac[2], mac[1], mac[0]);
-
-	// IP address
-	char ipInfo[34] = "";
-	sprintf(ipInfo, "IP address: %u.%u.%u.%u", ip[0], ip[1], ip[2], ip[3]);
-	
-	displayWeather.printLine(ssidInfo, SUCCESS_COLOR);
-	displayWeather.printLine(ipInfo, TEXT_MAIN_COLOR);
-	displayWeather.printLine(macInfo, TEXT_MAIN_COLOR);
-
-	#ifdef SERIAL_LOGGING
-	Serial.println(ssidInfo);
-	Serial.println(ipInfo);	
-	Serial.println(macInfo);
-	#endif
-}
-
-bool connectToWiFi(uint8_t retries)
-{
-	String scanMsg = "Scanning for WiFi SSID.";
-	#ifdef SERIAL_LOGGING
-	Serial.println(scanMsg);
-	#endif
-	displayWeather.drawProgress(30, scanMsg);
-	resolveAppSettings();
-
-	char infoMsg[] = "Waiting for connection to WiFi";
-	if (!appSettings.WifiSettings.Avialable)
-	{
-		char connectErr[48] = "";
-		sprintf(connectErr, "No WiFi connections found for %s!", appSettings.WifiSettings.SSID);
-		#ifdef SERIAL_LOGGING
-		Serial.println(connectErr);
-		#endif
-		displayWeather.fillScreen(ERROR_COLOR);
-		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, ERROR_COLOR);
-		return false;
-	}
-
-	WiFi.begin(appSettings.WifiSettings.SSID, appSettings.WifiSettings.Password);
-	WiFi.sleepMode(WIFI_NONE_SLEEP);
-	#ifdef SERIAL_LOGGING
-	Serial.println(infoMsg);
-	#endif
-	displayWeather.drawProgress(50, infoMsg);
-
-	uint8_t attempts = 0;
-	uint8_t attemptMax = 3;
-
-	sprintf(infoMsg, "Connecting to %s", appSettings.WifiSettings.SSID);
-	while (WiFi.status() != WL_CONNECTED && attempts < attemptMax)
-	{
-		delay(1000);
-		#ifdef SERIAL_LOGGING
-		Serial.print('.');
-		#endif
-		displayWeather.drawProgress(65 + (attempts*5), infoMsg);
-		++attempts;
-	}
-	#ifdef SERIAL_LOGGING
-	Serial.println();
-	#endif
-
-	uint8_t retry = 0;
-	while(WiFi.status() != WL_CONNECTED)
-	{
-		if (retry < retries)
-		{
-			connectToWiFi(0);
-			++retry;
-		}
-		else
-		{
-			return false;
-		}
-		
-	}
-
-	return true;
-}
-
-void configureWiFi()
-{
-	String intialMsg = "Intializing WiFi module.";
-	#ifdef SERIAL_LOGGING
-	Serial.println(intialMsg);
-	#endif
-	displayWeather.drawProgress(10, intialMsg);
-	Serial3.begin(SERIAL_BAUD_RATE);
-	
-	WiFi.init(&Serial3);
-	delay(1000);
-	//WiFi.endAP(true);
-	WiFi.setAutoConnect(true);
-	WiFi.setPersistent(false);
-
-	if (WiFi.status() == WL_NO_SHIELD)
-	{
-		String initialErr = "Communication with WiFi module failed!";
-		#ifdef SERIAL_LOGGING
-		Serial.println(initialErr);
-		#endif
-		displayWeather.fillScreen(ERROR_COLOR);
-		displayWeather.drawString(initialErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, ERROR_COLOR);
-		// don't continue
-		while (true)
-			;
-	}
-
-	if (!connectToWiFi(2))
-	{
-		char connectErr[48] = "";
-		sprintf(connectErr, "Failed to connect to %s WiFi!", appSettings.WifiSettings.SSID);
-		#ifdef SERIAL_LOGGING
-		Serial.println(connectErr);
-		#endif
-		displayWeather.fillScreen(ERROR_COLOR);
-		displayWeather.drawString(connectErr, 400, 240, TEXT_CENTER_MIDDLE, BLACK, ERROR_COLOR);
-		// don't continue
-		while (true)
-			;
-	}
-
-	char ssidInfo[42] = "";
-	sprintf(ssidInfo, "Connected to WiFi: %s", appSettings.WifiSettings.SSID);
-	displayWeather.drawProgress(90, ssidInfo);
-	delay(500);
-		
-	printConnectInfo();
-	displayWeather.drawProgress(100, "WiFi initialization done!");
-	delay(1000);
 }
 
 void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y)

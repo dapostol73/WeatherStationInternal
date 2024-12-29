@@ -163,6 +163,7 @@ class DisplayWeather : public DisplayControl
         void drawForecastDaily(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
         void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastHourlyUpdated, bool forecastDailyUpdated, time_t timeUpdated);
         void drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather);
+        void printWiFiInfo();
 };
 
 #endif
