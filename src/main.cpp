@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include <WiFiEspAT.h>
 
-#include "ApplicationSettings.h"
+#include "UserSettings.h"
 #include "ApplicationHelper.h"
 #include "ApplicationSensor.h"
 #include "DisplayWeather.h"
