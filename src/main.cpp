@@ -48,7 +48,6 @@ NetworkManager netManager;
 // Internal Sensor Settings     //
 //******************************//
 long timeSinceWiFiLastUpdate = LONG_MIN;
-bool updateWiFiSettings = true;
 
 //******************************//
 // Internal Sensor Settings     //
@@ -203,7 +202,7 @@ void loop()
 	{
 		case UPDATE:
 			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
-			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = updateWiFiSettings = true;// force update
+			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 			break;
 		case FORWARD:
 			displayWeather.navigateForwardFrame();
@@ -215,13 +214,12 @@ void loop()
 			break;
 	}
 
-	if ((!netManager.isConnected() && millis() - timeSinceWiFiLastUpdate > (1000L*WIFI_UPDATE_SECS))
-		|| updateWiFiSettings)
+	if (!netManager.isConnected() && millis() - timeSinceWiFiLastUpdate > (1000L*WIFI_UPDATE_SECS))
 	{
 		#ifdef SERIAL_LOGGING
-		Serial.println("Attempting to connect to WiFi");
+		Serial.println("Attempting to reconnect to WiFi");
 		#endif
-		if (!netManager.connectWiFi(appSettings.WifiSettings));
+		if (!netManager.connectWiFi(appSettings.WifiSettings))
 		{
 			//If a connection failed, rescan for new settings.
 			uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);

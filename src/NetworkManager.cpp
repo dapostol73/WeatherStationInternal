@@ -105,6 +105,7 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 		return false;
 	}
 
+	WiFi.disconnect();
 	WiFi.begin(wiFiConnection.SSID, wiFiConnection.Password);
 	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	#ifdef SERIAL_LOGGING
