@@ -6,9 +6,9 @@ NetworkManager::NetworkManager()
 }
 
 bool NetworkManager::init()
-{    
+{
 	#ifdef SERIAL_LOGGING
-    String intialMsg = "Intializing WiFi module.";
+	String intialMsg = "Intializing WiFi module.";
 	Serial.println(intialMsg);
 	#endif
 
@@ -33,7 +33,7 @@ bool NetworkManager::init()
 
 bool NetworkManager::isConnected()
 {
-	return WiFi.status() == WL_CONNECTED;
+	return (WiFi.status() == WL_CONNECTED);
 }
 
 int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t numOfSettings)
@@ -94,7 +94,7 @@ int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t nu
 /// @param retryDelay in seconds
 /// @return 
 bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAttempts, uint16_t retryDelay)
-{    
+{
 	if (!wiFiConnection.Avialable)
 	{
 		#ifdef SERIAL_LOGGING
@@ -105,8 +105,8 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 		return false;
 	}
 
-	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	WiFi.begin(wiFiConnection.SSID, wiFiConnection.Password);
+	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	#ifdef SERIAL_LOGGING
 	char infoMsg[] = "Waiting for connection to WiFi";
 	Serial.println(infoMsg);
@@ -136,14 +136,9 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 			connectWiFi(wiFiConnection, 0, retryDelay);
 			++retry;
 		}
-		else
-		{
-			return false;
-		}
-		
 	}
 
-	return true;
+	return isConnected();
 }
 
 String NetworkManager::getLocalIP()

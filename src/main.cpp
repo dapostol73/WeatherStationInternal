@@ -47,6 +47,12 @@ NetworkManager netManager;
 //******************************//
 // Internal Sensor Settings     //
 //******************************//
+long timeSinceWiFiLastUpdate = LONG_MIN;
+bool updateWiFiSettings = true;
+
+//******************************//
+// Internal Sensor Settings     //
+//******************************//
 SensorData internalSensorData;
 long timeSinceInternalUpdate = LONG_MIN;
 
@@ -68,6 +74,7 @@ OpenWeatherMapCurrentData currentWeather;
 OpenWeatherMapCurrent currentWeatherClient;
 bool updateCurrentWeather = true;
 bool currentWeatherUpdated = false;
+long timeSinceCurrentUpdate = LONG_MIN;
 
 OpenWeatherMapForecastData forecastWeatherDaily[DAILY_MAX_FORECASTS];
 OpenWeatherMapForecastData forecastWeatherHourlyQuerry[HOURLY_MAX_FORECASTS];
@@ -77,6 +84,23 @@ bool updateForecastDailyWeather = true;
 bool forecastWeatherDailyUpdated = false;
 bool updateForecastHourlyWeather = true;
 bool forecastWeatherHourlyUpdated = false;
+long timeSinceForecastHourlyUpdate = LONG_MIN;
+long timeSinceForecastDailyUpdate = LONG_MIN;
+
+/***************************
+ * Timming Settings
+ **************************/
+// Time check setup, slighty off to easy the parsing.
+const uint16_t INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
+const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
+//const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
+const uint16_t CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
+const uint16_t FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
+const uint16_t FORECAST_DAILY_INTERVAL_SECS = 125 * 60; // Update every 125 minutes
+const uint16_t WIFI_UPDATE_SECS = 120; // wait 2 minutes to reconnect
+
+bool updateSuccessed = true;
+time_t lastUpdated;
 
 DisplayWeather displayWeather;
 DisplayContolProgress displayProgress;
@@ -93,25 +117,6 @@ int numberOfFrames = 4;
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
 int numberOfOverlays = 2;
-
-/***************************
- * Begin Settings
- **************************/
-// Time check setup, slighty off to easy the parsing.
-const uint16_t INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
-const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
-//const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
-const uint16_t CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
-const uint16_t FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
-const uint16_t FORECAST_DAILY_INTERVAL_SECS = 125 * 60; // Update every 125 minutes
-const uint16_t WIFI_UPDATE_SECS = 120; // wait 2 minutes to reconnect
-
-bool updateSuccessed = true;
-time_t lastUpdated;
-long timeSinceCurrentUpdate = LONG_MIN;
-long timeSinceForecastHourlyUpdate = LONG_MIN;
-long timeSinceForecastDailyUpdate = LONG_MIN;
-long timeSinceWiFiLastUpdate = LONG_MIN;
 
 void initNetwork();
 bool updateData();
@@ -159,7 +164,7 @@ void setup()
 {
 	Serial.begin(SERIAL_BAUD_RATE);
 	Serial3.begin(SERIAL_BAUD_RATE);	
-	
+
 	displayProgress.x = 0;
 	displayProgress.y = 420;
 	displayProgress.width = 800;
@@ -198,7 +203,7 @@ void loop()
 	{
 		case UPDATE:
 			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
-			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
+			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = updateWiFiSettings = true;// force update
 			break;
 		case FORWARD:
 			displayWeather.navigateForwardFrame();
@@ -210,19 +215,20 @@ void loop()
 			break;
 	}
 
-	if (!netManager.isConnected() && millis() - timeSinceWiFiLastUpdate > (1000L*WIFI_UPDATE_SECS))
+	if ((!netManager.isConnected() && millis() - timeSinceWiFiLastUpdate > (1000L*WIFI_UPDATE_SECS))
+		|| updateWiFiSettings)
 	{
-        #ifdef SERIAL_LOGGING
-        Serial.println("Attempting to connect to WiFi");
-        #endif
-        if (!netManager.connectWiFi(appSettings.WifiSettings));
-        {
-            //If a connection failed, rescan for new settings.
-            uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
-            appSettings = AppSettings[appSetID];
-        }
+		#ifdef SERIAL_LOGGING
+		Serial.println("Attempting to connect to WiFi");
+		#endif
+		if (!netManager.connectWiFi(appSettings.WifiSettings));
+		{
+			//If a connection failed, rescan for new settings.
+			uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
+			appSettings = AppSettings[appSetID];
+		}
 
-        timeSinceWiFiLastUpdate = millis();
+		timeSinceWiFiLastUpdate = millis();
 		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 	}
 
@@ -290,11 +296,11 @@ void initNetwork()
 	displayWeather.drawProgress(25, "Intializing WiFi module");
 	netManager.init();
 	displayWeather.drawProgress(50, "Scanning for WiFi SSID");
-    uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
-    appSettings = AppSettings[appSetID];
+	uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
+	appSettings = AppSettings[appSetID];
 	sprintf(info, "Connecting to: %s", appSettings.WifiSettings.SSID);
 	displayWeather.drawProgress(75, info);
-    netManager.connectWiFi(appSettings.WifiSettings);
+	netManager.connectWiFi(appSettings.WifiSettings);
 	displayWeather.printWiFiInfo();
 	sprintf(info, "Connected IP: %s", netManager.getLocalIP().c_str());
 	displayWeather.drawProgress(100, info);
