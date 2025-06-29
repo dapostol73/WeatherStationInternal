@@ -1,3 +1,8 @@
+//*****************************************************************************
+// Rename to UserSettings.h and modify for your local settings.
+// Add as many WiFi and ThingSpeak configs as needed.
+//*****************************************************************************
+
 #ifndef _USER_SETTINGS_H_
 #define _USER_SETTINGS_H_
 

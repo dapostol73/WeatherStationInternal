@@ -35,5 +35,5 @@ google-services.json
 .vscode/
 .temp/
 
-# Application Settings
-src/ApplicationSettings.h
+# User Settings
+src/UserSettings.h
