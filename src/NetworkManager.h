@@ -19,7 +19,7 @@ class NetworkManager
         bool init();
         bool isConnected();
         int scanSettingsID(ApplicationSettings* aSettings, uint16_t nSettings);
-        bool connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAttempts = 2, uint16_t retryDelay = 20);
+        bool connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAttempts = 15, uint16_t retryDelay = 20);
         String getLocalIP();
 };
 

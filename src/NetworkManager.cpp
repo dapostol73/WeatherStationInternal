@@ -14,7 +14,7 @@ bool NetworkManager::init()
 
 	WiFi.init(&Serial3);
 
-	delay(1000);;
+	delay(1000);
 	WiFi.setAutoConnect(true);
 	WiFi.setPersistent(false);
 
@@ -89,10 +89,11 @@ int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t nu
 	return id;
 }
 
-/// @brief 
-/// @param retryAttempts number of reconnect attempts if failed
-/// @param retryDelay in seconds
-/// @return 
+/// @brief Used for connecting to WiFi first time, by default will try 15 times every 20 seonds
+/// @param wiFiConnection connection to use
+/// @param retryAttempts attempts to connect 15
+/// @param retryDelay how many seconds to delay between attempts (min 5 sec)
+/// @return true if connection was successful
 bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAttempts, uint16_t retryDelay)
 {
 	if (!wiFiConnection.Avialable)
@@ -113,11 +114,12 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 	Serial.println(infoMsg);
 	#endif
 
+	// Give it 5 seconds to establish connection.
 	uint8_t attempts = 0;
-	uint8_t attemptMax = 3;
+	uint8_t attemptMax = 10;
 	while (WiFi.status() != WL_CONNECTED && attempts < attemptMax)
 	{
-		delay(1000);
+		delay(500);
 
 		#ifdef SERIAL_LOGGING
 		Serial.print('.');
@@ -133,7 +135,7 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 	{
 		if (retry < retryAttempts)
 		{
-			delay(1000L*retryDelay);
+			delay(1000L*max(retryDelay-5, 0));
 			connectWiFi(wiFiConnection, 0, retryDelay);
 			++retry;
 		}

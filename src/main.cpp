@@ -179,6 +179,12 @@ void loop()
 		#endif
 		// All updates will be invalid at this point.
 		externalSensorData.IsUpdated = currentWeatherUpdated = forecastWeatherHourlyUpdated = forecastWeatherDailyUpdated = false;
+		if (!netManager.connectWiFi(appSettings.WifiSettings, 3))
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("WiFi reconnect failed.");
+			#endif			
+		}
 	}
 	else
 	{
