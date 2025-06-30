@@ -855,7 +855,7 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
     sprintf(m_lastTimeUpdated, "%02d/%02d/%04d -- %02d:%02d:%02d", 
             month(timeUpdated), day(timeUpdated), year(timeUpdated), 
             hour(timeUpdated), minute(timeUpdated), second(timeUpdated));
-	drawString(m_lastTimeUpdated, 800, 10, TEXT_RIGHT_MIDDLE);
+	drawString(m_lastTimeUpdated, 796, 10, TEXT_RIGHT_MIDDLE);
 
 	drawMemoryBar(80, 3, 2);
 	drawWiFiSignal(764, 28, 3, BACKGROUND_COLOR);

@@ -43,11 +43,8 @@ public:
 
 ApplicationSettings appSettings;
 NetworkManager netManager;
-
-//******************************//
-// Internal Sensor Settings     //
-//******************************//
-long timeSinceWiFiLastUpdate = LONG_MIN;
+bool wiFiCurrentState;
+bool wiFiLastState;
 
 //******************************//
 // Internal Sensor Settings     //
@@ -120,45 +117,6 @@ int numberOfOverlays = 2;
 void initNetwork();
 bool updateData();
 
-#ifdef DEBUG
-#define IRQ_PIN 44
-volatile bool test = false;
-void interruptServiceRoutine()
-{
-  // code to be executed when the interrupt occurs
-  test = true;
-}
-
-void setup()
-{
-	Serial.begin(SERIAL_BAUD_RATE);
-	displayWeather.init();
-	displayWeather.fillScreen(BLACK);
-
-	displayWeather.DisplayGFX->drawFastVLine(300, 0, 480, RED);
-	displayWeather.DisplayGFX->drawFastVLine(400, 0, 480, RED);
-	displayWeather.DisplayGFX->drawFastVLine(500, 0, 480, RED);
-	displayWeather.drawChar(300,  50, 'A', TEXT_LEFT_TOP);
-	displayWeather.drawChar(300, 100, 'B', TEXT_CENTER_TOP);
-	displayWeather.drawChar(300, 150, 'C', TEXT_RIGHT_TOP);
-	displayWeather.drawChar(400, 50, 'D', TEXT_LEFT_MIDDLE);
-	displayWeather.drawChar(400, 100, 'E', TEXT_CENTER_MIDDLE);
-	displayWeather.drawChar(400, 150, 'F', TEXT_RIGHT_MIDDLE);
-	displayWeather.drawChar(500, 50, 'G', TEXT_LEFT_BOTTOM);
-	displayWeather.drawChar(500, 100, 'H', TEXT_CENTER_BOTTOM);
-	displayWeather.drawChar(500, 150, 'I', TEXT_RIGHT_BOTTOM);
-	//pinMode(IRQ_PIN, INPUT);
-	//attachInterrupt(digitalPinToInterrupt(IRQ_PIN), interruptServiceRoutine, CHANGE);
-	//displayWeather.drawTemperatureHumidity(0, 0, 21.5, 44.2, 11.2, 35.2);
-}
-
-void loop()
-{
-	;
-}
-
-#else
-
 void setup()
 {
 	Serial.begin(SERIAL_BAUD_RATE);
@@ -214,53 +172,48 @@ void loop()
 			break;
 	}
 
-	if (!netManager.isConnected() && millis() - timeSinceWiFiLastUpdate > (1000L*WIFI_UPDATE_SECS))
+	if (!netManager.isConnected())
 	{
 		#ifdef SERIAL_LOGGING
-		Serial.println("Attempting to reconnect to WiFi");
+		Serial.println("WiFi disconnect, waiting for reconnect.");
 		#endif
-		if (!netManager.connectWiFi(appSettings.WifiSettings))
+		// All updates will be invalid at this point.
+		externalSensorData.IsUpdated = currentWeatherUpdated = forecastWeatherHourlyUpdated = forecastWeatherDailyUpdated = false;
+	}
+	else
+	{
+		if (millis() - timeSinceForecastDailyUpdate > (1000L*FORECAST_DAILY_INTERVAL_SECS))
 		{
-			//If a connection failed, rescan for new settings.
-			uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
-			appSettings = AppSettings[appSetID];
+			#ifdef SERIAL_LOGGING
+			Serial.println("Setting updateForecastDailyWeather to true");
+			#endif
+			updateForecastDailyWeather = true;
+			timeSinceForecastDailyUpdate = millis();
 		}
 
-		timeSinceWiFiLastUpdate = millis();
-		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
-	}
+		if (millis() - timeSinceForecastHourlyUpdate > (1000L*FORECAST_HOURLY_INTERVAL_SECS))
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("Setting updateForecastHourlyWeather to true");
+			#endif
+			updateForecastHourlyWeather = true;
+			timeSinceForecastHourlyUpdate = millis();
+		}
 
-	if (millis() - timeSinceForecastDailyUpdate > (1000L*FORECAST_DAILY_INTERVAL_SECS))
-	{
-		#ifdef SERIAL_LOGGING
-		Serial.println("Setting updateForecastDailyWeather to true");
-		#endif
-		updateForecastDailyWeather = true;
-		timeSinceForecastDailyUpdate = millis();
-	}
+		if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("Setting updateCurrentWeather to true");
+			#endif
+			updateCurrentWeather = true;
+			timeSinceCurrentUpdate = millis();
+		}
 
-	if (millis() - timeSinceForecastHourlyUpdate > (1000L*FORECAST_HOURLY_INTERVAL_SECS))
-	{
-		#ifdef SERIAL_LOGGING
-		Serial.println("Setting updateForecastHourlyWeather to true");
-		#endif
-		updateForecastHourlyWeather = true;
-		timeSinceForecastHourlyUpdate = millis();
-	}
-
-	if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
-	{
-		#ifdef SERIAL_LOGGING
-		Serial.println("Setting updateCurrentWeather to true");
-		#endif
-		updateCurrentWeather = true;
-		timeSinceCurrentUpdate = millis();
-	}
-
-	if(millis() - timeSinceExternalUpdate > (1000L*EXTSENSOR_INTERVAL_SECS))
-	{
-		updateExternalSensors = true;
-		timeSinceExternalUpdate = millis();
+		if(millis() - timeSinceExternalUpdate > (1000L*EXTSENSOR_INTERVAL_SECS))
+		{
+			updateExternalSensors = true;
+			timeSinceExternalUpdate = millis();
+		}
 	}
 
 	//Read sensor values base on Upload interval seconds
@@ -275,8 +228,15 @@ void loop()
 		updateSuccessed = updateData();
 	}
 
-	int remainingTimeBudget = displayWeather.update();
+	// Force an update if we were offline and just came online
+	wiFiLastState = wiFiCurrentState;
+	wiFiCurrentState = netManager.isConnected();
+	if (wiFiLastState == false && wiFiCurrentState == true)
+	{
+		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
+	}
 
+	int8_t remainingTimeBudget = displayWeather.update();
 	if (remainingTimeBudget > 0) 
 	{
 		// You can do some work here
@@ -285,8 +245,6 @@ void loop()
 		delay(remainingTimeBudget);
 	}
 }
-
-#endif
 
 void initNetwork()
 {
