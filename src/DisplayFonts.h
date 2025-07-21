@@ -4,14 +4,17 @@
 // Downloaded from https://www.1001freefonts.com/teko.font
 // Generated from https://rop.nl/truetype2gfx/
 #include "Fonts/CalibriBold8pt7b.h"
+#include "Fonts/CalibriBold12pt7b.h"
 #include "Fonts/CalibriBold16pt7b.h"
 #include "Fonts/CalibriBold24pt7b.h"
 #include "Fonts/CalibriBold32pt7b.h"
 #include "Fonts/CalibriLight8pt7b.h"
+#include "Fonts/CalibriLight12pt7b.h"
 #include "Fonts/CalibriLight16pt7b.h"
 #include "Fonts/CalibriLight24pt7b.h"
 #include "Fonts/CalibriLight32pt7b.h"
 #include "Fonts/CalibriRegular8pt7b.h"
+#include "Fonts/CalibriRegular12pt7b.h"
 #include "Fonts/CalibriRegular16pt7b.h"
 #include "Fonts/CalibriRegular24pt7b.h"
 #include "Fonts/CalibriRegular32pt7b.h"
