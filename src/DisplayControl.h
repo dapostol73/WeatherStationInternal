@@ -1,13 +1,8 @@
 #ifndef _DISPLAY_CONTROL_H_
 #define _DISPLAY_CONTROL_H_
 
-//#define LCDWIKI
-#ifdef LCDWIKI
-	#include <LCDWIKI_NT35510.h>
-#else
-	#define DISABLE_COLOR_DEFINES
-	#include <Arduino_GFX_Library.h>
-#endif
+#define DISABLE_COLOR_DEFINES
+#include <Arduino_GFX_Library.h>
 #include <gfxfont.h>
 
 #define BITS_PER_PIXEL 2 // 2^2 =  4 colors
@@ -137,21 +132,15 @@ class DisplayControl
 		DisplayControlState* getUiState();
 
     protected:
-	#ifndef LCDWIKI
 		// Arduino_DataBus *bus = new Arduino_SWPAR16(38, 40, 39, 43, 37, 36, 35, 34, 33, 32, 31, 30, 22, 23, 24, 25, 26, 27, 28, 29);
 		Arduino_DataBus *bus = new Arduino_AVRPAR16(38 /* DC */, 40 /* CS */, 39 /* WR */, 43 /* RD */, 3 /* PORT LOW */, 1 /* PORT HIGH */);
-	#endif
-
 		const GFXfont *m_gfxFont;
 		const GFXfont *m_gfxFontDefault;
 		const GFXfont *m_gfxFontTemp;
 
 	public:
-	#ifdef LCDWIKI
-		LCDWIKI_NT35510 *DisplayGFX = new LCDWIKI_NT35510(NT35510, 38, 39, 40, 41, 43);
-	#else
 		Arduino_GFX *DisplayGFX = new Arduino_NT35510(bus, 41);
-	#endif
+
 		DisplayControl();
 		/// @brief 
 		/// @param rotation 0,1,2,3 = (0,90,180,270)
