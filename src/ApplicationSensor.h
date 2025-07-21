@@ -7,7 +7,6 @@
 
 #include <Adafruit_Sensor.h>
 
-#define SHT_3X // BME_280/DHT_22/SHT_3X
 #ifdef SHT_3X
     #include <Adafruit_SHT31.h>
 #endif

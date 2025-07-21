@@ -122,6 +122,16 @@ void setup()
 	Serial.begin(SERIAL_BAUD_RATE);
 	Serial3.begin(SERIAL_BAUD_RATE);	
 
+#ifdef DISPLAY_ILI9488
+	displayProgress.x = 0;
+	displayProgress.y = 320;
+	displayProgress.width = 480;
+	displayProgress.height = 40;
+	displayProgress.padding = 2;
+	displayProgress.corner = 12;
+	displayProgress.foregroundColor = TEXT_ALT_COLOR;
+	displayProgress.gfxFont = &CalibriRegular8pt7b;
+#else
 	displayProgress.x = 0;
 	displayProgress.y = 420;
 	displayProgress.width = 800;
@@ -130,13 +140,26 @@ void setup()
 	displayProgress.corner = 24;
 	displayProgress.foregroundColor = TEXT_ALT_COLOR;
 	displayProgress.gfxFont = &CalibriRegular16pt7b;
+#endif
 	displayWeather.init();
-
 	displayWeather.setProgress(&displayProgress);
 	displayWeather.setFrames(frames, numberOfFrames);
 	displayWeather.setOverlays(overlays, numberOfOverlays);
 
 	displayWeather.fillScreen(BLACK);
+#ifdef DISPLAY_ILI9488
+	displayWeather.drawString("Weather Station", 240, 160, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
+	displayWeather.drawWeatherIcon(60,  60, "00d", true, 1);
+	displayWeather.drawWeatherIcon(150, 60, "01d", true, 1);
+	displayWeather.drawWeatherIcon(240, 60, "02d", true, 1);
+	displayWeather.drawWeatherIcon(330, 60, "03d", true, 1);
+	displayWeather.drawWeatherIcon(420, 60, "04d", true, 1);
+	displayWeather.drawWeatherIcon(60,  240, "09d", true, 1);
+	displayWeather.drawWeatherIcon(150, 240, "10d", true, 1);
+	displayWeather.drawWeatherIcon(240, 240, "11d", true, 1);
+	displayWeather.drawWeatherIcon(330, 240, "13d", true, 1);
+	displayWeather.drawWeatherIcon(420, 240, "50d", true, 1);
+#else
 	displayWeather.drawString("Weather Station", 400, 200, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
 	displayWeather.drawWeatherIcon(100, 100, "00d", true, 2);
 	displayWeather.drawWeatherIcon(250, 100, "01d", true, 2);
@@ -148,6 +171,7 @@ void setup()
 	displayWeather.drawWeatherIcon(400, 320, "11d", true, 2);
 	displayWeather.drawWeatherIcon(550, 320, "13d", true, 2);
 	displayWeather.drawWeatherIcon(700, 320, "50d", true, 2);
+#endif
 
 	initNetwork();
 	initHelpers();// needs WiFi
@@ -159,7 +183,11 @@ void loop()
 	switch (touchTest())
 	{
 		case UPDATE:
+		#ifdef DISPLAY_ILI9488
+			displayWeather.DisplayGFX->fillRoundRect(190, 5, 100, 10, 5, SUCCESS_COLOR);
+		#else
 			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
+		#endif
 			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
 			break;
 		case FORWARD:

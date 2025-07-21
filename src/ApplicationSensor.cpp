@@ -58,12 +58,24 @@ void initSensors()
 			Serial.println("Could not find SHT3X-DIS sensor");
 			#endif
 		}
+		else
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("Connect to SHT3X-DIS sensor at 0x44");
+			#endif
+		}
 	#endif
 	#ifdef BME_280
 		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
 			#ifdef SERIAL_LOGGING
 			Serial.println("Could not find BME280 sensor at 0x76");
+			#endif
+		}
+		else
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("Connect to BME280 sensor at 0x76");
 			#endif
 		}
 	#endif

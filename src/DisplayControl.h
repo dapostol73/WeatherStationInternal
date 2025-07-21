@@ -1,7 +1,12 @@
 #ifndef _DISPLAY_CONTROL_H_
 #define _DISPLAY_CONTROL_H_
 
-#define DISABLE_COLOR_DEFINES
+// ILI9488 max TFT width - 480
+// ILI9488 max TFT height - 320
+// NT35510 max TFT width - 800
+// NT35510 max TFT height - 480
+
+//#define DISABLE_COLOR_DEFINES
 #include <Arduino_GFX_Library.h>
 #include <gfxfont.h>
 
@@ -15,15 +20,15 @@
 // https://learn.microsoft.com/en-us/dotnet/media/art-color-table.png?view=windowsdesktop-7.0
 // http://www.rinkydinkelectronics.com/calc_rgb565.php
 
-#define BLACK 0x0000
-#define GRAY 0x8410
-#define WHITE 0xFFFF
-#define BLUE 0x001F
-#define GREEN 0x07E0
-#define RED 0xF800
-#define CYAN 0x07FF
-#define YELLOW 0xFFE0
-#define PURPLE 0x780F
+//#define BLACK 0x0000
+//#define GREY 0x8410
+//#define WHITE 0xFFFF
+//#define BLUE 0x001F
+//#define GREEN 0x07E0
+//#define RED 0xF800
+//#define CYAN 0x07FF
+//#define YELLOW 0xFFE0
+//#define PURPLE 0x780F
 
 enum FrameState
 {
@@ -133,13 +138,21 @@ class DisplayControl
 
     protected:
 		// Arduino_DataBus *bus = new Arduino_SWPAR16(38, 40, 39, 43, 37, 36, 35, 34, 33, 32, 31, 30, 22, 23, 24, 25, 26, 27, 28, 29);
+	#ifdef DISPLAY_ILI9488
+		Arduino_DataBus *bus = new Arduino_AVRPAR8(38 /* DC */, 40 /* CS */, 39 /* WR */, 43 /* RD */, 3 /* PORT LOW */);
+	#else
 		Arduino_DataBus *bus = new Arduino_AVRPAR16(38 /* DC */, 40 /* CS */, 39 /* WR */, 43 /* RD */, 3 /* PORT LOW */, 1 /* PORT HIGH */);
+	#endif
 		const GFXfont *m_gfxFont;
 		const GFXfont *m_gfxFontDefault;
 		const GFXfont *m_gfxFontTemp;
 
 	public:
+	#ifdef DISPLAY_ILI9488
+		Arduino_GFX *DisplayGFX = new Arduino_ILI9488(bus, 41);
+	#else
 		Arduino_GFX *DisplayGFX = new Arduino_NT35510(bus, 41);
+	#endif
 
 		DisplayControl();
 		/// @brief 

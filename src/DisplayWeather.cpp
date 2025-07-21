@@ -92,8 +92,13 @@ DisplayWeather::DisplayWeather()
 
 void DisplayWeather::init()
 {
-    DisplayControl::init(3, &CalibriRegular8pt7b);// Default Font print line
-	setFont(&CalibriBold24pt7b);// Initial Font for text
+#ifdef DISPLAY_ILI9488
+	DisplayControl::init(1, &CalibriRegular8pt7b);// Default Font print line
+	setFont(&CalibriBold16pt7b);// Initial Font for text	
+#else
+	DisplayControl::init(3, &CalibriRegular8pt7b);// Default Font print line
+	setFont(&CalibriBold24pt7b);// Initial Font for text	
+#endif
 }
 
 /// @brief Sun 24*24

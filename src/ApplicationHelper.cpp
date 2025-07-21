@@ -14,8 +14,13 @@
 #define TP_OUT 50  /* Data out pin (T_DO) of touch screen */
 #define TP_IRQ 44  /* Interupt pin (T_IRQ) of touch screen */
 
-#define HRES 800 /* Default screen resulution for X axis */
-#define VRES 480 /* Default screen resulution for Y axis */
+#ifdef DISPLAY_ILI9488
+	#define HRES 480 /* Default screen resulution for X axis */
+	#define VRES 320 /* Default screen resulution for Y axis */
+#else
+	#define HRES 800 /* Default screen resulution for X axis */
+	#define VRES 480 /* Default screen resulution for Y axis */
+#endif
 
 #ifndef LCDWIKITOUCH
 	#define HMIN 0
@@ -50,12 +55,20 @@ Timezone naPT(naPDT, naPST);
 
 void initHelpers()
 {
+#ifdef SERIAL_LOGGING
+	Serial.println("Intializing Touch Screen...");
+#endif
+
 #ifdef LCDWIKITOUCH
 	touch.TP_Init(1, HRES, VRES);
 	touch.TP_Set_Rotation(1);
 #else
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(1);
+#endif
+
+#ifdef SERIAL_LOGGING
+	Serial.println("Intializing Time Client...");
 #endif
 	timeClient.begin();
 }

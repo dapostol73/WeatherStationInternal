@@ -166,16 +166,19 @@ HSVColor DisplayControl::colorHSV(uint16_t color)
 
 void DisplayControl::setMaxLines()
 {
+    m_maxLines = floor(DisplayGFX->height()/m_lineHeight);
+    /*
     switch (DisplayGFX->getRotation())
     {
         case 1:
         case 3:
-            m_maxLines = floor(480/m_lineHeight);
+            m_maxLines = floor(DisplayGFX->height()/m_lineHeight);
             break;
         default:
-            m_maxLines = floor(800/m_lineHeight);
+            m_maxLines = floor(DisplayGFX->width()/m_lineHeight);
             break;
-    } 
+    }
+    */
 }
 
 void DisplayControl::setFont(const GFXfont *gfxFont)
@@ -325,45 +328,9 @@ void DisplayControl::fillPolygon(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
 /// @param color = 16 bit colour value
 void DisplayControl::fillArc(int16_t x, int16_t y, int16_t start_angle, int16_t seg_count, int16_t r, int16_t w, uint16_t color)
 {
-#ifdef LCDWIKI
-    start_angle = 0;
-    seg_count = 60;
-    byte seg = 3; // Segments are 3 degrees wide = 120 segments for 360 degrees
-    byte inc = 3; // Draw segments every 3 degrees, increase to 6 for segmented ring
-
-    // Calculate first pair of coordinates for segment start
-    float sx = cos((start_angle - 90) * DEG_TO_RAD);
-    float sy = sin((start_angle - 90) * DEG_TO_RAD);
-    uint16_t x0 = sx * (r - w) + x;
-    uint16_t y0 = sy * (r - w) + y;
-    uint16_t x1 = sx * r + x;
-    uint16_t y1 = sy * r + y;
-
-    // Draw color blocks every inc degrees
-    for (int i = start_angle; i < start_angle + seg * seg_count; i += inc)
-    {
-        // Calculate pair of coordinates for segment end
-        float sx2 = cos((i + seg - 90) * DEG_TO_RAD);
-        float sy2 = sin((i + seg - 90) * DEG_TO_RAD);
-        int x2 = sx2 * (r - w) + x;
-        int y2 = sy2 * (r - w) + y;
-        int x3 = sx2 * r + x;
-        int y3 = sy2 * r + y;
-
-        DisplayGFX->fillTriangle(x0, y0, x1, y1, x2, y2, color);
-        DisplayGFX->fillTriangle(x1, y1, x2, y2, x3, y3, color);
-
-        // Copy segment end to sgement start for next segment
-        x0 = x2;
-        y0 = y2;
-        x1 = x3;
-        y1 = y3;
-    }
-#else
     start_angle -= 90;// to match start of LCDWIKI function
     int16_t end_angle = start_angle + (seg_count * 3);
     DisplayGFX->fillArc(x, y, r, r - w, start_angle, end_angle, color);
-#endif
 }
 
 void DisplayControl::drawFatLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t wd, uint16_t color)
@@ -539,11 +506,13 @@ void DisplayControl::print(const char *st, int16_t x, int16_t y)
     DisplayGFX->setCursor(x, y);
     DisplayGFX->print(st);
 }
+
 void DisplayControl::print(char *st, int16_t x, int16_t y)
 {
     DisplayGFX->setCursor(x, y);
     DisplayGFX->print(st);
 }
+
 void DisplayControl::print(String st, int16_t x, int16_t y)
 {
     DisplayGFX->setCursor(x, y);
@@ -752,7 +721,12 @@ void DisplayControl::setOverlays(OverlayCallback* overlayFunctions, uint8_t over
 
 void DisplayControl::navigateForwardFrame()
 {
-    DisplayGFX->fillTriangle(775, 200, 750, 150, 750, 250, GRAY);
+#ifdef DISPLAY_ILI9488
+    DisplayGFX->fillTriangle(455, 160, 430, 110, 430, 210, DARKGREY);
+#else
+    DisplayGFX->fillTriangle(775, 240, 750, 190, 750, 290, DARKGREY);
+#endif
+    
     delay(250);
     if (m_state.frameState != IN_TRANSITION) {
         m_state.manuelControl = true;
@@ -765,7 +739,12 @@ void DisplayControl::navigateForwardFrame()
 
 void DisplayControl::navigateBackwardFrame()
 {
-    DisplayGFX->fillTriangle(25, 200, 50, 150, 50, 250, GRAY);
+#ifdef DISPLAY_ILI9488
+    DisplayGFX->fillTriangle(25, 160, 50, 110, 50, 210, DARKGREY);
+#else
+    DisplayGFX->fillTriangle(25, 240, 50, 190, 50, 290, DARKGREY);
+#endif
+    
     delay(250);
     if (m_state.frameState != IN_TRANSITION) {
         m_state.manuelControl = true;
