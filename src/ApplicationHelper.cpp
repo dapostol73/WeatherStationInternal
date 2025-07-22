@@ -17,9 +17,15 @@
 #ifdef DISPLAY_ILI9488
 	#define HRES 480 /* Default screen resulution for X axis */
 	#define VRES 320 /* Default screen resulution for Y axis */
+	#define TTOP 20 /* Touch screen top in pixels */
+	#define TBCK 180 /* Touch screen back in pixels */
+	#define TFWD 300 /* Touch screen foward in pixels */
 #else
 	#define HRES 800 /* Default screen resulution for X axis */
 	#define VRES 480 /* Default screen resulution for Y axis */
+	#define TTOP 30 /* Touch screen top in pixels */
+	#define TBCK 300 /* Touch screen back in pixels */
+	#define TFWD 500 /* Touch screen foward in pixels */
 #endif
 
 #ifndef LCDWIKITOUCH
@@ -48,10 +54,19 @@ const long TZ_SEC = 0 * 60 * 60; // First digit is time zone, 0 = UTC time
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
+#ifdef ATLANTIC_TIMEZONE
+// North America Atlantic Time Zone (Moncton, Halifax, Charlottetown)
+TimeChangeRule naADT = {"ADT", Second, Sun, Mar, 2, -180};
+TimeChangeRule naAST = {"AST", First, Sun, Nov, 2, -240};
+Timezone naAT(naADT, naAST);
+#endif
+
+#ifdef PACIFIC_TIMEZONE
 // North America Pacific Time Zone (Las Vegas, Los Angeles, Vancouver)
 TimeChangeRule naPDT = {"PDT", Second, Sun, Mar, 2, -420};
 TimeChangeRule naPST = {"PST", First, Sun, Nov, 2, -480};
 Timezone naPT(naPDT, naPST);
+#endif
 
 void initHelpers()
 {
@@ -101,15 +116,15 @@ TouchResult touchTest()
 		Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
 		#endif
 
-		if (xValue > 300 && xValue < 500 && yValue < 20)
+		if (xValue > TBCK && xValue < TFWD && yValue < TTOP)
 		{
 			return UPDATE;
 		}
-		else if (xValue > 500)
+		else if (xValue > TFWD)
 		{
 			return FORWARD;
 		}
-		else if (xValue < 300)
+		else if (xValue < TBCK)
 		{
 			return BACKWARD;		
 		}
@@ -124,5 +139,10 @@ void updateSystemTime()
 {
 	timeClient.update();
 	time_t utc = (time_t)timeClient.getEpochTime();
+#ifdef ATLANTIC_TIMEZONE
+	setTime(naAT.toLocal(utc));	
+#endif
+#ifdef PACIFIC_TIMEZONE
 	setTime(naPT.toLocal(utc));
+#endif
 }
