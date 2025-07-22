@@ -124,13 +124,13 @@ void setup()
 
 #ifdef DISPLAY_ILI9488
 	displayProgress.x = 0;
-	displayProgress.y = 320;
+	displayProgress.y = 280;
 	displayProgress.width = 480;
 	displayProgress.height = 40;
 	displayProgress.padding = 2;
-	displayProgress.corner = 12;
+	displayProgress.corner = 16;
 	displayProgress.foregroundColor = TEXT_ALT_COLOR;
-	displayProgress.gfxFont = &CalibriRegular8pt7b;
+	displayProgress.gfxFont = &CalibriRegular12pt7b;
 #else
 	displayProgress.x = 0;
 	displayProgress.y = 420;
@@ -149,11 +149,11 @@ void setup()
 	displayWeather.fillScreen(BLACK);
 #ifdef DISPLAY_ILI9488
 	displayWeather.drawString("Weather Station", 240, 160, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
-	displayWeather.drawWeatherIcon(60,  60, "00d", true, 1);
-	displayWeather.drawWeatherIcon(150, 60, "01d", true, 1);
-	displayWeather.drawWeatherIcon(240, 60, "02d", true, 1);
-	displayWeather.drawWeatherIcon(330, 60, "03d", true, 1);
-	displayWeather.drawWeatherIcon(420, 60, "04d", true, 1);
+	displayWeather.drawWeatherIcon(60,  80, "00d", true, 1);
+	displayWeather.drawWeatherIcon(150, 80, "01d", true, 1);
+	displayWeather.drawWeatherIcon(240, 80, "02d", true, 1);
+	displayWeather.drawWeatherIcon(330, 80, "03d", true, 1);
+	displayWeather.drawWeatherIcon(420, 80, "04d", true, 1);
 	displayWeather.drawWeatherIcon(60,  240, "09d", true, 1);
 	displayWeather.drawWeatherIcon(150, 240, "10d", true, 1);
 	displayWeather.drawWeatherIcon(240, 240, "11d", true, 1);
