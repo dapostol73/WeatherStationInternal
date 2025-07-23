@@ -652,20 +652,20 @@ void DisplayWeather::drawSensorData(int16_t x, int16_t y, SensorData *internalSe
 
 	drawString("Inside", x, y + 60, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
 	
-	drawTemperatureIcon(internalSensorData->Temp, internalSensorData->IsMetric, x - 100 - 18, y + 120 - 33, 2);
+	drawTemperatureIcon(internalSensorData->Temp, internalSensorData->IsMetric, x - 80 - 6, y + 120 - 22, 2);
 	drawTemperature(internalSensorData->Temp, internalSensorData->IsMetric, x - 40, y + 120, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 	
-	drawHumidityIcon(internalSensorData->Hmd, x - 100 - 24, y + 180 - 33, 2);
-	drawHumidity(internalSensorData->Hmd, x - 40, y + 180, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawHumidityIcon(internalSensorData->Hmd, x - 80 - 8, y + 200 - 22, 2);
+	drawHumidity(internalSensorData->Hmd, x - 40, y + 200, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 
 	x = 360;
 	drawString("Outside", x, y + 60, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
 
-	drawTemperatureIcon(externalSensorData->Temp, externalSensorData->IsMetric, x - 100 - 18, y + 120 - 33, 2);
+	drawTemperatureIcon(externalSensorData->Temp, externalSensorData->IsMetric, x - 80 - 6, y + 120 - 22, 2);
 	drawTemperature(externalSensorData->Temp, externalSensorData->IsMetric, x - 40, y + 120, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 
-	drawHumidityIcon(externalSensorData->Hmd, x - 100 - 24, y + 160 - 33, 2);
-	drawHumidity(externalSensorData->Hmd, x - 40, y + 160, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawHumidityIcon(externalSensorData->Hmd, x - 80 - 8, y + 200 - 22, 2);
+	drawHumidity(externalSensorData->Hmd, x - 40, y + 200, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 #else
     y = 20;
 	x = 200;
@@ -699,20 +699,21 @@ void DisplayWeather::drawSensorData(int16_t x, int16_t y, SensorData *internalSe
 void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y)
 {
 	char num[8] = "";
-	char info[20] = "";
+	char vis[20] = "";
+	char wspd[20] = "";
 
 	if (currentWeather->visibility < 1000)
 	{
-		sprintf(info, "%d m", currentWeather->visibility);
+		sprintf(vis, "%d m", currentWeather->visibility);
 	}
 	else
 	{
 		dtostrf(0.001*currentWeather->visibility, 5, 1, num);
-		sprintf(info, "%s km", num);
+		sprintf(vis, "%s km", num);
 	}
 
 	dtostrf(currentWeather->windSpeed*3.6, 5, 1, num);
-	sprintf(info, "%s km/h", num);
+	sprintf(wspd, "%s km/h", num);
 
 	uint16_t windDir = roundf(currentWeather->windDeg/22.5)%16;
 	char windStr[4];
@@ -723,28 +724,29 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	int16_t xIcon = 260;
 	int16_t xText = 320;
 	y = 20;
-	drawWeatherIcon(100, y + 100, currentWeather->icon, true, 2);
+	drawWeatherIcon(100, y + 120, currentWeather->icon, true, 2);
 	setFont(&CalibriBold16pt7b);
 	drawString(currentWeather->cityName, 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawString(currentWeather->description, 100, y + 280, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
-	
-	drawTemperatureIcon(currentWeather->temp, currentWeather->isMetric, xIcon - 10, y + 60 - 14, 1);
-	drawTemperature(currentWeather->temp, currentWeather->isMetric, xText, y + 60, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	drawString(currentWeather->description, 100, y + 240, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
 
-	drawHumidityIcon(currentWeather->humidity, xIcon - 16, y + 100 - 14, 1);
-	drawHumidity(currentWeather->humidity, xText, y + 100, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+	setFont(&CalibriBold12pt7b);
+	drawTemperatureIcon(currentWeather->temp, currentWeather->isMetric, xIcon - 5, y + 80 - 11, 1);
+	drawTemperature(currentWeather->temp, currentWeather->isMetric, xText, y + 80, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
+
+	drawHumidityIcon(currentWeather->humidity, xIcon - 8, y + 120 - 11, 1);
+	drawHumidity(currentWeather->humidity, xText, y + 120, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
 	
 	// Visibility
-	drawVisibility(xIcon - 24, y + 140 - 16, 1);
-	drawString(info, xText, y + 140, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	drawVisibility(xIcon - 12, y + 160 - 8, 1);
+	drawString(vis, xText, y + 160, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 
 	// Wind speed convert m/s to km/h by multiplying by 3.6 (60 * 60 / 1000)
-	drawWind(xIcon - 32, y + 180 - 14, 1);
-	drawString(info, xText, y + 180, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	drawWind(xIcon - 16, y + 200 - 11, 1);
+	drawString(wspd, xText, y + 200, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 
 	// Wind direction
-	drawCompassArrow(xIcon, y + 220, currentWeather->windDeg, 3);
-	drawString(windStr, xText, y + 220, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	drawCompassArrow(xIcon, y + 240, currentWeather->windDeg, 3);
+	drawString(windStr, xText, y + 240, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 #else
 	int16_t xIcon = 480;
 	int16_t xText = 560;
@@ -762,11 +764,11 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 	
 	// Visibility
 	drawVisibility(xIcon - 24, y + 240 - 16, 2);
-	drawString(info, xText, y + 240, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	drawString(vis, xText, y + 240, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 
 	// Wind speed convert m/s to km/h by multiplying by 3.6 (60 * 60 / 1000)
 	drawWind(xIcon - 32, y + 300 - 22, 2);
-	drawString(info, xText, y + 300, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
+	drawString(wspd, xText, y + 300, TEXT_LEFT_MIDDLE, TEXT_MAIN_COLOR);
 
 	// Wind direction
 	drawCompassArrow(xIcon, y + 360, currentWeather->windDeg, 5);
@@ -798,11 +800,11 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 	}
 
 #ifdef DISPLAY_ILI9488
-	setFont(&CalibriBold16pt7b);
+	setFont(&CalibriBold12pt7b);
 	drawString(header, x, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 	drawWeatherIcon(x, y + 120, forecastWeather[dayIndex].icon, true, 2);
 
-	setFont(&CalibriBold12pt7b);
+	setFont(&CalibriBold8pt7b);
 	
 	drawTemperatureIcon(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 60 - 10, y + 220 - 11, 1);
 	drawTemperature(forecastWeather[dayIndex].temp, forecastWeather[dayIndex].isMetric, x - 50, y + 220, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
@@ -864,28 +866,26 @@ void DisplayWeather::drawMemoryBar(int16_t x, int16_t y, int16_t size)
 	itoa(pRam, ramUsed, 10);
 	strcat(ramUsed, "%");
 
-	// draw ram free bar
-	DisplayGFX->fillRoundRect(x, y, 100*size, 6*size, 3*size, BACKGROUND_COLOR);
-	DisplayGFX->fillRoundRect(x, y, pRam*size, 6*size, 3*size, pRam < 85 ? SUCCESS_COLOR : ERROR_COLOR);
 	switch (size)
 	{
 		case 1:
 		case 2:
 			setFont(&CalibriBold8pt7b);
-			drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
 			break;
 		case 3:
 			setFont(&CalibriBold16pt7b);
-			drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
 			break;
 		case 4:
-			setFont(&CalibriBold24pt7b);
-			drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
+			setFont(&CalibriBold24pt7b);			
 			break;	
 		default:
 			break;
 	}
-	
+
+	// draw ram free bar
+	DisplayGFX->fillRoundRect(x, y, 100*size, 6*size, 3*size, BACKGROUND_COLOR);
+	DisplayGFX->fillRoundRect(x, y, pRam*size, 6*size, 3*size, pRam < 85 ? SUCCESS_COLOR : ERROR_COLOR);
+	drawString(ramUsed, x+(104*size), y+(3*size), TEXT_LEFT_MIDDLE);
 }
 
 /// @brief Default size when set to 1 is 12x12
@@ -947,7 +947,7 @@ void DisplayWeather::drawHeader(bool externalUpdated, bool currentUpdated, bool 
 	drawString(WiFi.SSID(), 240, 10, TEXT_CENTER_MIDDLE);
 	drawString(m_lastTimeUpdated, 475, 10, TEXT_RIGHT_MIDDLE);
 
-	drawMemoryBar(70, 3, 2);
+	drawMemoryBar(70, 6, 1);
 	drawWiFiSignal(454, 26, 2, BACKGROUND_COLOR);
 #else
 	DisplayGFX->fillRect(0, 0, 800, 18, OVERLAY_COLOR);
@@ -980,21 +980,21 @@ void DisplayWeather::drawFooter(SensorData *sensorData, OpenWeatherMapCurrentDat
 			  minute(),
 			  (isAM() ? "AM" : "PM"));
 #ifdef DISPLAY_ILI9488
-	DisplayGFX->fillRect(0, 302, 480, 320, OVERLAY_COLOR); 
-	DisplayGFX->drawFastHLine(0, 300, 480, TEXT_ALT_COLOR);
-	DisplayGFX->drawFastHLine(0, 301, 480, TEXT_ALT_COLOR);
+	DisplayGFX->fillRect(0, 300, 480, 320, OVERLAY_COLOR); 
+	DisplayGFX->drawFastHLine(0, 298, 480, TEXT_ALT_COLOR);
+	DisplayGFX->drawFastHLine(0, 299, 480, TEXT_ALT_COLOR);
 	setFont(&CalibriBold12pt7b);
 	
-	drawString(datetime, 240, 304, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
+	drawString(datetime, 240, 300, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
 	if (sensorData->IsUpdated)
 	{
-		drawTemperature(sensorData->Temp, sensorData->IsMetric, 475, 304, TEXT_RIGHT_TOP, TEXT_ALT_COLOR);
-		drawHumidity(sensorData->Hmd, 5, 304, TEXT_LEFT_TOP, TEXT_ALT_COLOR);
+		drawTemperature(sensorData->Temp, sensorData->IsMetric, 475, 300, TEXT_RIGHT_TOP, TEXT_ALT_COLOR);
+		drawHumidity(sensorData->Hmd, 5, 300, TEXT_LEFT_TOP, TEXT_ALT_COLOR);
 	}
 	else
 	{
-		drawTemperature(currentWeather->temp, currentWeather->isMetric, 475, 304, TEXT_RIGHT_TOP, TEXT_ALT_COLOR);
-		drawHumidity(currentWeather->humidity, 5, 304, TEXT_LEFT_TOP, TEXT_ALT_COLOR);
+		drawTemperature(currentWeather->temp, currentWeather->isMetric, 475, 300, TEXT_RIGHT_TOP, TEXT_ALT_COLOR);
+		drawHumidity(currentWeather->humidity, 5, 300, TEXT_LEFT_TOP, TEXT_ALT_COLOR);
 	}
 #else
 	DisplayGFX->fillRect(0, 422, 800, 480, OVERLAY_COLOR); 

@@ -124,13 +124,13 @@ void setup()
 
 #ifdef DISPLAY_ILI9488
 	displayProgress.x = 0;
-	displayProgress.y = 280;
+	displayProgress.y = 300;
 	displayProgress.width = 480;
-	displayProgress.height = 40;
-	displayProgress.padding = 2;
-	displayProgress.corner = 16;
+	displayProgress.height = 20;
+	displayProgress.padding = 1;
+	displayProgress.corner = 6;
 	displayProgress.foregroundColor = TEXT_ALT_COLOR;
-	displayProgress.gfxFont = &CalibriRegular12pt7b;
+	displayProgress.gfxFont = &CalibriBold8pt7b;
 #else
 	displayProgress.x = 0;
 	displayProgress.y = 420;
