@@ -20,12 +20,14 @@
 	#define TTOP 20 /* Touch screen top in pixels */
 	#define TBCK 180 /* Touch screen back in pixels */
 	#define TFWD 300 /* Touch screen foward in pixels */
+	#define SROT 1 /* Touch screen rotaion */
 #else
 	#define HRES 800 /* Default screen resulution for X axis */
 	#define VRES 480 /* Default screen resulution for Y axis */
 	#define TTOP 30 /* Touch screen top in pixels */
 	#define TBCK 300 /* Touch screen back in pixels */
 	#define TFWD 500 /* Touch screen foward in pixels */
+	#define SROT 1 /* Touch screen rotaion */
 #endif
 
 #ifndef LCDWIKITOUCH
@@ -75,11 +77,10 @@ void initHelpers()
 #endif
 
 #ifdef LCDWIKITOUCH
-	touch.TP_Init(1, HRES, VRES);
-	touch.TP_Set_Rotation(1);
+	touch.TP_Init(SROT, HRES, VRES);
 #else
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
-	touch.setRotation(1);
+	touch.setRotation(SROT);
 #endif
 
 #ifdef SERIAL_LOGGING
@@ -137,7 +138,17 @@ TouchResult touchTest()
 // TODO: Figure out bug on switch over.
 void updateSystemTime()
 {
-	timeClient.update();
+	if (!timeClient.isTimeSet())
+	{
+		#ifdef SERIAL_LOGGING
+		Serial.println("Time not set, forcing update.");
+		#endif
+		timeClient.forceUpdate();
+	}
+	else
+	{
+		timeClient.update();
+	}	
 	time_t utc = (time_t)timeClient.getEpochTime();
 #ifdef ATLANTIC_TIMEZONE
 	setTime(naAT.toLocal(utc));	

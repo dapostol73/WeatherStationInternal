@@ -47,6 +47,12 @@ bool wiFiCurrentState;
 bool wiFiLastState;
 
 //******************************//
+// Heart Beat Settings          //
+//******************************//
+long timeSinceHeartBeat = LONG_MIN;
+bool stateHeartBeat = false;
+
+//******************************//
 // Internal Sensor Settings     //
 //******************************//
 SensorData internalSensorData;
@@ -116,6 +122,7 @@ int numberOfOverlays = 2;
 
 void initNetwork();
 bool updateData();
+void heartBeat();
 
 void setup()
 {
@@ -276,6 +283,7 @@ void loop()
 		// You can do some work here
 		// Don't do stuff if you are below your
 		// time budget.
+		heartBeat();
 		delay(remainingTimeBudget);
 	}
 }
@@ -285,8 +293,9 @@ void initNetwork()
 	char info[48] = "";
 	displayWeather.drawProgress(25, "Intializing WiFi module");
 	netManager.init();
+	uint8_t appSetID = 0 ;
 	displayWeather.drawProgress(50, "Scanning for WiFi SSID");
-	uint8_t appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
+	appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
 	appSettings = AppSettings[appSetID];
 	sprintf(info, "Connecting to: %s", appSettings.WifiSettings.SSID);
 	displayWeather.drawProgress(75, info);
@@ -404,6 +413,23 @@ bool updateData()
 	return success;
 }
 
+void heartBeat()
+{
+	if (millis() - timeSinceHeartBeat > 1000)
+	{
+		timeSinceHeartBeat = millis();
+		if (stateHeartBeat)
+		{
+			displayWeather.DisplayGFX->fillCircle(10, 30, 10, BLACK);
+			displayWeather.DisplayGFX->drawCircle(10, 30, 10, RED);
+		}
+		else
+		{
+			displayWeather.DisplayGFX->fillCircle(10, 30, 10, RED);
+		}
+		stateHeartBeat = !stateHeartBeat;
+	}
+}
 void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
 	displayWeather.drawSensorData(x, y, &internalSensorData, &externalSensorData);
