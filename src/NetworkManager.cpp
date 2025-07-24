@@ -13,10 +13,9 @@ bool NetworkManager::init()
 	#endif
 
 	WiFi.init(&Serial3);
-
 	delay(1000);
+	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	WiFi.setAutoConnect(true);
-	WiFi.setPersistent(false);
 
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
@@ -39,10 +38,29 @@ bool NetworkManager::isConnected()
 int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t numOfSettings)
 {
 	#ifdef SERIAL_LOGGING
-	String scanMsg = "Scanning for WiFi SSID.";
-	Serial.println(scanMsg);
+	Serial.println("Scanning for WiFi SSID.");
 	#endif
 	uint8_t id = 0;
+
+	if (numOfSettings < 2)
+	{
+
+		if (numOfSettings == 1)
+		{
+			appSettings[id].WifiSettings.Avialable = true;
+			#ifdef SERIAL_LOGGING
+			Serial.println("Only one WiFi settings, assume it is avialable.");
+			#endif
+		}
+		else
+		{
+			#ifdef SERIAL_LOGGING
+			Serial.println("No WiFi settings found, skipping network setup.");
+			#endif
+		}
+		return id;
+	}
+
 	int8_t numNetworks = WiFi.scanNetworks();
 	#ifdef SERIAL_LOGGING
 	Serial.println("Number of networks found: " + String(numNetworks));
@@ -106,9 +124,7 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 		return false;
 	}
 
-	WiFi.disconnect();
 	WiFi.begin(wiFiConnection.SSID, wiFiConnection.Password);
-	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	#ifdef SERIAL_LOGGING
 	char infoMsg[] = "Waiting for connection to WiFi";
 	Serial.println(infoMsg);
@@ -116,11 +132,10 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 
 	// Give it 5 seconds to establish connection.
 	uint8_t attempts = 0;
-	uint8_t attemptMax = 10;
+	uint8_t attemptMax = max(retryDelay*2, 10);
 	while (WiFi.status() != WL_CONNECTED && attempts < attemptMax)
 	{
 		delay(500);
-
 		#ifdef SERIAL_LOGGING
 		Serial.print('.');
 		#endif
@@ -131,17 +146,51 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 	#endif
 
 	uint8_t retry = 0;
-	while(WiFi.status() != WL_CONNECTED)
+	while(WiFi.status() != WL_CONNECTED && retry < retryAttempts)
 	{
-		if (retry < retryAttempts)
-		{
-			delay(1000L*max(retryDelay-5, 0));
-			connectWiFi(wiFiConnection, 0, retryDelay);
-			++retry;
-		}
+		WiFi.disconnect();
+		delay(500);
+		connectWiFi(wiFiConnection, 0, retryDelay);
+		retry++;
+		#ifdef SERIAL_LOGGING
+		char connectInfo[96] = "";
+		sprintf(connectInfo, "Reconnect attempt %i of %i returned status %i for %s!", retry, retryAttempts, WiFi.status(), wiFiConnection.SSID);
+		Serial.println(connectInfo);
+		#endif
 	}
 
 	return isConnected();
+}
+
+String NetworkManager::sendATcommand(const char *atCommand, unsigned long milliseconds)
+{
+	String result;
+	#ifdef SERIAL_LOGGING
+	Serial.print("Sending: ");
+	Serial.println(atCommand);
+	#endif
+	Serial3.println(atCommand);
+	unsigned long startTime = millis();
+	#ifdef SERIAL_LOGGING
+	Serial.print("Received: ");
+	#endif
+
+	while (millis() - startTime < milliseconds)
+	{
+		if (Serial3.available())
+		{
+			char c = Serial3.read();
+			#ifdef SERIAL_LOGGING
+			Serial.write(c);
+			#endif
+			result += c;  // append to the result string
+		}
+	}
+
+	#ifdef SERIAL_LOGGING
+	Serial.println();  // new line after timeout.
+	#endif
+	return result;
 }
 
 String NetworkManager::getLocalIP()
