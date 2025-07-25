@@ -45,6 +45,7 @@ ApplicationSettings appSettings;
 NetworkManager netManager;
 bool wiFiCurrentState;
 bool wiFiLastState;
+long wiFiLastConnection = LONG_MIN;
 
 //******************************//
 // Heart Beat Settings          //
@@ -207,19 +208,20 @@ void loop()
 			break;
 	}
 
-	if (!netManager.isConnected())
+	if (!netManager.isConnected() && millis() - wiFiLastConnection > 60000L)
 	{
 		#ifdef SERIAL_LOGGING
 		Serial.println("WiFi disconnect, waiting for reconnect.");
 		#endif
 		// All updates will be invalid at this point.
 		externalSensorData.IsUpdated = currentWeatherUpdated = forecastWeatherHourlyUpdated = forecastWeatherDailyUpdated = false;
-		if (!netManager.connectWiFi(appSettings.WifiSettings, 3))
+		if (!netManager.connectWiFi(appSettings.WifiSettings, 3, 10))
 		{
 			#ifdef SERIAL_LOGGING
 			Serial.println("WiFi reconnect failed.");
 			#endif			
 		}
+		wiFiLastConnection = millis();
 	}
 	else
 	{
@@ -304,6 +306,7 @@ void initNetwork()
 	sprintf(info, "Connected IP: %s", netManager.getLocalIP().c_str());
 	displayWeather.drawProgress(100, info);
 	delay(2500);
+	wiFiLastConnection = millis();
 }
 
 bool updateData() 
@@ -420,12 +423,12 @@ void heartBeat()
 		timeSinceHeartBeat = millis();
 		if (stateHeartBeat)
 		{
-			displayWeather.DisplayGFX->fillCircle(10, 30, 10, BLACK);
-			displayWeather.DisplayGFX->drawCircle(10, 30, 10, RED);
+			displayWeather.DisplayGFX->fillCircle(6, 26, 5, BLACK);
+			displayWeather.DisplayGFX->drawCircle(6, 26, 5, RED);
 		}
 		else
 		{
-			displayWeather.DisplayGFX->fillCircle(10, 30, 10, RED);
+			displayWeather.DisplayGFX->fillCircle(6, 26, 5, RED);
 		}
 		stateHeartBeat = !stateHeartBeat;
 	}
