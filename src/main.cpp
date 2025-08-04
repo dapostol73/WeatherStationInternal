@@ -93,6 +93,8 @@ long timeSinceForecastDailyUpdate = LONG_MIN;
 /***************************
  * Timming Settings
  **************************/
+// WiFi time between reconnect attempts, if disconnected.
+const uint16_t WIFI_RECONNECT_INTERVAL_SECS = 5 * 60; // connect retry every 5 minute
 // Time check setup, slighty off to easy the parsing.
 const uint16_t INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
 const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
@@ -100,7 +102,6 @@ const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minut
 const uint16_t CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
 const uint16_t FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
 const uint16_t FORECAST_DAILY_INTERVAL_SECS = 125 * 60; // Update every 125 minutes
-const uint16_t WIFI_UPDATE_SECS = 120; // wait 2 minutes to reconnect
 
 bool updateSuccessed = true;
 time_t lastUpdated;
@@ -208,7 +209,7 @@ void loop()
 			break;
 	}
 
-	if (!netManager.isConnected() && millis() - wiFiLastConnection > 60000L)
+	if (!netManager.isConnected() && millis() - wiFiLastConnection > (1000L*WIFI_RECONNECT_INTERVAL_SECS))
 	{
 		#ifdef SERIAL_LOGGING
 		Serial.println("WiFi disconnect, waiting for reconnect.");
@@ -418,21 +419,31 @@ bool updateData()
 
 void heartBeat()
 {
+#ifdef DISPLAY_ILI9488
+	uint8_t s = 6;
+	uint16_t x = 360;
+	uint16_t y = 10;
+#else
+	uint8_t s = 6;
+	uint16_t x = 600;
+	uint16_t y = 10;
+#endif
 	if (millis() - timeSinceHeartBeat > 1000)
 	{
 		timeSinceHeartBeat = millis();
 		if (stateHeartBeat)
 		{
-			displayWeather.DisplayGFX->fillCircle(6, 26, 5, BLACK);
-			displayWeather.DisplayGFX->drawCircle(6, 26, 5, RED);
+			displayWeather.DisplayGFX->fillCircle(x, y, s, BLACK);
+			displayWeather.DisplayGFX->drawCircle(x, y, s, RED);
 		}
 		else
 		{
-			displayWeather.DisplayGFX->fillCircle(6, 26, 5, RED);
+			displayWeather.DisplayGFX->fillCircle(x, y, s, RED);
 		}
 		stateHeartBeat = !stateHeartBeat;
 	}
 }
+
 void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
 	displayWeather.drawSensorData(x, y, &internalSensorData, &externalSensorData);
