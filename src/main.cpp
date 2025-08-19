@@ -420,13 +420,13 @@ bool updateData()
 void heartBeat()
 {
 #ifdef DISPLAY_ILI9488
-	uint8_t s = 6;
-	uint16_t x = 360;
-	uint16_t y = 10;
+	uint8_t s = 4;
+	uint16_t x = 6;
+	uint16_t y = 28;
 #else
 	uint8_t s = 6;
-	uint16_t x = 600;
-	uint16_t y = 10;
+	uint16_t x = 8;
+	uint16_t y = 30;
 #endif
 	if (millis() - timeSinceHeartBeat > 1000)
 	{
@@ -434,11 +434,11 @@ void heartBeat()
 		if (stateHeartBeat)
 		{
 			displayWeather.DisplayGFX->fillCircle(x, y, s, BLACK);
-			displayWeather.DisplayGFX->drawCircle(x, y, s, RED);
+			displayWeather.DisplayGFX->drawCircle(x, y, s, GREEN);
 		}
 		else
 		{
-			displayWeather.DisplayGFX->fillCircle(x, y, s, RED);
+			displayWeather.DisplayGFX->fillCircle(x, y, s, GREEN);
 		}
 		stateHeartBeat = !stateHeartBeat;
 	}
