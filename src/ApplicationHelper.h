@@ -29,4 +29,8 @@ extern TouchResult touchTest();
 
 extern void updateSystemTime();
 
+extern void printCurrentTime();
+
+extern String formatTimeISO8601UTC(time_t time);
+
 #endif

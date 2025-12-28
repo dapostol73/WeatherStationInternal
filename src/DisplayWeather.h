@@ -14,6 +14,7 @@
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 #include "OpenWeatherMapOneCall.h"
+#include "CanadianHydrograpicTidesHiLo.h"
 
 #define BACKGROUND_COLOR 0x0000
 #define FOREGROUND_COLOR 0xEF5D
@@ -161,6 +162,7 @@ class DisplayWeather : public DisplayControl
         void drawCurrentWeather(OpenWeatherMapCurrentData *currentWeather, int16_t x, int16_t y);
         void drawForecastHourly(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);        
         void drawForecastDaily(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y);
+        void drawTidesHiLo(CanadianHydrograpicTidesHiLoData *tidesHiLoData, int16_t x, int16_t y);
         void drawHeader(bool externalUpdated, bool currentUpdated, bool forecastHourlyUpdated, bool forecastDailyUpdated, time_t timeUpdated);
         void drawFooter(SensorData *externalSensorData, OpenWeatherMapCurrentData *currentWeather);
         void printWiFiInfo();

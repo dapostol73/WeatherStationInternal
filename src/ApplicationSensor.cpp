@@ -82,7 +82,10 @@ void initSensors()
 	#ifdef DHT_22
 		dht22.begin();
 	#endif
-	ThingSpeak.begin(client);    
+
+	#ifdef THINGSPEAK_SENSOR
+		ThingSpeak.begin(client);
+	#endif
 }
 
 float roundUpDecimal(float value, uint8_t decimals = 1) 
@@ -97,6 +100,7 @@ float map(float x, float in_min, float in_max, float out_min, float out_max)
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
+#ifdef THINGSPEAK_SENSOR
 void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 {
 	int statusCode = 0;
@@ -130,6 +134,14 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 		#endif
 	}
 }
+#endif
+
+#ifdef CANADIAN_TIDES
+void readCanadianTideData(const CanadianHyrdographicInfo &canadianHydrographic)
+{
+	// To be implemented
+}
+#endif
 
 #ifdef SHT_3X
 void readInternalSensors(SensorData *sensorData)

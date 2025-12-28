@@ -56,14 +56,14 @@ const long TZ_SEC = 0 * 60 * 60; // First digit is time zone, 0 = UTC time
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
 
-#ifdef ATLANTIC_TIMEZONE
+#ifdef TIMEZONE_ATLANTIC
 // North America Atlantic Time Zone (Moncton, Halifax, Charlottetown)
 TimeChangeRule naADT = {"ADT", Second, Sun, Mar, 2, -180};
 TimeChangeRule naAST = {"AST", First, Sun, Nov, 2, -240};
 Timezone naAT(naADT, naAST);
 #endif
 
-#ifdef PACIFIC_TIMEZONE
+#ifdef TIMEZONE_PACIFIC
 // North America Pacific Time Zone (Las Vegas, Los Angeles, Vancouver)
 TimeChangeRule naPDT = {"PDT", Second, Sun, Mar, 2, -420};
 TimeChangeRule naPST = {"PST", First, Sun, Nov, 2, -480};
@@ -150,10 +150,46 @@ void updateSystemTime()
 		timeClient.update();
 	}	
 	time_t utc = (time_t)timeClient.getEpochTime();
-#ifdef ATLANTIC_TIMEZONE
+#ifdef TIMEZONE_ATLANTIC
 	setTime(naAT.toLocal(utc));	
 #endif
-#ifdef PACIFIC_TIMEZONE
+#ifdef TIMEZONE_PACIFIC
 	setTime(naPT.toLocal(utc));
 #endif
+}
+
+void printCurrentTime()
+{
+	#ifdef SERIAL_LOGGING
+	char datetime[32];
+	sprintf_P(datetime,
+			  PSTR("Time: %d %d, %d  %d:%02d %s"),
+			  month(),
+			  day(),
+			  year(),
+			  hourFormat12(),
+			  minute(),
+			  (isAM() ? "AM" : "PM"));
+	Serial.println(datetime);
+	#endif
+}
+
+String formatTimeISO8601UTC(time_t time)
+{
+	tmElements_t timeinfo;
+	breakTime(time, timeinfo);
+
+  char buf[25];
+		snprintf(
+		buf,
+		sizeof(buf),
+		"%04d-%02d-%02dT%02d:%02d:%02dZ",
+		tmYearToCalendar(timeinfo.Year), // converts offset → full year
+		timeinfo.Month,
+		timeinfo.Day,
+		timeinfo.Hour,
+		timeinfo.Minute,
+		timeinfo.Second
+	);
+	return String(buf);
 }

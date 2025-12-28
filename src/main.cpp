@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <Wire.h>
+#include <TimeLib.h>
 
 #include "UserSettings.h"
 #include "ApplicationHelper.h"
@@ -22,6 +23,9 @@
 #include "OpenWeatherMapCurrent.h"
 #include "OpenWeatherMapForecast.h"
 //#include "OpenWeatherMapOneCall.h"
+#ifdef CANADIAN_TIDES
+	#include "CanadianHydrograpicTidesHiLo.h"
+#endif
 
 #define SERIAL_BAUD_RATE 115200
 #ifdef HAVE_SERIAL1
@@ -62,9 +66,23 @@ long timeSinceInternalUpdate = LONG_MIN;
 //******************************//
 // External ThinkSpeak Settings //
 //******************************//
-SensorData externalSensorData;
-long timeSinceExternalUpdate = LONG_MIN;
-bool updateExternalSensors = true;
+#ifdef THINGSPEAK_SENSOR
+	SensorData externalSensorData;
+	long timeSinceExternalUpdate = LONG_MIN;
+	bool updateExternalSensors = true;
+#endif
+
+//********************************//
+// Canadian Hyrdographic Settings //
+//********************************//
+#ifdef CANADIAN_TIDES
+	const uint8_t MAX_TIDES = 6;
+	CanadianHydrograpicTidesHiLoData tidesHiLoPredictions[MAX_TIDES];
+	CanadianHydrograpicTidesHiLo tidesHiLoClient;
+	bool updateTidesHiLo = true;
+	bool tidesHiLoUpdated = false;
+	long timeSinceTidesHiLoUpdate = LONG_MIN;
+#endif
 
 //******************************//
 // OpenWeather Map Settings     //
@@ -97,7 +115,12 @@ long timeSinceForecastDailyUpdate = LONG_MIN;
 const uint16_t WIFI_RECONNECT_INTERVAL_SECS = 5 * 60; // connect retry every 5 minute
 // Time check setup, slighty off to easy the parsing.
 const uint16_t INTSENSOR_INTERVAL_SECS = 60; // Sensor query every minute
-const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
+#ifdef THINGSPEAK_SENSOR
+	const uint16_t EXTSENSOR_INTERVAL_SECS = 11 * 60; // Sensor query every 11 minutes
+#endif
+#ifdef CANADIAN_TIDES
+	const uint16_t CNDTIDES_INTERVAL_SECS = 30 * 60; // Tides HiLo query every 29 minutes
+#endif
 //const int TIME_INTERVAL_SECS = 30 * 60; // Check time every 30 minutes
 const uint16_t CURRENT_INTERVAL_SECS = 23 * 60; // Update every 23 minutes
 const uint16_t FORECAST_HOURLY_INTERVAL_SECS = 65 * 60; // Update every 65 minutes
@@ -109,15 +132,28 @@ time_t lastUpdated;
 DisplayWeather displayWeather;
 DisplayContolProgress displayProgress;
 
+#ifdef THINGSPEAK_SENSOR
 void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y);
+#endif
+#ifdef CANADIAN_TIDES
+void drawTidesHiLoFrame(DisplayControlState* state, int16_t x, int16_t y);
+#endif
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecastHourlyFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawForecastDailyFrame(DisplayControlState* state, int16_t x, int16_t y);
 void drawHeaderOverlay(DisplayControlState* state);
 void drawFooterOverlay(DisplayControlState* state);
 
+#ifdef THINGSPEAK_SENSOR
 FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastHourlyFrame, drawForecastDailyFrame, drawSensorDataFrame };
 int numberOfFrames = 4;
+#elif CANADIAN_TIDES
+FrameCallback frames[] = { drawTidesHiLoFrame, drawCurrentWeatherFrame, drawForecastHourlyFrame, drawForecastDailyFrame };
+int numberOfFrames = 4;
+#else
+FrameCallback frames[] = { drawCurrentWeatherFrame, drawForecastHourlyFrame, drawForecastDailyFrame };
+int numberOfFrames = 3;
+#endif
 
 OverlayCallback overlays[] = { drawHeaderOverlay, drawFooterOverlay };
 int numberOfOverlays = 2;
@@ -197,7 +233,15 @@ void loop()
 		#else
 			displayWeather.DisplayGFX->fillRoundRect(350, 5, 100, 10, 5, SUCCESS_COLOR);
 		#endif
-			updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
+			#ifdef THINGSPEAK_SENSOR
+			updateExternalSensors = true;
+			#endif
+			#ifdef CANADIAN_TIDES
+			tidesHiLoUpdated = true;
+			#endif
+			updateCurrentWeather = true;
+			updateForecastHourlyWeather = true;
+			updateForecastDailyWeather = true;// force update
 			break;
 		case FORWARD:
 			displayWeather.navigateForwardFrame();
@@ -215,7 +259,16 @@ void loop()
 		Serial.println("WiFi disconnect, waiting for reconnect.");
 		#endif
 		// All updates will be invalid at this point.
-		externalSensorData.IsUpdated = currentWeatherUpdated = forecastWeatherHourlyUpdated = forecastWeatherDailyUpdated = false;
+		#ifdef THINGSPEAK_SENSOR
+		externalSensorData.IsUpdated = false;
+		#endif
+		#ifdef CANADIAN_TIDES
+		tidesHiLoUpdated = false;
+		#endif
+		currentWeatherUpdated = false;
+		forecastWeatherHourlyUpdated = false;
+		forecastWeatherDailyUpdated = false;
+
 		if (!netManager.connectWiFi(appSettings.WifiSettings, 3, 10))
 		{
 			#ifdef SERIAL_LOGGING
@@ -252,12 +305,22 @@ void loop()
 			updateCurrentWeather = true;
 			timeSinceCurrentUpdate = millis();
 		}
+		
+		#ifdef CANADIAN_TIDES
+		if(millis() - timeSinceTidesHiLoUpdate > (1000L*CNDTIDES_INTERVAL_SECS))
+		{
+			updateTidesHiLo = true;
+			timeSinceTidesHiLoUpdate = millis();
+		}
+		#endif
 
+		#ifdef THINGSPEAK_SENSOR
 		if(millis() - timeSinceExternalUpdate > (1000L*EXTSENSOR_INTERVAL_SECS))
 		{
 			updateExternalSensors = true;
 			timeSinceExternalUpdate = millis();
 		}
+		#endif
 	}
 
 	//Read sensor values base on Upload interval seconds
@@ -267,7 +330,11 @@ void loop()
 		timeSinceInternalUpdate = millis();
 	}
 
-	if (updateExternalSensors || updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather) 
+	#ifdef THINGSPEAK_SENSOR
+	if (updateExternalSensors || updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather)
+	#else
+	if (updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather)
+	#endif
 	{
 		updateSuccessed = updateData();
 	}
@@ -277,7 +344,16 @@ void loop()
 	wiFiCurrentState = netManager.isConnected();
 	if (wiFiLastState == false && wiFiCurrentState == true)
 	{
-		updateExternalSensors = updateCurrentWeather = updateForecastHourlyWeather = updateForecastDailyWeather = true;// force update
+		// force update
+		#ifdef THINGSPEAK_SENSOR
+		updateExternalSensors = true;
+		#endif
+		#ifdef CANADIAN_TIDES
+		tidesHiLoUpdated = true;
+		#endif
+		updateCurrentWeather = true;
+		updateForecastHourlyWeather = true;
+		updateForecastDailyWeather = true;
 	}
 
 	int8_t remainingTimeBudget = displayWeather.update();
@@ -316,6 +392,9 @@ bool updateData()
 	displayProgress.foregroundColor = TEXT_ALT_COLOR;
 	displayWeather.drawProgress(20, "Updating time...");
 	updateSystemTime();
+	printCurrentTime();
+
+	#ifdef THINGSPEAK_SENSOR
 	if (updateExternalSensors)
 	{
 		displayWeather.drawProgress(35, "Updating external sensor data...");
@@ -323,7 +402,25 @@ bool updateData()
 		updateExternalSensors = false;
 		success = success && externalSensorData.IsUpdated;
 	}
-	
+	#endif
+
+	#ifdef CANADIAN_TIDES
+	if (updateTidesHiLo)
+	{
+		displayWeather.drawProgress(45, "Updating Tides HiLo data...");
+		tidesHiLoUpdated = tidesHiLoClient.updateTidesById(tidesHiLoPredictions, 
+								appSettings.CanadianHydrographicSettings.StationID, 
+								formatTimeISO8601UTC(now()), 
+								formatTimeISO8601UTC(now() + 18L * 3600), 
+								MAX_TIDES);
+		if (!tidesHiLoUpdated)
+		{
+			displayProgress.foregroundColor = ERROR_COLOR;
+		}
+		updateTidesHiLo = false;
+		success = success && tidesHiLoUpdated;
+	}
+	#endif
 
 	if (updateCurrentWeather)
 	{
@@ -444,10 +541,19 @@ void heartBeat()
 	}
 }
 
+#ifdef THINGSPEAK_SENSOR
 void drawSensorDataFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
 	displayWeather.drawSensorData(x, y, &internalSensorData, &externalSensorData);
 }
+#endif
+
+#ifdef CANADIAN_TIDES
+void drawTidesHiLoFrame(DisplayControlState* state, int16_t x, int16_t y)
+{
+	displayWeather.drawTidesHiLo(tidesHiLoPredictions, x, y);
+}
+#endif
 
 void drawCurrentWeatherFrame(DisplayControlState* state, int16_t x, int16_t y)
 {
@@ -466,7 +572,11 @@ void drawForecastDailyFrame(DisplayControlState* state, int16_t x, int16_t y)
 
 void drawHeaderOverlay(DisplayControlState* state)
 {
+	#ifdef THINGSPEAK_SENSOR
 	displayWeather.drawHeader(externalSensorData.IsUpdated, currentWeatherUpdated, forecastWeatherHourlyUpdated, forecastWeatherDailyUpdated, lastUpdated);
+	#else
+	displayWeather.drawHeader(false, currentWeatherUpdated, forecastWeatherHourlyUpdated, forecastWeatherDailyUpdated, lastUpdated);
+	#endif
 }
 
 void drawFooterOverlay(DisplayControlState* state)

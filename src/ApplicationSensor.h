@@ -3,7 +3,12 @@
 
 #include <Arduino.h>
 #include <WiFiEspAT.h>
-#include <ThingSpeak.h>
+#ifdef THINGSPEAK_SENSOR
+    #include "ThingSpeak.h"
+#endif
+#ifdef CANADIAN_TIDES
+    #include "CanadianHyrdographicInfo.h"
+#endif
 
 #include <Adafruit_Sensor.h>
 
@@ -31,7 +36,14 @@ struct SensorData
 
 extern void initSensors();
 
-extern void readExternalSensorsData(unsigned long channelID, SensorData *sensorData);
+#ifdef THINGSPEAK_SENSOR
+    extern void readExternalSensorsData(unsigned long channelID, SensorData *sensorData);
+#endif
+
+
+#ifdef CANADIAN_TIDES
+    extern void readCanadianTideData(const CanadianHyrdographicInfo &canadianHydrographicInfo);
+#endif
 
 extern void readInternalSensors(SensorData *sensorData);
 

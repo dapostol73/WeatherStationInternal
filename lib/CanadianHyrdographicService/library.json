@@ -1,5 +1,5 @@
 {
-  "name": "CanadianHyrdographicService",
+  "name": "OpenWeatherMap",
   "keywords": "embedded, display, oled",
   "description": "A WiFi connected information display",
   "frameworks": "arduino",

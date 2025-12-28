@@ -858,6 +858,22 @@ void DisplayWeather::drawForecastDaily(OpenWeatherMapForecastData *forecastWeath
 #endif	
 }
 
+void DisplayWeather::drawTidesHiLo(CanadianHydrograpicTidesHiLoData *tidesHiLoData, int16_t x, int16_t y)
+{
+	fillScreen(BACKGROUND_COLOR);
+#ifdef DISPLAY_ILI9488
+	setFont(&CalibriBold16pt7b);
+	drawString("Tides", x + 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	drawString(tidesHiLoData[0].eventDate, x + 240, y + 120, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+
+	char height[8];
+	dtostrf(tidesHiLoData[0].value, 2, 1, height);
+	strcat(height, "m");
+	drawString(height, x + 240, y + 140, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+#else
+#endif
+}
+
 void DisplayWeather::drawMemoryBar(int16_t x, int16_t y, int16_t size)
 {
 	int fRam = mu_freeRam();
