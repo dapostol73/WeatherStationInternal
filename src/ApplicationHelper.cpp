@@ -183,7 +183,7 @@ String formatTimeISO8601UTC(time_t time)
 	tmElements_t timeinfo;
 	breakTime(time, timeinfo);
 
-  char buf[25];
+	char buf[25];
 		snprintf(
 		buf,
 		sizeof(buf),

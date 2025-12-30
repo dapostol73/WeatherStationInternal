@@ -118,12 +118,23 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	{
 		sensorData->IsUpdated = true;
 		#ifdef SERIAL_LOGGING
-		Serial.println("Reading from ThinkSpeak " + String(channelID));
-		Serial.println("Temperature: " + String(sensorData->Temp) + " °C");
-		Serial.println("Humidity: " + String(sensorData->Hmd) + " %");
-		Serial.println("Light: " + String(sensorData->Lux) + " lux");
-		Serial.println("Atmosphere: " + String(sensorData->HPa) + " hPa");
-		Serial.println("Altitude: " + String(sensorData->Alt) + " m");
+		Serial.print(F("Reading from ThinkSpeak "));
+		Serial.println(channelID);
+		Serial.print(F("Temperature: "));
+		Serial.print(sensorData->Temp);
+		Serial.println(F(" °C"));
+		Serial.print(F("Humidity: "));
+		Serial.print(sensorData->Hmd);
+		Serial.println(F(" %"));
+		Serial.print(F("Light: "));
+		Serial.print(sensorData->Lux);
+		Serial.println(F(" lux"));
+		Serial.print(F("Atmosphere: "));
+		Serial.print(sensorData->HPa);
+		Serial.println(F(" hPa"));
+		Serial.print(F("Altitude: "));
+		Serial.print(sensorData->Alt);
+		Serial.println(F(" m"));
 		#endif
 	}
 	else
@@ -154,8 +165,12 @@ void readInternalSensors(SensorData *sensorData)
 
 	#ifdef SERIAL_LOGGING
 	Serial.println(F("Updated Internal Sensor Data"));
-	Serial.println("Temperature: " + String(sensorData->Temp) + " °C");
-	Serial.println("Humidity: " + String(sensorData->Hmd) + " %");
+	Serial.print(F("Temperature: "));
+	Serial.print(sensorData->Temp);
+	Serial.println(F(" °C"));
+	Serial.print(F("Humidity: "));
+	Serial.print(sensorData->Hmd);
+	Serial.println(F(" %"));
 	#endif
 }
 #endif
