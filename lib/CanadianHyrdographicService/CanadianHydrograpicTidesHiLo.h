@@ -38,19 +38,17 @@ typedef struct CanadianHydrograpicTidesHiLoData {
 
 class CanadianHydrograpicTidesHiLo : public JsonListener {
   private:
-    const String host = "api-sine.dfo-mpo.gc.ca";
-    const String TimeSeriesCode = "wlp-hilo";
+    const char host[25] = "api-sine.dfo-mpo.gc.ca";
+    const char TimeSeriesCode[10] = "wlp-hilo";
     const uint16_t port = 80;
-    char path[128] = "";
-    char connectInfo[232] = "";
     String currentKey;
     String currentParent;
     CanadianHydrograpicTidesHiLoData *data;
     uint8_t maxTides;
     uint8_t currentTide;
 
-    bool doUpdate(CanadianHydrograpicTidesHiLoData *data);
-    void buildPath(String stationId, String startTime, String endTime);
+    bool doUpdate(CanadianHydrograpicTidesHiLoData *data, String path);
+    String buildPath(String stationId, String startTime, String endTime);
 
   public:
     CanadianHydrograpicTidesHiLo();

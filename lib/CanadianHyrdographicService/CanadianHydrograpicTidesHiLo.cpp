@@ -31,14 +31,12 @@ CanadianHydrograpicTidesHiLo::CanadianHydrograpicTidesHiLo() {
 
 bool CanadianHydrograpicTidesHiLo::updateTides(CanadianHydrograpicTidesHiLoData *data, String stationId, String startTime, String endTime, uint8_t maxTides) {
   this->maxTides = max(maxTides, 1);
-  buildPath(stationId, startTime, endTime);
-  return doUpdate(data);
+  return doUpdate(data, buildPath(stationId, startTime, endTime));
 }
 
 bool CanadianHydrograpicTidesHiLo::updateTidesById(CanadianHydrograpicTidesHiLoData *data, String stationId, String startTime, String endTime, uint8_t maxTides) {
   this->maxTides = max(maxTides, 1);
-  buildPath(stationId, startTime, endTime);
-  return doUpdate(data);
+  return doUpdate(data, buildPath(stationId, startTime, endTime));
 }
 
 /// @brief example /api/v1/stations/5cebf1e33d0f4a073c4bc2a7/data?time-series-code=wlp-hilo&from=2025-12-27T12%3A00%3A00Z&to=2025-12-29T00%3A00%3A00Z&resolution=ALL
@@ -46,16 +44,18 @@ bool CanadianHydrograpicTidesHiLo::updateTidesById(CanadianHydrograpicTidesHiLoD
 /// @param startTime 
 /// @param endTime 
 /// @return 
-void CanadianHydrograpicTidesHiLo::buildPath(String stationId, String startTime, String endTime) {
+String CanadianHydrograpicTidesHiLo::buildPath(String stationId, String startTime, String endTime) {
+  char path[128] = "";
   sprintf(path,
           "/api/v1/stations/%s/data?time-series-code=%s&from=%s&to=%s",
           stationId.c_str(),
-          TimeSeriesCode.c_str(),
+          TimeSeriesCode,
           startTime.c_str(),
           endTime.c_str());
+  return path;
 }
 
-bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *data) {
+bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *data, String path) {
   bool success = true;
   unsigned long lostTest = 10000UL;
   unsigned long lost_do = millis();
@@ -63,24 +63,28 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
   this->data = data;
   JsonStreamingParser parser;
   parser.setListener(this);
-  sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path);
+  char connectInfo[232] = "";
+  sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host, port, path.c_str());
 	Serial.println(connectInfo);
 
   WiFiClient client;
-  if(client.connect(host.c_str(), port)) {
+  if(client.connect(host, port)) {
     bool isBody = false;
     uint8_t eof = 0;
     char c;
-    Serial.println("[HTTP] connected, now GETting data");
+    Serial.println(F("[HTTP] connected, now GETting data"));
     // TODO: Figure out why Connection: close truncates client.read()
-    client.println("GET " + String(path) + " HTTP/1.1");
-    client.println("Host: " + host);
-    client.println("Connection: keep-alive");
+    client.print(F("GET "));
+    client.print(path);
+    client.println(F(" HTTP/1.1"));
+    client.print(F("Host: "));
+    client.println(host);
+    client.println(F("Connection: keep-alive"));
     client.println();
     
     while (client.connected() || client.available()) {
       if ((millis() - lost_do) > lostTest) {
-        Serial.println("[HTTP] lost in client with a timeout");
+        Serial.println(F("[HTTP] lost in client with a timeout"));
         success = false;
         break;
       }
@@ -105,7 +109,7 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
     client.flush();
     parser.reset();
   } else {
-    Serial.println("[HTTP] failed to connect to host");
+    Serial.println(F("[HTTP] failed to connect to host"));
     success = false;
   }
   this->data = nullptr;
@@ -113,11 +117,11 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
 }
 
 void CanadianHydrograpicTidesHiLo::whitespace(char c) {
-  Serial.println("whitespace");
+  Serial.println(F("whitespace"));
 }
 
 void CanadianHydrograpicTidesHiLo::startDocument() {
-  Serial.println("start of document");
+  Serial.println(F("start of document"));
 }
 
 void CanadianHydrograpicTidesHiLo::key(String key) {
@@ -129,17 +133,17 @@ void CanadianHydrograpicTidesHiLo::value(String value) {
     return;
   }
   // { "eventDate": "string",
-  if (currentKey == "eventDate") {
+  if (currentKey == F("eventDate")) {
     strcpy(data[currentTide].eventDate, value.c_str());
   }
   // "qcFlagCode": "1",
   // "value": 0.1,
-  if (currentKey == "value") {
+  if (currentKey == F("value")) {
     data[currentTide].value = value.toFloat();
   }
   // "uncertainty": 0.1,
   // "timeSeriesId": "string",
-  if (currentKey == "timeSeriesId") {
+  if (currentKey == F("timeSeriesId")) {
     strcpy(data[currentTide].timeSeriesId, value.c_str());
     // this is not super safe, if there is no timeSeriesId item we'll never get all tides;
     currentTide++;
@@ -161,7 +165,7 @@ void CanadianHydrograpicTidesHiLo::endObject() {
 }
 
 void CanadianHydrograpicTidesHiLo::endDocument() {
-  Serial.println("end of document");
+  Serial.println(F("end of document"));
 }
 
 void CanadianHydrograpicTidesHiLo::startArray() {

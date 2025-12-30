@@ -260,7 +260,7 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
     //uint8_t version = pgm_read_byte(palBmp);
     uint8_t bmpBitDepth = pgm_read_byte(palBmp + 1);
     if (bmpBitDepth != BITS_PER_PIXEL) {
-        //Serial.println("Bmp has wrong bit depth");
+        //Serial.println(F("Bmp has wrong bit depth"));
         return;
     }
     uint16_t width = pgm_read_byte(palBmp + 2) << 8 | pgm_read_byte(palBmp + 3);
@@ -283,7 +283,7 @@ void DisplayControl::drawPaletteBitmap(int16_t x, int16_t y, uint16_t *palette, 
         {
             if (bitCounter == PIXELS_PER_BYTE || bitCounter == 0) 
             {
-                //Serial.println("Reading new data");
+                //Serial.println(F("Reading new data"));
                 data = pgm_read_byte(palBmp + pointer);
                 pointer++;
                 //shift = bitsPerPixel;

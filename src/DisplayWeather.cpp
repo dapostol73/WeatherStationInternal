@@ -446,16 +446,42 @@ void DisplayWeather::draw50Mist(int16_t x, int16_t y, int16_t size, bool day)
 void DisplayWeather::drawWeatherIcon(int16_t x, int16_t y, String iconName, bool center, int16_t size)
 {
 	bool day = iconName[2] != 'n';
-	if (iconName == "01d" || iconName == "01n") draw01Clear(x, y, size, day);
-	else if (iconName == "02d" || iconName == "02n") draw02FewClouds(x, y, size, day);
-	else if (iconName == "03d" || iconName == "03n") draw03ScatteredClouds(x, y, size, day);
-	else if (iconName == "04d" || iconName == "04n") draw04BrokenClouds(x, y, size, day);
-	else if (iconName == "09d" || iconName == "09n") draw09ShowerRain(x, y, size, day);
-	else if (iconName == "10d" || iconName == "10n") draw10Rain(x, y, size, day);
-	else if (iconName == "11d" || iconName == "11n") draw11ThunderStorm(x, y, size, day);
-	else if (iconName == "13d" || iconName == "13n") draw13Snow(x, y, size, day);
-	else if (iconName == "50d" || iconName == "50n") draw50Mist(x, y, size, day);
-	else draw00Unknown(x, y, size);
+	// Characters are stored as numeric codes, and subtracting '0' converts a digit character into its numeric value.
+	// In C and C++ guarantee that digit characters are contiguous: '0', '1', '2', ..., '9'
+	uint8_t index = (iconName[0] - '0') * 10 + (iconName[1] - '0');
+	switch (index)
+	{
+	case 1:
+		draw01Clear(x, y, size, day);
+		break;
+	case 2:
+		draw02FewClouds(x, y, size, day);
+		break;
+	case 3:
+		draw03ScatteredClouds(x, y, size, day);
+		break;
+	case 4:
+		draw04BrokenClouds(x, y, size, day);
+		break;
+	case 9:
+		draw09ShowerRain(x, y, size, day);
+		break;
+	case 10:
+		draw10Rain(x, y, size, day);
+		break;
+	case 11:
+		draw11ThunderStorm(x, y, size, day);
+		break;
+	case 13:
+		draw13Snow(x, y, size, day);
+		break;
+	case 50:
+		draw50Mist(x, y, size, day);
+		break;	
+	default:
+		draw00Unknown(x, y, size);
+		break;
+	}
 }
 
 void DisplayWeather::drawTemperatureGauge(float temperature, bool isMetric, int16_t x, int16_t y, int16_t size)

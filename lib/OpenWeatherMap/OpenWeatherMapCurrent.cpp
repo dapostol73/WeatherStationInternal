@@ -58,24 +58,27 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
   JsonStreamingParser parser;
   parser.setListener(this);
   char connectInfo[196] = "";
-  sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host.c_str(), port, path.c_str());
+  sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host, port, path.c_str());
   Serial.println(connectInfo);
 
   WiFiClient client;
-  if(client.connect(host.c_str(), port)) {
+  if(client.connect(host, port)) {
     bool isBody = false;
     uint8_t eof = 0;
     char c;
-    Serial.println("[HTTP] connected, now GETting data");
+    Serial.println(F("[HTTP] connected, now GETting data"));
     // TODO: Figure out why Connection: close truncates client.read()
-    client.println("GET " + path + " HTTP/1.1");
-    client.println("Host: " + host);
-    client.println("Connection: keep-alive");
+    client.print(F("GET "));
+    client.print(path);
+    client.println(F(" HTTP/1.1"));
+    client.print(F("Host: "));
+    client.println(host);
+    client.println(F("Connection: keep-alive"));
     client.println();
     
     while (client.connected() || client.available()) {
       if ((millis() - lost_do) > lostTest) {
-        Serial.println("[HTTP] lost in client with a timeout");
+        Serial.println(F("[HTTP] lost in client with a timeout"));
         success = false;
         break;
       }
@@ -100,7 +103,7 @@ bool OpenWeatherMapCurrent::doUpdate(OpenWeatherMapCurrentData *data, String pat
     client.flush();
     parser.reset();
   } else {
-    Serial.println("[HTTP] failed to connect to host");
+    Serial.println(F("[HTTP] failed to connect to host"));
     success = false;
   }
   this->data = nullptr;
@@ -123,11 +126,11 @@ String OpenWeatherMapCurrent::toPascalCase(String value) {
 }
 
 void OpenWeatherMapCurrent::whitespace(char c) {
-  Serial.println("whitespace");
+  Serial.println(F("whitespace"));
 }
 
 void OpenWeatherMapCurrent::startDocument() {
-  Serial.println("start of document");
+  Serial.println(F("start of document"));
 }
 
 void OpenWeatherMapCurrent::key(String key) {
@@ -136,89 +139,89 @@ void OpenWeatherMapCurrent::key(String key) {
 
 void OpenWeatherMapCurrent::value(String value) {
   // "lon": 8.54, float lon;
-  if (currentKey == "lon") {
+  if (currentKey == F("lon")) {
     this->data->lon = value.toFloat();
   }
   // "lat": 47.37 float lat;
-  if (currentKey == "lat") {
+  if (currentKey == F("lat")) {
     this->data->lat = value.toFloat();
   }
   // weatherItemCounter: only get the first item if more than one is available
-  if (currentParent == "weather" && weatherItemCounter == 0) {
+  if (currentParent == F("weather") && weatherItemCounter == 0) {
     // "id": 521, weatherId weatherId;
-    if (currentKey == "id") {
+    if (currentKey == F("id")) {
       this->data->weatherId = value.toInt();
     }
     // "main": "Rain", String main;
-    if (currentKey == "main") {
+    if (currentKey == F("main")) {
       strcpy(this->data->main, value.c_str());
     }
     // "description": "shower rain", String description;
-    if (currentKey == "description") {
+    if (currentKey == F("description")) {
       strcpy(this->data->description, toPascalCase(value).c_str());
     }
     // "icon": "09d" String icon;
    //String iconMeteoCon;
-    if (currentKey == "icon") {
+    if (currentKey == F("icon")) {
       strcpy(this->data->icon, value.c_str());
     }
 
   }
 
   // "temp": 290.56, float temp;
-  if (currentKey == "temp") {
+  if (currentKey == F("temp")) {
     this->data->temp = value.toFloat();
   }
   // "pressure": 1013, uint16_t pressure;
-  if (currentKey == "pressure") {
+  if (currentKey == F("pressure")) {
     this->data->pressure = value.toFloat();
   }
   // "humidity": 87, uint8_t humidity;
-  if (currentKey == "humidity") {
+  if (currentKey == F("humidity")) {
     this->data->humidity = value.toFloat();
   }
   // "temp_min": 289.15, float tempMin;
-  if (currentKey == "temp_min") {
+  if (currentKey == F("temp_min")) {
     this->data->tempMin = value.toFloat();
   }
   // "temp_max": 292.15 float tempMax;
-  if (currentKey == "temp_max") {
+  if (currentKey == F("temp_max")) {
     this->data->tempMax = value.toFloat();
   }
   // visibility: 10000, uint16_t visibility;
-  if (currentKey == "visibility") {
+  if (currentKey == F("visibility")) {
     this->data->visibility = value.toInt();
   }
   // "wind": {"speed": 1.5}, float windSpeed;
-  if (currentKey == "speed") {
+  if (currentKey == F("speed")) {
     this->data->windSpeed = value.toFloat();
   }
   // "wind": {deg: 226.505}, float windDeg;
-  if (currentKey == "deg") {
+  if (currentKey == F("deg")) {
     this->data->windDeg = value.toFloat();
   }
   // "clouds": {"all": 90}, uint8_t clouds;
-  if (currentKey == "all") {
+  if (currentKey == F("all")) {
     this->data->clouds = value.toInt();
   }
   // "dt": 1527015000, uint64_t observationTime;
-  if (currentKey == "dt") {
+  if (currentKey == F("dt")) {
     this->data->observationTime = value.toInt();
   }
   // "country": "CH", String country;
-  if (currentKey == "country") {
+  if (currentKey == F("country")) {
     strcpy(this->data->country, value.c_str());
   }
   // "sunrise": 1526960448, uint32_t sunrise;
-  if (currentKey == "sunrise") {
+  if (currentKey == F("sunrise")) {
     this->data->sunrise = value.toInt();
   }
   // "sunset": 1527015901 uint32_t sunset;
-  if (currentKey == "sunset") {
+  if (currentKey == F("sunset")) {
     this->data->sunset = value.toInt();
   }
   // "name": "Zurich", String cityName;
-  if (currentKey == "name") {
+  if (currentKey == F("name")) {
     strcpy(this->data->cityName, value.c_str());
   }
 }
@@ -233,14 +236,14 @@ void OpenWeatherMapCurrent::startObject() {
 }
 
 void OpenWeatherMapCurrent::endObject() {
-  if (currentParent == "weather") {
+  if (currentParent == F("weather")) {
     weatherItemCounter++;
   }
   currentParent = "";
 }
 
 void OpenWeatherMapCurrent::endDocument() {
-  Serial.println("end of document");
+  Serial.println(F("end of document"));
 }
 
 void OpenWeatherMapCurrent::startArray() {

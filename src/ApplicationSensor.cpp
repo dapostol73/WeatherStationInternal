@@ -55,13 +55,13 @@ void initSensors()
 		if (!sht3x.begin())
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Could not find SHT3X-DIS sensor");
+			Serial.println(F("Could not find SHT3X-DIS sensor"));
 			#endif
 		}
 		else
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Connect to SHT3X-DIS sensor at 0x44");
+			Serial.println(F("Connect to SHT3X-DIS sensor at 0x44"));
 			#endif
 		}
 	#endif
@@ -69,13 +69,13 @@ void initSensors()
 		if (!bme280.begin(BME280_ADDRESS_ALTERNATE))
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Could not find BME280 sensor at 0x76");
+			Serial.println(F("Could not find BME280 sensor at 0x76"));
 			#endif
 		}
 		else
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Connect to BME280 sensor at 0x76");
+			Serial.println(F("Connect to BME280 sensor at 0x76"));
 			#endif
 		}
 	#endif
@@ -130,7 +130,8 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 	{
 		sensorData->IsUpdated = false;
 		#ifdef SERIAL_LOGGING
-		Serial.println("Problem reading channel. HTTP error code " + String(statusCode));
+		Serial.print(F("Problem reading channel. HTTP error code "));
+		Serial.println(statusCode);
 		#endif
 	}
 }
@@ -152,7 +153,7 @@ void readInternalSensors(SensorData *sensorData)
 	sensorData->IsUpdated = true;
 
 	#ifdef SERIAL_LOGGING
-	Serial.println("Updated Internal Sensor Data");
+	Serial.println(F("Updated Internal Sensor Data"));
 	Serial.println("Temperature: " + String(sensorData->Temp) + " °C");
 	Serial.println("Humidity: " + String(sensorData->Hmd) + " %");
 	#endif

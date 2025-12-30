@@ -73,7 +73,7 @@ Timezone naPT(naPDT, naPST);
 void initHelpers()
 {
 #ifdef SERIAL_LOGGING
-	Serial.println("Intializing Touch Screen...");
+	Serial.println(F("Intializing Touch Screen..."));
 #endif
 
 #ifdef LCDWIKITOUCH
@@ -84,7 +84,7 @@ void initHelpers()
 #endif
 
 #ifdef SERIAL_LOGGING
-	Serial.println("Intializing Time Client...");
+	Serial.println(F("Intializing Time Client..."));
 #endif
 	timeClient.begin();
 }
@@ -114,7 +114,11 @@ TouchResult touchTest()
     if (touched && millis() - lastTouchTime > 100)
 	{
 		#ifdef SERIAL_LOGGING
-		Serial.println("Touch at X,Y: (" + String(xValue) + "," + String(yValue) +")" );
+		Serial.print(F("Touch at X,Y: ("));
+		Serial.print(xValue);
+		Serial.print(F(","));
+		Serial.print(yValue);
+		Serial.println(F(")"));
 		#endif
 
 		if (xValue > TBCK && xValue < TFWD && yValue < TTOP)
@@ -141,7 +145,7 @@ void updateSystemTime()
 	if (!timeClient.isTimeSet())
 	{
 		#ifdef SERIAL_LOGGING
-		Serial.println("Time not set, forcing update.");
+		Serial.println(F("Time not set, forcing update."));
 		#endif
 		timeClient.forceUpdate();
 	}

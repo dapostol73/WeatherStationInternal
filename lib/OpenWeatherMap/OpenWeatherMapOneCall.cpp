@@ -59,16 +59,19 @@ bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
     bool isBody = false;
     uint8_t eof = 0;
     char c;
-    Serial.println("[HTTP] connected, now GETting data");
+    Serial.println(F("[HTTP] connected, now GETting data"));
     // TODO: Figure out why Connection: close truncates client.read()
-    client.println("GET " + path + " HTTP/1.1");
-    client.println("Host: " + host);
-    client.println("Connection: keep-alive");
+    client.print(F("GET "));
+    client.print(path);
+    client.println(F(" HTTP/1.1"));
+    client.print(F("Host: "));
+    client.println(host);
+    client.println(F("Connection: keep-alive"));
     client.println();
     
     while (client.connected() || client.available()) {
       if ((millis() - lost_do) > lostTest) {
-        Serial.println("[HTTP] lost in client with a timeout");
+        Serial.println(F("[HTTP] lost in client with a timeout"));
         success = false;
         break;
       }
@@ -93,7 +96,7 @@ bool OpenWeatherMapOneCall::doUpdate(OpenWeatherMapOneCallData *data, String pat
     client.flush();
     parser.reset();
   } else {
-    Serial.println("[HTTP] failed to connect to host");
+    Serial.println(F("[HTTP] failed to connect to host"));
     success = false;
   }
   this->data = nullptr;
@@ -116,11 +119,11 @@ String OpenWeatherMapOneCall::toPascalCase(String value) {
 }
 
 void OpenWeatherMapOneCall::whitespace(char c) {
-  Serial.println("whitespace");
+  Serial.println(F("whitespace"));
 }
 
 void OpenWeatherMapOneCall::startDocument() {
-  Serial.println("start of document");
+  Serial.println(F("start of document"));
 }
 
 void OpenWeatherMapOneCall::key(String key) {
@@ -129,210 +132,210 @@ void OpenWeatherMapOneCall::key(String key) {
 
 void OpenWeatherMapOneCall::value(String value) {
   // "lon": 8.54, float lon;
-  if (currentKey == "lon") {
+  if (currentKey == F("lon")) {
     this->data->lon = value.toFloat();
   }
   // "lat": 47.37 float lat;
-  if (currentKey == "lat") {
+  if (currentKey == F("lat")) {
     this->data->lat = value.toFloat();
   }
   // "timezone": "Europe/Berlin"
-  if (currentKey == "timezone") {
+  if (currentKey == F("timezone")) {
     this->data->timezone = value;
   }
 
   // "current": {..}
-  if (currentParent.startsWith("/ROOT/current")) {
+  if (currentParent.startsWith(F("/ROOT/current"))) {
     // "current": {.. "dt": 1587216739, .. }
-    if (currentKey == "dt") {
+    if (currentKey == F("dt")) {
       this->data->current.dt = value.toInt();
     }
-    if (currentKey == "sunrise") {
+    if (currentKey == F("sunrise")) {
       this->data->current.sunrise = value.toInt();
     }
-    if (currentKey == "sunset") {
+    if (currentKey == F("sunset")) {
       this->data->current.sunset = value.toInt();
     }
-    if (currentKey == "temp") {
+    if (currentKey == F("temp")) {
       this->data->current.temp = value.toFloat();
     }
-    if (currentKey == "feels_like") {
+    if (currentKey == F("feels_like")) {
       this->data->current.feels_like = value.toFloat();
     }
-    if (currentKey == "pressure") {
+    if (currentKey == F("pressure")) {
       this->data->current.pressure = value.toFloat();
     }
-    if (currentKey == "humidity") {
+    if (currentKey == F("humidity")) {
       this->data->current.humidity = value.toFloat();
     }
-    if (currentKey == "dew_point") {
+    if (currentKey == F("dew_point")) {
       this->data->current.dew_point = value.toFloat();
     }
-    if (currentKey == "uvi") {
+    if (currentKey == F("uvi")) {
       this->data->current.uvi = value.toFloat();
     }
-    if (currentKey == "clouds") {
+    if (currentKey == F("clouds")) {
       this->data->current.clouds = value.toInt();
     }
-    if (currentKey == "visibility") {
+    if (currentKey == F("visibility")) {
       this->data->current.visibility = value.toInt();
     }
-    if (currentKey == "wind_speed") {
+    if (currentKey == F("wind_speed")) {
       this->data->current.windSpeed = value.toFloat();
     }
-    if (currentKey == "wind_deg") {
+    if (currentKey == F("wind_deg")) {
       this->data->current.windDeg = value.toFloat();
     }
     // weatherItemCounter: only get the first item if more than one is available
-    if (currentParent.startsWith("/ROOT/current/weather[]") && weatherItemCounter == 0) {
-      if (currentKey == "id") {
+    if (currentParent.startsWith(F("/ROOT/current/weather[]")) && weatherItemCounter == 0) {
+      if (currentKey == F("id")) {
         this->data->current.weatherId = value.toInt();
       }
-      if (currentKey == "main") {
+      if (currentKey == F("main")) {
         this->data->current.weatherMain = value;
       }
-      if (currentKey == "description") {
+      if (currentKey == F("description")) {
         this->data->current.weatherDescription = toPascalCase(value);
       }
-      if (currentKey == "icon") {
+      if (currentKey == F("icon")) {
         this->data->current.weatherIcon = value;
       }
     }
   }
 
   // "hourly": [..]
-  if(currentParent.startsWith("/ROOT/hourly[]")) {
-    if (currentKey == "dt") {
+  if(currentParent.startsWith(F("/ROOT/hourly[]"))) {
+    if (currentKey == F("dt")) {
       this->data->hourly[hourlyItemCounter].dt = value.toInt();
     }
-    if (currentKey == "temp") {
+    if (currentKey == F("temp")) {
       this->data->hourly[hourlyItemCounter].temp = value.toFloat();
     }
-    if (currentKey == "feels_like") {
+    if (currentKey == F("feels_like")) {
       this->data->hourly[hourlyItemCounter].feels_like = value.toFloat();
     }
-    if (currentKey == "pressure") {
+    if (currentKey == F("pressure")) {
       this->data->hourly[hourlyItemCounter].pressure = value.toInt();
     }
-    if (currentKey == "humidity") {
+    if (currentKey == F("humidity")) {
       this->data->hourly[hourlyItemCounter].humidity = value.toInt();
     }
-    if (currentKey == "dew_point") {
+    if (currentKey == F("dew_point")) {
       this->data->hourly[hourlyItemCounter].dew_point = value.toFloat();
     }
-    if (currentKey == "clouds") {
+    if (currentKey == F("clouds")) {
       this->data->hourly[hourlyItemCounter].clouds = value.toInt();
     }
-    if (currentKey == "wind_speed") {
+    if (currentKey == F("wind_speed")) {
       this->data->hourly[hourlyItemCounter].windSpeed = value.toFloat();
     }
-    if (currentKey == "wind_deg") {
+    if (currentKey == F("wind_deg")) {
       this->data->hourly[hourlyItemCounter].windDeg = value.toFloat();
     }
 
     // weatherItemCounter: only get the first item if more than one is available
-    if (currentParent.startsWith("/ROOT/hourly[]/_obj/weather[]") && weatherItemCounter == 0) {
-      if (currentKey == "id") {
+    if (currentParent.startsWith(F("/ROOT/hourly[]/_obj/weather[]")) && weatherItemCounter == 0) {
+      if (currentKey == F("id")) {
         this->data->hourly[hourlyItemCounter].weatherId = value.toInt();
       }
-      if (currentKey == "main") {
+      if (currentKey == F("main")) {
         this->data->hourly[hourlyItemCounter].weatherMain = value;
       }
-      if (currentKey == "description") {
+      if (currentKey == F("description")) {
         this->data->hourly[hourlyItemCounter].weatherDescription = value;
       }
-      if (currentKey == "icon") {
+      if (currentKey == F("icon")) {
         this->data->hourly[hourlyItemCounter].weatherIcon = value;
       }
     }
   }
 
   // "daily": [..]
-  if(currentParent.startsWith("/ROOT/daily[]")) {
-    if (currentKey == "dt") {
+  if(currentParent.startsWith(F("/ROOT/daily[]"))) {
+    if (currentKey == F("dt")) {
       this->data->daily[dailyItemCounter].dt = value.toInt();
     }
-    if (currentKey == "sunrise") {
+    if (currentKey == F("sunrise")) {
       this->data->daily[dailyItemCounter].sunrise = value.toInt();
     }
-    if (currentKey == "sunset") {
+    if (currentKey == F("sunset")) {
       this->data->daily[dailyItemCounter].sunset = value.toInt();
     }
-    if (currentKey == "pressure") {
+    if (currentKey == F("pressure")) {
       this->data->daily[dailyItemCounter].pressure = value.toInt();
     }
-    if (currentKey == "humidity") {
+    if (currentKey == F("humidity")) {
       this->data->daily[dailyItemCounter].humidity = value.toInt();
     }
-    if (currentKey == "dew_point") {
+    if (currentKey == F("dew_point")) {
       this->data->daily[dailyItemCounter].dew_point = value.toFloat();
     }
-    if (currentKey == "wind_speed") {
+    if (currentKey == F("wind_speed")) {
       this->data->daily[dailyItemCounter].windSpeed = value.toFloat();
     }
-    if (currentKey == "wind_deg") {
+    if (currentKey == F("wind_deg")) {
       this->data->daily[dailyItemCounter].windDeg = value.toFloat();
     }
-    if (currentKey == "clouds") {
+    if (currentKey == F("clouds")) {
       this->data->daily[dailyItemCounter].clouds = value.toInt();
     }
-    if (currentKey == "rain") {
+    if (currentKey == F("rain")) {
       this->data->daily[dailyItemCounter].rain = value.toFloat();
     }
-    if (currentKey == "snow") {
+    if (currentKey == F("snow")) {
       this->data->daily[dailyItemCounter].snow = value.toFloat();
     }
-    if (currentKey == "uvi") {
+    if (currentKey == F("uvi")) {
       this->data->daily[dailyItemCounter].uvi = value.toFloat();
     }
 
-    if (currentParent.startsWith("/ROOT/daily[]/_obj/temp")) {
-      if (currentKey == "day") {
+    if (currentParent.startsWith(F("/ROOT/daily[]/_obj/temp"))) {
+      if (currentKey == F("day")) {
         this->data->daily[dailyItemCounter].tempDay = value.toFloat();
       }
-      if (currentKey == "min") {
+      if (currentKey == F("min")) {
         this->data->daily[dailyItemCounter].tempMin = value.toFloat();
       }
-      if (currentKey == "max") {
+      if (currentKey == F("max")) {
         this->data->daily[dailyItemCounter].tempMax = value.toFloat();
       }
-      if (currentKey == "night") {
+      if (currentKey == F("night")) {
         this->data->daily[dailyItemCounter].tempNight = value.toFloat();
       }
-      if (currentKey == "eve") {
+      if (currentKey == F("eve")) {
         this->data->daily[dailyItemCounter].tempEve = value.toFloat();
       }
-      if (currentKey == "morn") {
+      if (currentKey == F("morn")) {
         this->data->daily[dailyItemCounter].tempMorn = value.toFloat();
       }
     }
-  
-    if (currentParent.startsWith("/ROOT/daily[]/_obj/feels_like")) {
-      if (currentKey == "day") {
+
+    if (currentParent.startsWith(F("/ROOT/daily[]/_obj/feels_like"))) {
+      if (currentKey == F("day")) {
         this->data->daily[dailyItemCounter].feels_likeDay = value.toFloat();
       }
-      if (currentKey == "night") {
+      if (currentKey == F("night")) {
         this->data->daily[dailyItemCounter].feels_likeNight = value.toFloat();
       }
-      if (currentKey == "eve") {
+      if (currentKey == F("eve")) {
         this->data->daily[dailyItemCounter].feels_likeEve = value.toFloat();
       }
-      if (currentKey == "morn") {
+      if (currentKey == F("morn")) {
         this->data->daily[dailyItemCounter].feels_likeMorn = value.toFloat();
       }
     }
     // weatherItemCounter: only get the first item if more than one is available
-    if (currentParent.startsWith("/ROOT/daily[]/_obj/weather[]") && weatherItemCounter == 0) {
-      if (currentKey == "id") {
+    if (currentParent.startsWith(F("/ROOT/daily[]/_obj/weather[]")) && weatherItemCounter == 0) {
+      if (currentKey == F("id")) {
         this->data->daily[dailyItemCounter].weatherId = value.toInt();
       }
-      if (currentKey == "main") {
+      if (currentKey == F("main")) {
         this->data->daily[dailyItemCounter].weatherMain = value;
       }
-      if (currentKey == "description") {
+      if (currentKey == F("description")) {
         this->data->daily[dailyItemCounter].weatherDescription = value;
       }
-      if (currentKey == "icon") {
+      if (currentKey == F("icon")) {
         this->data->daily[dailyItemCounter].weatherIcon = value;
       }
     }
@@ -352,13 +355,13 @@ void OpenWeatherMapOneCall::startObject() {
 }
 
 void OpenWeatherMapOneCall::endObject() {
-  if (currentParent == "/ROOT/current/weather[]/_obj" || currentParent == "/ROOT/daily[]/_obj/weather[]/_obj" || currentParent == "/ROOT/daily[]/_obj/weather[]/_obj"  ) {
+  if (currentParent == F("/ROOT/current/weather[]/_obj") || currentParent == F("/ROOT/daily[]/_obj/weather[]/_obj") || currentParent == F("/ROOT/daily[]/_obj/weather[]/_obj")  ) {
     weatherItemCounter++;
   }
-  if (currentParent == "/ROOT/hourly[]/_obj") {
+  if (currentParent == F("/ROOT/hourly[]/_obj")) {
     hourlyItemCounter++;
   }
-  if (currentParent == "/ROOT/daily[]/_obj") {
+  if (currentParent == F("/ROOT/daily[]/_obj")) {
     dailyItemCounter++;
   }  
   currentKey = "";
@@ -366,7 +369,7 @@ void OpenWeatherMapOneCall::endObject() {
 }
 
 void OpenWeatherMapOneCall::endDocument() {
-  Serial.println("end of document");
+  Serial.println(F("end of document"));
 }
 
 void OpenWeatherMapOneCall::startArray() {

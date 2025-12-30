@@ -8,8 +8,7 @@ NetworkManager::NetworkManager()
 bool NetworkManager::init()
 {
 	#ifdef SERIAL_LOGGING
-	String intialMsg = "Intializing WiFi module.";
-	Serial.println(intialMsg);
+	Serial.println(F("Intializing WiFi module."));
 	#endif
 
 	WiFi.init(&Serial3);
@@ -20,8 +19,7 @@ bool NetworkManager::init()
 	if (WiFi.status() == WL_NO_SHIELD)
 	{
 		#ifdef SERIAL_LOGGING
-        String initialErr = "Communication with WiFi module failed!";
-		Serial.println(initialErr);
+		Serial.println(F("Communication with WiFi module failed!"));
 		#endif
 		// don't continue
 		return false;
@@ -38,7 +36,7 @@ bool NetworkManager::isConnected()
 int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t numOfSettings)
 {
 	#ifdef SERIAL_LOGGING
-	Serial.println("Scanning for WiFi SSID.");
+	Serial.println(F("Scanning for WiFi SSID."));
 	#endif
 	uint8_t id = 0;
 
@@ -49,13 +47,13 @@ int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t nu
 		{
 			appSettings[id].WifiSettings.Avialable = true;
 			#ifdef SERIAL_LOGGING
-			Serial.println("Only one WiFi settings, assume it is avialable.");
+			Serial.println(F("Only one WiFi settings, assume it is avialable."));
 			#endif
 		}
 		else
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("No WiFi settings found, skipping network setup.");
+			Serial.println(F("No WiFi settings found, skipping network setup."));
 			#endif
 		}
 		return id;
@@ -63,7 +61,8 @@ int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t nu
 
 	int8_t numNetworks = WiFi.scanNetworks();
 	#ifdef SERIAL_LOGGING
-	Serial.println("Number of networks found: " + String(numNetworks));
+	Serial.print(F("Number of networks found: "));
+	Serial.println(numNetworks);
 	#endif
 
 	if (numNetworks == 0)
@@ -82,12 +81,14 @@ int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t nu
 		{
 			const char* appSsid = appSettings[j].WifiSettings.SSID;
 			#ifdef SERIAL_LOGGING
-			Serial.println("Checking: " + String(appSsid));
+			Serial.print(F("Checking: "));
+			Serial.println(appSsid);
 			#endif
 			if (strcasecmp(appSsid, ssid.c_str()) == 0)
 			{
 				#ifdef SERIAL_LOGGING
-				Serial.println("Found: " + String(ssid));
+				Serial.print(F("Found: "));
+				Serial.println(ssid);
 				#endif
 				appSettings[j].WifiSettings.Avialable = true;
 				appSettings[j].WifiSettings.Strength = WiFi.RSSI(i);
@@ -101,7 +102,8 @@ int NetworkManager::scanSettingsID(ApplicationSettings* appSettings, uint16_t nu
 	}
 
 	#ifdef SERIAL_LOGGING
-	Serial.println("Using WiFi " + String(appSettings[id].WifiSettings.SSID));
+	Serial.print(F("Using WiFi "));
+	Serial.println(appSettings[id].WifiSettings.SSID);
 	#endif
 	WiFi.disconnect();
 	return id;
@@ -126,8 +128,7 @@ bool NetworkManager::connectWiFi(WiFiConnection wiFiConnection, uint16_t retryAt
 
 	WiFi.begin(wiFiConnection.SSID, wiFiConnection.Password);
 	#ifdef SERIAL_LOGGING
-	char infoMsg[] = "Waiting for connection to WiFi";
-	Serial.println(infoMsg);
+	Serial.println(F("Waiting for connection to WiFi"));
 	#endif
 
 	// Give it 5 seconds to establish connection.
@@ -166,13 +167,13 @@ String NetworkManager::sendATcommand(const char *atCommand, unsigned long millis
 {
 	String result;
 	#ifdef SERIAL_LOGGING
-	Serial.print("Sending: ");
+	Serial.print(F("Sending: "));
 	Serial.println(atCommand);
 	#endif
 	Serial3.println(atCommand);
 	unsigned long startTime = millis();
 	#ifdef SERIAL_LOGGING
-	Serial.print("Received: ");
+	Serial.print(F("Received: "));
 	#endif
 
 	while (millis() - startTime < milliseconds)

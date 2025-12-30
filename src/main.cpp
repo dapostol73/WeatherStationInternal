@@ -193,7 +193,7 @@ void setup()
 
 	displayWeather.fillScreen(BLACK);
 #ifdef DISPLAY_ILI9488
-	displayWeather.drawString("Weather Station", 240, 160, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
+	displayWeather.drawString(F("Weather Station"), 240, 160, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
 	displayWeather.drawWeatherIcon(60,  80, "00d", true, 1);
 	displayWeather.drawWeatherIcon(150, 80, "01d", true, 1);
 	displayWeather.drawWeatherIcon(240, 80, "02d", true, 1);
@@ -205,7 +205,7 @@ void setup()
 	displayWeather.drawWeatherIcon(330, 240, "13d", true, 1);
 	displayWeather.drawWeatherIcon(420, 240, "50d", true, 1);
 #else
-	displayWeather.drawString("Weather Station", 400, 200, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
+	displayWeather.drawString(F("Weather Station"), 400, 200, TEXT_CENTER_MIDDLE, TEXT_TITLE_COLOR);
 	displayWeather.drawWeatherIcon(100, 100, "00d", true, 2);
 	displayWeather.drawWeatherIcon(250, 100, "01d", true, 2);
 	displayWeather.drawWeatherIcon(400, 100, "02d", true, 2);
@@ -256,7 +256,7 @@ void loop()
 	if (!netManager.isConnected() && millis() - wiFiLastConnection > (1000L*WIFI_RECONNECT_INTERVAL_SECS))
 	{
 		#ifdef SERIAL_LOGGING
-		Serial.println("WiFi disconnect, waiting for reconnect.");
+		Serial.println(F("WiFi disconnect, waiting for reconnect."));
 		#endif
 		// All updates will be invalid at this point.
 		#ifdef THINGSPEAK_SENSOR
@@ -272,7 +272,7 @@ void loop()
 		if (!netManager.connectWiFi(appSettings.WifiSettings, 3, 10))
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("WiFi reconnect failed.");
+			Serial.println(F("WiFi reconnect failed."));
 			#endif			
 		}
 		wiFiLastConnection = millis();
@@ -282,7 +282,7 @@ void loop()
 		if (millis() - timeSinceForecastDailyUpdate > (1000L*FORECAST_DAILY_INTERVAL_SECS))
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Setting updateForecastDailyWeather to true");
+			Serial.println(F("Setting updateForecastDailyWeather to true"));
 			#endif
 			updateForecastDailyWeather = true;
 			timeSinceForecastDailyUpdate = millis();
@@ -291,7 +291,7 @@ void loop()
 		if (millis() - timeSinceForecastHourlyUpdate > (1000L*FORECAST_HOURLY_INTERVAL_SECS))
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Setting updateForecastHourlyWeather to true");
+			Serial.println(F("Setting updateForecastHourlyWeather to true"));
 			#endif
 			updateForecastHourlyWeather = true;
 			timeSinceForecastHourlyUpdate = millis();
@@ -300,7 +300,7 @@ void loop()
 		if (millis() - timeSinceCurrentUpdate > (1000L*CURRENT_INTERVAL_SECS))
 		{
 			#ifdef SERIAL_LOGGING
-			Serial.println("Setting updateCurrentWeather to true");
+			Serial.println(F("Setting updateCurrentWeather to true"));
 			#endif
 			updateCurrentWeather = true;
 			timeSinceCurrentUpdate = millis();
@@ -370,10 +370,10 @@ void loop()
 void initNetwork()
 {
 	char info[48] = "";
-	displayWeather.drawProgress(25, "Intializing WiFi module");
+	displayWeather.drawProgress(25, F("Intializing WiFi module"));
 	netManager.init();
 	uint8_t appSetID = 0 ;
-	displayWeather.drawProgress(50, "Scanning for WiFi SSID");
+	displayWeather.drawProgress(50, F("Scanning for WiFi SSID"));
 	appSetID = netManager.scanSettingsID(AppSettings, AppSettingsCount);
 	appSettings = AppSettings[appSetID];
 	sprintf(info, "Connecting to: %s", appSettings.WifiSettings.SSID);
@@ -390,14 +390,14 @@ bool updateData()
 {
 	bool success = true;
 	displayProgress.foregroundColor = TEXT_ALT_COLOR;
-	displayWeather.drawProgress(20, "Updating time...");
+	displayWeather.drawProgress(20, F("Updating time..."));
 	updateSystemTime();
 	printCurrentTime();
 
 	#ifdef THINGSPEAK_SENSOR
 	if (updateExternalSensors)
 	{
-		displayWeather.drawProgress(35, "Updating external sensor data...");
+		displayWeather.drawProgress(35, F("Updating external sensor data..."));
 		readExternalSensorsData(appSettings.ThingSpeakSettings.ChannelID, &externalSensorData);
 		updateExternalSensors = false;
 		success = success && externalSensorData.IsUpdated;
@@ -407,7 +407,7 @@ bool updateData()
 	#ifdef CANADIAN_TIDES
 	if (updateTidesHiLo)
 	{
-		displayWeather.drawProgress(45, "Updating Tides HiLo data...");
+		displayWeather.drawProgress(45, F("Updating Tides HiLo data..."));
 		tidesHiLoUpdated = tidesHiLoClient.updateTidesById(tidesHiLoPredictions, 
 								appSettings.CanadianHydrographicSettings.StationID, 
 								formatTimeISO8601UTC(now()), 
@@ -424,7 +424,7 @@ bool updateData()
 
 	if (updateCurrentWeather)
 	{
-		displayWeather.drawProgress(50, "Updating current weather...");
+		displayWeather.drawProgress(50, F("Updating current weather..."));
 		currentWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		currentWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		currentWeatherUpdated = currentWeatherClient.updateCurrentById(&currentWeather, appSettings.OpenWeatherSettings.AppID, appSettings.OpenWeatherSettings.Location);
@@ -438,7 +438,7 @@ bool updateData()
 
 	if (updateForecastHourlyWeather)
 	{
-		displayWeather.drawProgress(65, "Updating hourly forecasts...");
+		displayWeather.drawProgress(65, F("Updating hourly forecasts..."));
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		forecastWeatherClient.setAllowedHours(HOURLY_FORECAST_HOURS, sizeof(HOURLY_FORECAST_HOURS));
@@ -479,7 +479,7 @@ bool updateData()
 			{
 				forecastWeatherHourly[2] = forecastWeatherHourlyQuerry[0];
 				#ifdef SERIAL_LOGGING
-				Serial.println("Failed to find the next valid forcast, this shouldn't happen");
+				Serial.println(F("Failed to find the next valid forcast, this shouldn't happen"));
 				#endif
 			}
 		}
@@ -494,7 +494,7 @@ bool updateData()
 
 	if (updateForecastDailyWeather)
 	{
-		displayWeather.drawProgress(80, "Updating daily forecasts...");
+		displayWeather.drawProgress(80, F("Updating daily forecasts..."));
 		forecastWeatherClient.setMetric(appSettings.OpenWeatherSettings.IsMetric);
 		forecastWeatherClient.setLanguage(appSettings.OpenWeatherSettings.Language);
 		forecastWeatherClient.setAllowedHours(DAILY_FORECAST_HOURS, sizeof(DAILY_FORECAST_HOURS));
@@ -509,7 +509,7 @@ bool updateData()
 	}
 
 	lastUpdated = now();
-	displayWeather.drawProgress(100, "Updating done!");
+	displayWeather.drawProgress(100, F("Updating done!"));
 	delay(1000);
 	return success;
 }
