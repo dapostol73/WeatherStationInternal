@@ -35,7 +35,7 @@ bool HTTPTimeClient::forceUpdate() {
     client.println(F("GET /api/ip HTTP/1.0"));
     client.print(F("Host: "));
     client.println(server);
-    client.println(F("Connection: close"));
+    client.println(F("Connection: keep-alive"));
     client.println();
 
     // Wait for data with timeout
