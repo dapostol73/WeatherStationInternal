@@ -802,7 +802,7 @@ void DisplayWeather::drawCurrentWeather(OpenWeatherMapCurrentData *currentWeathe
 #endif
 }
 
-/// @brief Draw the 1 of the 3 details forecast, we pass in the top\center of the up most
+/// @brief Draw the 1 of the 3 details for a forecast, we pass in the top\center of the 
 ///        up most which is 20, then bottom most is 420 which means we have and area to 
 ///        draw 260 wide by 400 high
 /// @param forecastWeather 
@@ -856,6 +856,24 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 #endif
 }
 
+/// @brief Draw the 1 of the 4 details for a tide, we pass in the top\center of the
+///        up most which is 20, then bottom most is 420 which means we have and area to 
+///        draw 260 wide by 400 high
+/// @param tidesHiLoData 
+/// @param x 
+/// @param y 
+/// @param index 
+void DisplayWeather::drawTideDetails(CanadianHydrograpicTidesHiLoData *tidesHiLoData, int16_t x, int16_t y, int16_t index)
+{
+	setFont(&CalibriBold8pt7b);
+	drawString(tidesHiLoData[index].eventDate, x + 60, y, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+	setFont(&CalibriBold12pt7b);
+	char height[8];
+	dtostrf(tidesHiLoData[index].value, 2, 1, height);
+	strcat(height, "m");
+	drawString(height, x + 60, y + 40, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+}
+
 void DisplayWeather::drawForecastHourly(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
 {
 	fillScreen(BACKGROUND_COLOR);
@@ -888,14 +906,13 @@ void DisplayWeather::drawTidesHiLo(CanadianHydrograpicTidesHiLoData *tidesHiLoDa
 {
 	fillScreen(BACKGROUND_COLOR);
 #ifdef DISPLAY_ILI9488
+	y = 20;
 	setFont(&CalibriBold16pt7b);
 	drawString("Tides", x + 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawString(tidesHiLoData[0].eventDate, x + 240, y + 120, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
-
-	char height[8];
-	dtostrf(tidesHiLoData[0].value, 2, 1, height);
-	strcat(height, "m");
-	drawString(height, x + 240, y + 140, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+	drawTideDetails(tidesHiLoData, x, y + 160, 0);
+	drawTideDetails(tidesHiLoData, x + 120, y + 160, 1);
+	drawTideDetails(tidesHiLoData, x + 240, y + 160, 2);
+	drawTideDetails(tidesHiLoData, x + 360, y + 160, 3);
 #else
 #endif
 }

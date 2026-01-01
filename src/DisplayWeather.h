@@ -148,6 +148,7 @@ class DisplayWeather : public DisplayControl
         void drawHumidityIcon(float humidity, int16_t x, int16_t y, int16_t size = 1);
         void drawHumidity(float humidity, int16_t x, int16_t y, TextAlignment align, uint16_t foregroundColor);
         void drawForecastDetails(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y, int16_t index, bool showTime);        
+        void drawTideDetails(CanadianHydrograpicTidesHiLoData *tidesHiLoData, int16_t x, int16_t y, int16_t index);
         void drawMemoryBar(int16_t x, int16_t y, int16_t size);
         void drawWiFiSignal(int16_t x, int16_t y, int16_t size, uint16_t backgroundColor = UINT16_MAX);        
     public:

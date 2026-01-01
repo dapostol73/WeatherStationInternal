@@ -330,16 +330,9 @@ void loop()
 		timeSinceInternalUpdate = millis();
 	}
 
-	#ifdef THINGSPEAK_SENSOR
-	if (updateExternalSensors || updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather)
-	#else
-	if (updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather)
-	#endif
-	{
-		updateSuccessed = updateData();
-	}
-
 	// Force an update if we were offline and just came online
+	// TODO: validate this code is required...as if disconnected 
+	// 		 we set all updates to false above.
 	wiFiLastState = wiFiCurrentState;
 	wiFiCurrentState = netManager.isConnected();
 	if (wiFiLastState == false && wiFiCurrentState == true)
@@ -354,6 +347,15 @@ void loop()
 		updateCurrentWeather = true;
 		updateForecastHourlyWeather = true;
 		updateForecastDailyWeather = true;
+	}
+
+	#ifdef THINGSPEAK_SENSOR
+	if (updateExternalSensors || updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather)
+	#else
+	if (updateCurrentWeather || updateForecastHourlyWeather || updateForecastDailyWeather)
+	#endif
+	{
+		updateSuccessed = updateData();
 	}
 
 	int8_t remainingTimeBudget = displayWeather.update();
@@ -411,7 +413,7 @@ bool updateData()
 		tidesHiLoUpdated = tidesHiLoClient.updateTidesById(tidesHiLoPredictions, 
 								appSettings.CanadianHydrographicSettings.StationID, 
 								formatTimeISO8601UTC(now()), 
-								formatTimeISO8601UTC(now() + 18L * 3600), 
+								formatTimeISO8601UTC(now() + 48L * 3600), 
 								MAX_TIDES);
 		if (!tidesHiLoUpdated)
 		{
