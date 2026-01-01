@@ -5,7 +5,7 @@
 #include <limits.h>
 #include <TimeLib.h>
 #include <WiFiEspAT.h>
-#include <NTPClient.h>
+#include <HTTPTimeClient.h>
 #include <Timezone.h> 
 
 #define LCDWIKITOUCH

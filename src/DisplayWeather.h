@@ -5,7 +5,6 @@
 #include <WiFiEspAT.h>
 
 #include <TimeLib.h>
-#include <NTPClient.h>
 #include <MemoryUsage.h>
 
 #include "ApplicationSensor.h"
@@ -93,9 +92,6 @@ class DisplayWeather : public DisplayControl
 {
     private:
         uint16_t palette[4] = {BACKGROUND_COLOR, CLOUD_LIGHT_COLOR, SUN_COLOR, RAIN_COLOR};
-        NTPClient *m_timeClient;
-        time_t m_timeUpdated;
-        //bool m_isMetric = true;
 
         void readDaysString(char* buffer, int16_t index)
         {

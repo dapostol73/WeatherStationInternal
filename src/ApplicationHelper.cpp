@@ -53,8 +53,7 @@ long lastTouchTime = LONG_MIN;
 const unsigned long TIME_INTERVAL_SECS = 30 * 60 * 1000UL; // Check time every 30 minutes
 const long TZ_SEC = 0 * 60 * 60; // First digit is time zone, 0 = UTC time 
 
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", TZ_SEC, TIME_INTERVAL_SECS);
+HTTPTimeClient httpTimeClient;
 
 #ifdef TIMEZONE_ATLANTIC
 // North America Atlantic Time Zone (Moncton, Halifax, Charlottetown)
@@ -86,7 +85,7 @@ void initHelpers()
 #ifdef SERIAL_LOGGING
 	Serial.println(F("Intializing Time Client..."));
 #endif
-	timeClient.begin();
+	httpTimeClient.setUpdateInterval(TIME_INTERVAL_SECS);
 }
 
 TouchResult touchTest()
@@ -142,18 +141,18 @@ TouchResult touchTest()
 // TODO: Figure out bug on switch over.
 void updateSystemTime()
 {
-	if (!timeClient.isTimeSet())
+	if (!httpTimeClient.isTimeSet())
 	{
 		#ifdef SERIAL_LOGGING
 		Serial.println(F("Time not set, forcing update."));
 		#endif
-		timeClient.forceUpdate();
+		httpTimeClient.forceUpdate();
 	}
 	else
 	{
-		timeClient.update();
+		httpTimeClient.update();
 	}	
-	time_t utc = (time_t)timeClient.getEpochTime();
+	time_t utc = (time_t)httpTimeClient.getEpochTime();
 #ifdef TIMEZONE_ATLANTIC
 	setTime(naAT.toLocal(utc));	
 #endif
