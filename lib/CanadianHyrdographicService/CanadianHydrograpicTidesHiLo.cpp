@@ -64,15 +64,15 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
   JsonStreamingParser parser;
   parser.setListener(this);
   char connectInfo[232] = "";
-  sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u%s\n", host, port, path.c_str());
+  sprintf(connectInfo, "[HTTPS] Requesting resource at https://%s:%u%s\n", host, port, path.c_str());
 	Serial.println(connectInfo);
 
   WiFiClient client;
-  if(client.connect(host, port)) {
+  if(client.connectSSL(host, port)) {
     bool isBody = false;
     uint8_t eof = 0;
     char c;
-    Serial.println(F("[HTTP] connected, now GETting data"));
+    Serial.println(F("[HTTPS] connected, now GETting data"));
     // TODO: Figure out why Connection: close truncates client.read()
     client.print(F("GET "));
     client.print(path);
@@ -84,7 +84,7 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
     
     while (client.connected() || client.available()) {
       if ((millis() - lost_do) > lostTest) {
-        Serial.println(F("[HTTP] lost in client with a timeout"));
+        Serial.println(F("[HTTPS] lost in client with a timeout"));
         success = false;
         break;
       }
@@ -95,6 +95,7 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
         continue;
       }
       c = client.read();
+      //Serial.write(c);
       if (c == '{' || c == '[') {
         isBody = true;
       }
@@ -109,7 +110,7 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
     client.flush();
     parser.reset();
   } else {
-    Serial.println(F("[HTTP] failed to connect to host"));
+    Serial.println(F("[HTTPS] failed to connect to host"));
     success = false;
   }
   this->data = nullptr;

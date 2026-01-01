@@ -1,0 +1,7 @@
+{
+  "name": "HTTPTimeClient",
+  "keywords": "http, time, client",
+  "description": "A library to retrieve time from HTTP servers.",
+  "frameworks": "arduino",
+  "version": "0.0.0"
+}

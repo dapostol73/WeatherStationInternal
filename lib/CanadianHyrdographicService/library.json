@@ -1,7 +1,7 @@
 {
-  "name": "OpenWeatherMap",
-  "keywords": "embedded, display, oled",
-  "description": "A WiFi connected information display",
+  "name": "CanadianHyrdographicService",
+  "keywords": "canada, tides, client, hydrographic, service",
+  "description": "A library to retrieve tide and current data from the Canadian Hydrographic Service (CHS) web services.",
   "frameworks": "arduino",
   "version": "0.0.0"
 }

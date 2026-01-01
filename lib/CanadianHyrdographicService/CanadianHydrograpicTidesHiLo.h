@@ -40,7 +40,7 @@ class CanadianHydrograpicTidesHiLo : public JsonListener {
   private:
     const char host[25] = "api-sine.dfo-mpo.gc.ca";
     const char TimeSeriesCode[10] = "wlp-hilo";
-    const uint16_t port = 80;
+    const uint16_t port = 443;
     String currentKey;
     String currentParent;
     CanadianHydrograpicTidesHiLoData *data;
