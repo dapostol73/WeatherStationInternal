@@ -62,6 +62,7 @@ bool HTTPTimeClient::forceUpdate() {
         return true;
     } else {
         Serial.println(F("Failed to parse time"));
+        lastUpdate = 0;
         return false;
     }
 }

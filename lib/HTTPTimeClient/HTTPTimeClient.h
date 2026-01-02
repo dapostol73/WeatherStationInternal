@@ -28,7 +28,7 @@ class HTTPTimeClient {
      *
      * @return true if time has been set, else false
      */
-    bool isTimeSet() const { return epochTime != 0; }
+    bool isTimeSet() const { return lastUpdate != 0; }
 
     // Return last fetched UNIX timestamp
     unsigned long getEpochTime() const { return epochTime; }
