@@ -86,6 +86,7 @@ void initHelpers()
 	Serial.println(F("Intializing Time Client..."));
 #endif
 	httpTimeClient.setUpdateInterval(TIME_INTERVAL_SECS);
+	httpTimeClient.forceUpdate();
 }
 
 TouchResult touchTest()

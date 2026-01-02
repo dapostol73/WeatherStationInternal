@@ -865,13 +865,23 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 /// @param index 
 void DisplayWeather::drawTideDetails(CanadianHydrograpicTidesHiLoData *tidesHiLoData, int16_t x, int16_t y, int16_t index)
 {
+#ifdef DISPLAY_ILI9488
+	int16_t tideHeight = max(140*(tidesHiLoData[index].value/2.0), 10);
+	int16_t tideY = y + 160 - tideHeight;
+	DisplayGFX->fillRoundRect(x + 10, tideY, 100, tideHeight, 5, RAIN_COLOR);
+
+	char time[6];
+	sprintf(time, "%02d:%02d", tidesHiLoData[index].hour, tidesHiLoData[index].minute);
 	setFont(&CalibriBold8pt7b);
-	drawString(tidesHiLoData[index].eventDate, x + 60, y, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
-	setFont(&CalibriBold12pt7b);
-	char height[8];
-	dtostrf(tidesHiLoData[index].value, 2, 1, height);
+	drawString(time, x + 60, y, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+	char height[6];
+	dtostrf(tidesHiLoData[index].value, 2, 2, height);
 	strcat(height, "m");
-	drawString(height, x + 60, y + 40, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+	setFont(&CalibriBold12pt7b);
+	drawString(height, x + 60, y + 180, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+#else
+	// TODO: implement for larger display
+#endif
 }
 
 void DisplayWeather::drawForecastHourly(OpenWeatherMapForecastData *forecastWeather, int16_t x, int16_t y) 
@@ -909,11 +919,12 @@ void DisplayWeather::drawTidesHiLo(CanadianHydrograpicTidesHiLoData *tidesHiLoDa
 	y = 20;
 	setFont(&CalibriBold16pt7b);
 	drawString("Tides", x + 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
-	drawTideDetails(tidesHiLoData, x, y + 160, 0);
-	drawTideDetails(tidesHiLoData, x + 120, y + 160, 1);
-	drawTideDetails(tidesHiLoData, x + 240, y + 160, 2);
-	drawTideDetails(tidesHiLoData, x + 360, y + 160, 3);
+	drawTideDetails(tidesHiLoData, x, y + 60, 0);
+	drawTideDetails(tidesHiLoData, x + 120, y + 60, 1);
+	drawTideDetails(tidesHiLoData, x + 240, y + 60, 2);
+	drawTideDetails(tidesHiLoData, x + 360, y + 60, 3);
 #else
+	// TODO: implement for larger display
 #endif
 }
 
