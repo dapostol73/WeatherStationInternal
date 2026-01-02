@@ -674,9 +674,9 @@ void DisplayWeather::drawSensorData(int16_t x, int16_t y, SensorData *internalSe
     y = 20;
 	x = 120;
 	setFont(&CalibriBold16pt7b);
-	drawString("Local", 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	drawString(F("Local"), 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
 
-	drawString("Inside", x, y + 60, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
+	drawString(F("Inside"), x, y + 60, TEXT_CENTER_TOP, TEXT_MAIN_COLOR);
 	
 	drawTemperatureIcon(internalSensorData->Temp, internalSensorData->IsMetric, x - 80 - 6, y + 120 - 22, 2);
 	drawTemperature(internalSensorData->Temp, internalSensorData->IsMetric, x - 40, y + 120, TEXT_LEFT_MIDDLE, TEXT_ALT_COLOR);
@@ -822,7 +822,7 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 			PSTR("%s %d %s"),
 			header,
 			hourFormat12(observationTimestamp),
-			(isAM(observationTimestamp) ? "AM" : "PM"));
+			isAM(observationTimestamp) ? "AM" : "PM");
 	}
 
 #ifdef DISPLAY_ILI9488
@@ -865,18 +865,24 @@ void DisplayWeather::drawForecastDetails(OpenWeatherMapForecastData *forecastWea
 /// @param index 
 void DisplayWeather::drawTideDetails(CanadianHydrograpicTidesHiLoData *tidesHiLoData, int16_t x, int16_t y, int16_t index)
 {
-#ifdef DISPLAY_ILI9488
-	int16_t tideHeight = max(140*(tidesHiLoData[index].value/2.0), 10);
-	int16_t tideY = y + 160 - tideHeight;
-	DisplayGFX->fillRoundRect(x + 10, tideY, 100, tideHeight, 5, RAIN_COLOR);
+	char time[10] = "";
+	sprintf_P(time, 
+			PSTR("%d:%02d %s"),
+			tidesHiLoData[index].hour % 12,
+			tidesHiLoData[index].minute,
+			tidesHiLoData[index].hour >= 12 ? "PM" : "AM");
 
-	char time[6];
-	sprintf(time, "%02d:%02d", tidesHiLoData[index].hour, tidesHiLoData[index].minute);
-	setFont(&CalibriBold8pt7b);
-	drawString(time, x + 60, y, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
 	char height[6];
 	dtostrf(tidesHiLoData[index].value, 2, 2, height);
 	strcat(height, "m");
+#ifdef DISPLAY_ILI9488
+	int16_t tideHeight = max(140*(tidesHiLoData[index].value/2.0), 10);
+	int16_t tideY = y + 160 - tideHeight;
+	DisplayGFX->fillRoundRect(x + 20, tideY, 80, tideHeight, 5, RAIN_COLOR);
+
+	setFont(&CalibriBold8pt7b);
+	drawString(time, x + 60, y, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
+
 	setFont(&CalibriBold12pt7b);
 	drawString(height, x + 60, y + 180, TEXT_CENTER_MIDDLE, TEXT_MAIN_COLOR);
 #else
@@ -918,7 +924,12 @@ void DisplayWeather::drawTidesHiLo(CanadianHydrograpicTidesHiLoData *tidesHiLoDa
 #ifdef DISPLAY_ILI9488
 	y = 20;
 	setFont(&CalibriBold16pt7b);
-	drawString("Tides", x + 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	drawString(F("Tides"), x + 240, y + 20, TEXT_CENTER_TOP, TEXT_TITLE_COLOR);
+	DisplayGFX->drawRoundRect(x + 10, y + 80, 460, 140, 5, RAIN_COLOR);
+	DisplayGFX->drawFastHLine(x + 10, y + 108, 460, RAIN_COLOR);
+	DisplayGFX->drawFastHLine(x + 10, y + 136, 460, RAIN_COLOR);
+	DisplayGFX->drawFastHLine(x + 10, y + 164, 460, RAIN_COLOR);
+	DisplayGFX->drawFastHLine(x + 10, y + 192, 460, RAIN_COLOR);
 	drawTideDetails(tidesHiLoData, x, y + 60, 0);
 	drawTideDetails(tidesHiLoData, x + 120, y + 60, 1);
 	drawTideDetails(tidesHiLoData, x + 240, y + 60, 2);
