@@ -6,6 +6,9 @@
 // Flash to this version: https://github.com/espressif/ESP8266_NONOS_SDK/
 // This on how to: https://github.com/espressif/ESP8266_NONOS_SDK/issues/179#issuecomment-461602640
 //
+// To add support for tides, had to change AT Firmawre to ESP_ATMod version
+//   Fork version: https://github.com/dapostol73/ESP_ATMod
+// 
 // If Serial Logging support is required add this build flag to platformio.ini
 //   build_flags = -D SERIAL_LOGGING
 //*****************************************************************************
