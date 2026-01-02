@@ -32,6 +32,11 @@
 typedef struct CanadianHydrograpicTidesHiLoData {
     bool isMetric = true;
     char eventDate[24] = "Unknown";
+    uint16_t year = 0;
+    uint8_t month = 0;
+    uint8_t day = 0;
+    uint8_t hour = 0;
+    uint8_t minute = 0;
     float value = 0.0;
     char timeSeriesId[26] = "";
 } CanadianHydrograpicTidesHiLoData;
@@ -49,6 +54,7 @@ class CanadianHydrograpicTidesHiLo : public JsonListener {
 
     bool doUpdate(CanadianHydrograpicTidesHiLoData *data, String path);
     String buildPath(String stationId, String startTime, String endTime);
+    void parseEventDateTime(CanadianHydrograpicTidesHiLoData *data, uint8_t index);
 
   public:
     CanadianHydrograpicTidesHiLo();

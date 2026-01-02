@@ -117,6 +117,19 @@ bool CanadianHydrograpicTidesHiLo::doUpdate(CanadianHydrograpicTidesHiLoData *da
   return success;
 }
 
+void CanadianHydrograpicTidesHiLo::parseEventDateTime(CanadianHydrograpicTidesHiLoData *data, uint8_t index) {
+  // expected format: 2025-12-27T12:00:00Z
+  if (strlen(data[index].eventDate) < 20) {
+    Serial.println(F("Failed to parse eventDate"));
+    return;
+  }
+  data[index].year = atoi(data[index].eventDate);
+  data[index].month = atoi(data[index].eventDate + 5);
+  data[index].day = atoi(data[index].eventDate + 8);
+  data[index].hour = atoi(data[index].eventDate + 11);
+  data[index].minute = atoi(data[index].eventDate + 14);
+}
+
 void CanadianHydrograpicTidesHiLo::whitespace(char c) {
   Serial.println(F("whitespace"));
 }
@@ -136,6 +149,7 @@ void CanadianHydrograpicTidesHiLo::value(String value) {
   // { "eventDate": "string",
   if (currentKey == F("eventDate")) {
     strcpy(data[currentTide].eventDate, value.c_str());
+    parseEventDateTime(data, currentTide);
   }
   // "qcFlagCode": "1",
   // "value": 0.1,
