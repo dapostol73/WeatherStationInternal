@@ -10,6 +10,8 @@
 SoftwareSerial Serial1(6, 7) //RX, TX
 #endif
 
+//#define RESET_ESPAT_MODULE
+
 class NetworkManager
 {
     private:

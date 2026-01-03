@@ -13,6 +13,21 @@ bool NetworkManager::init()
 
 	WiFi.init(&Serial3);
 	delay(1000);
+
+	// On inital firmware flash, ESP AT module 
+	// may need to be reset to factory defaults.
+	#ifdef RESET_ESPAT_MODULE
+		#ifdef SERIAL_LOGGING
+		Serial.println(F("Resetting ESP AT module to factory defaults."));
+		#endif
+		sendATcommand("AT", 2000);
+		sendATcommand("AT+RESTORE", 2000);
+		sendATcommand("AT+RST", 2000);
+		sendATcommand("AT+CWMODE=1", 2000);
+		sendATcommand("AT+RST", 2000);
+		sendATcommand("AT+GMR", 2000);
+	#endif
+
 	WiFi.sleepMode(WIFI_NONE_SLEEP);
 	WiFi.setAutoConnect(true);
 
