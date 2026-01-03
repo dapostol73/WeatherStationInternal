@@ -17,16 +17,18 @@
 #ifdef DISPLAY_ILI9488
 	#define HRES 480 /* Default screen resulution for X axis */
 	#define VRES 320 /* Default screen resulution for Y axis */
-	#define TTOP 20 /* Touch screen top in pixels */
+	#define TTOP 40 /* Touch screen top in pixels */
 	#define TBCK 180 /* Touch screen back in pixels */
 	#define TFWD 300 /* Touch screen foward in pixels */
-	#define SROT 1 /* Touch screen rotaion */
+	#define DROT 1 /* Touch display rotaion */
+	#define SROT 3 /* Touch screen rotaion */
 #else
 	#define HRES 800 /* Default screen resulution for X axis */
 	#define VRES 480 /* Default screen resulution for Y axis */
-	#define TTOP 30 /* Touch screen top in pixels */
+	#define TTOP 60 /* Touch screen top in pixels */
 	#define TBCK 300 /* Touch screen back in pixels */
 	#define TFWD 500 /* Touch screen foward in pixels */
+	#define DROT 1 /* Touch display rotaion */
 	#define SROT 1 /* Touch screen rotaion */
 #endif
 
@@ -76,7 +78,8 @@ void initHelpers()
 #endif
 
 #ifdef LCDWIKITOUCH
-	touch.TP_Init(SROT, HRES, VRES);
+	touch.TP_Init(DROT, HRES, VRES);
+	touch.TP_Set_Rotation(SROT);
 #else
 	touch.setCal(HMIN, HMAX, VMIN, VMAX, HRES, VRES, XYSWAP);
 	touch.setRotation(SROT);
@@ -91,52 +94,55 @@ void initHelpers()
 
 TouchResult touchTest()
 {
-	bool touched = false;
-	uint16_t xValue;
-	uint16_t yValue;
+	TouchResult result = { false, 0, 0, NONE };
 #ifdef LCDWIKITOUCH
 	touch.TP_Scan(0);
 	if (touch.TP_Get_State()&TP_PRES_DOWN) 
 	{
-		xValue = touch.x;
-		yValue = touch.y;
-		touched = true;
+		result.X = touch.x;
+		result.Y = touch.y;
+		result.IsTouched = true;
 	}
 #else
 	if (touch.Pressed())
 	{
-		xValue = touch.X();
-		yValue = touch.Y();
-		touched = true;
+		result.X = touch.X();
+		result.Y = touch.Y();
+		result.IsTouched = true;
 	}
 #endif
 
-    if (touched && millis() - lastTouchTime > 100)
+    if (result.IsTouched && millis() - lastTouchTime > 100)
 	{
 		#ifdef SERIAL_LOGGING
 		Serial.print(F("Touch at X,Y: ("));
-		Serial.print(xValue);
+		Serial.print(result.X);
 		Serial.print(F(","));
-		Serial.print(yValue);
+		Serial.print(result.Y);
 		Serial.println(F(")"));
 		#endif
 
-		if (xValue > TBCK && xValue < TFWD && yValue < TTOP)
+		if (result.X > TFWD)
 		{
-			return UPDATE;
+			result.State = FORWARD;
 		}
-		else if (xValue > TFWD)
+		else if (result.X < TBCK)
 		{
-			return FORWARD;
+			result.State = BACKWARD;		
 		}
-		else if (xValue < TBCK)
+		else if (result.Y < TTOP)
 		{
-			return BACKWARD;		
+			result.State = UPDATE;		
 		}
 		lastTouchTime = millis();
+
+		#ifdef SERIAL_LOGGING
+		Serial.print(F("Touch at State: "));
+		Serial.println(result.State);
+		#endif
 	}
 
-    return NONE;
+    return result;
 }
 
 // TODO: Figure out bug on switch over.

@@ -15,12 +15,20 @@
 	#include <TFT_Touch.h>
 #endif
 
-enum TouchResult
+enum TouchState
 {
 	NONE,
 	UPDATE,
 	FORWARD,
 	BACKWARD
+};
+
+struct TouchResult
+{
+	bool IsTouched;
+	uint16_t X;
+	uint16_t Y;
+	TouchState State;
 };
 
 extern void initHelpers();

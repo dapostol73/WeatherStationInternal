@@ -228,7 +228,8 @@ void setup()
 
 void loop()
 {
-	switch (touchTest())
+	TouchResult result = touchTest();
+	switch (result.State)
 	{
 		case UPDATE:
 		#ifdef DISPLAY_ILI9488
@@ -240,7 +241,7 @@ void loop()
 			updateExternalSensors = true;
 			#endif
 			#ifdef CANADIAN_TIDES
-			tidesHiLoUpdated = true;
+			updateTidesHiLo = true;
 			#endif
 			updateCurrentWeather = true;
 			updateForecastHourlyWeather = true;
@@ -402,7 +403,7 @@ bool updateData()
 	#ifdef THINGSPEAK_SENSOR
 	if (updateExternalSensors)
 	{
-		displayWeather.drawProgress(35, F("Updating external sensor data..."));
+		displayWeather.drawProgress(30, F("Updating external sensor data..."));
 		readExternalSensorsData(appSettings.ThingSpeakSettings.ChannelID, &externalSensorData);
 		updateExternalSensors = false;
 		success = success && externalSensorData.IsUpdated;
@@ -412,7 +413,7 @@ bool updateData()
 	#ifdef CANADIAN_TIDES
 	if (updateTidesHiLo)
 	{
-		displayWeather.drawProgress(45, F("Updating Tides HiLo data..."));
+		displayWeather.drawProgress(40, F("Updating Tides HiLo data..."));
 		tidesHiLoUpdated = tidesHiLoClient.updateTidesById(tidesHiLoPredictions, 
 								appSettings.CanadianHydrographicSettings.StationID, 
 								formatTimeISO8601UTC(now()), 
