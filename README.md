@@ -9,6 +9,7 @@ Firmware for ESP8266
 
 * To add support for tides, had to change AT Firmawre to ESP_ATMod version
 *   Fork version: https://github.com/dapostol73/ESP_ATMod
+* Since ESP_ATMod does not support UDP, created HTTPTimeClient Library use instead of NTPClient
 
 ## Building 
 If Serial Logging support is required add this build flag to platformio.ini
