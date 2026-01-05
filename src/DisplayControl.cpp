@@ -439,7 +439,7 @@ void DisplayControl::drawString(String str, int16_t x, int16_t y, TextAlignment 
     uint16_t w, h, hIng = 0;
     str.trim();
     // Hack, we want to ignore , and lowercase letters that go below like "y"
-    // So we ingore height and use hard coded "0" for full height.
+    // So we ignore height and use hard coded "0" for full height.
     DisplayGFX->getTextBounds("0", 0, y, &x1, &y1, &w, &h);
     DisplayGFX->getTextBounds(str, 0, y, &x1, &y1, &w, &hIng);
     switch (align)

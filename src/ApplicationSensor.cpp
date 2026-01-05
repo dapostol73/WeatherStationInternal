@@ -18,13 +18,14 @@ WiFiClient client;
 	// The BME sensor temp offset as tested. 
 	// Sensor(S) 1: -1.5
 	// Sensor(s) 2: -2.2
-	#define BME_TEMPOFFSET -2.2
+	#define BME_TEMPOFFSET -8.1
 	// Sensor: 1 Low: 31.1 High: 84.6
 	// Sensor: 2 Low: 31.7 High: 78.0
-	#define BME_HMDLOW_T 32.0
-	#define BME_HMDHIGH_T 84.0
-	#define BME_HMDLOW_S 31.7
-	#define BME_HMDHIGH_S 78.0
+	#define BME_HMDOFFSET 11.5
+	//#define BME_HMDLOW_T 32.0
+	//#define BME_HMDHIGH_T 84.0
+	//#define BME_HMDLOW_S 20.0
+	//#define BME_HMDHIGH_S 78.0
 #endif
 #ifdef DHT_22
 	//******************************//
@@ -148,13 +149,6 @@ void readExternalSensorsData(unsigned long channelID, SensorData *sensorData)
 }
 #endif
 
-#ifdef CANADIAN_TIDES
-void readCanadianTideData(const CanadianHyrdographicInfo &canadianHydrographic)
-{
-	// To be implemented
-}
-#endif
-
 #ifdef SHT_3X
 void readInternalSensors(SensorData *sensorData)
 {
@@ -215,8 +209,9 @@ void readInternalSensors(SensorData *sensorData)
 	}
 	else
 	{
-		sensorData->Hmd = map(event.relative_humidity, BME_HMDLOW_S, BME_HMDHIGH_S, BME_HMDLOW_T, BME_HMDHIGH_T);
-		sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
+		//sensorData->Hmd = map(event.relative_humidity, BME_HMDLOW_S, BME_HMDHIGH_S, BME_HMDLOW_T, BME_HMDHIGH_T);
+		//sensorData->Hmd = roundUpDecimal(sensorData->Hmd);
+		sensorData->Hmd = roundUpDecimal(event.relative_humidity + BME_HMDOFFSET);
 		sensorData->IsUpdated = true;
 		#ifdef SERIAL_LOGGING
 		Serial.print(F("Humidity: "));
