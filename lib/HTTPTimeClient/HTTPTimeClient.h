@@ -3,10 +3,11 @@
 
 #include <Arduino.h>
 #include <WiFiClient.h>
+#include <stdint.h>
 
 class HTTPTimeClient {
   public:
-    HTTPTimeClient(const char* server = "worldtimeapi.org", uint16_t port = 80);
+    HTTPTimeClient(const char* server = "worldclockapi.com", uint16_t port = 80);
     
     /**
      * This should be called in the main loop of your application. By default an update from the HTTP Server is only
@@ -43,7 +44,8 @@ class HTTPTimeClient {
     unsigned long lastUpdate;
     unsigned long updateInterval;
 
-    bool parseUnixTime(String response);
+    bool parseFileTime(String response);
+    uint64_t parseUint64(const char* s);
 };
 
 #endif
