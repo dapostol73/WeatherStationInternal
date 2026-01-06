@@ -36,11 +36,11 @@ typedef struct OpenWeatherMapForecastData {
   //   "feels_like": 16.99,
   //float feelsLike;
   //   "temp_min":16.89,
-  //float tempMin;
+  float tempMin;
   //   "temp_max":17.35,
-  //float tempMax;
+  float tempMax;
   //   "pressure":970.8,
-  float pressure;
+  //float pressure;
   //   "sea_level":1030.62,
   //float pressureSeaLevel;
   //   "grnd_level":970.8,
@@ -72,7 +72,7 @@ typedef struct OpenWeatherMapForecastData {
   //String cityName;
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"
-  char observationTimeText[24];
+  //char observationTimeText[24];
 
 } OpenWeatherMapForecastData;
 

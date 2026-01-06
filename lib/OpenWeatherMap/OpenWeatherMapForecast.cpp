@@ -178,9 +178,13 @@ void OpenWeatherMapForecast::value(String value) {
     // initialize potentially empty values:
     //data[currentForecast].rain = 0;;
   }
-  //   "pressure":970.8,float pressure;
-  if (currentKey == F("pressure")) {
-    data[currentForecast].pressure = value.toFloat();
+  //   "temp_min":16.89, float tempMin;
+  if (currentKey == F("temp_min")) {
+    data[currentForecast].tempMin = value.toFloat();
+  }
+  //   "temp_max":17.35,float tempMax;
+  if (currentKey == F("temp_max")) {
+    data[currentForecast].tempMax = value.toFloat();
   }
   //   "":97,uint8_t humidity;
   if (currentKey == F("humidity")) {
@@ -213,13 +217,9 @@ void OpenWeatherMapForecast::value(String value) {
   if (currentKey == F("feels_like")) {
     data[currentForecast].feelsLike = value.toFloat();
   }
-  //   "temp_min":16.89, float tempMin;
-  if (currentKey == F("temp_min")) {
-    data[currentForecast].tempMin = value.toFloat();
-  }
-  //   "temp_max":17.35,float tempMax;
-  if (currentKey == F("temp_max")) {
-    data[currentForecast].tempMax = value.toFloat();
+  //   "pressure":970.8,float pressure;
+  if (currentKey == F("pressure")) {
+    data[currentForecast].pressure = value.toFloat();
   }
   //   "sea_level":1030.62,float pressureSeaLevel;
   if (currentKey == F("sea_level")) {
@@ -250,7 +250,7 @@ void OpenWeatherMapForecast::value(String value) {
   // },"sys":{"pod":"d"}
   // dt_txt: "2018-05-23 09:00:00"   String observationTimeText;
   if (currentKey == F("dt_txt")) {
-    strcpy(data[currentForecast].observationTimeText, value.c_str());
+    //strcpy(data[currentForecast].observationTimeText, value.c_str());
     // this is not super save, if there is no dt_txt item we'll never get all forecasts;
     currentForecast++;
   }
