@@ -722,9 +722,9 @@ void DisplayControl::setOverlays(OverlayCallback* overlayFunctions, uint8_t over
 void DisplayControl::navigateForwardFrame()
 {
 #ifdef DISPLAY_ILI9488
-    DisplayGFX->fillTriangle(455, 160, 430, 110, 430, 210, DARKGREY);
+    DisplayGFX->fillTriangle(455, 160, 430, 110, 430, 210, DIMGREY);
 #else
-    DisplayGFX->fillTriangle(775, 240, 750, 190, 750, 290, DARKGREY);
+    DisplayGFX->fillTriangle(775, 240, 750, 190, 750, 290, DIMGREY);
 #endif
     
     delay(250);
@@ -740,9 +740,9 @@ void DisplayControl::navigateForwardFrame()
 void DisplayControl::navigateBackwardFrame()
 {
 #ifdef DISPLAY_ILI9488
-    DisplayGFX->fillTriangle(25, 160, 50, 110, 50, 210, DARKGREY);
+    DisplayGFX->fillTriangle(25, 160, 50, 110, 50, 210, DIMGREY);
 #else
-    DisplayGFX->fillTriangle(25, 240, 50, 190, 50, 290, DARKGREY);
+    DisplayGFX->fillTriangle(25, 240, 50, 190, 50, 290, DIMGREY);
 #endif
     
     delay(250);

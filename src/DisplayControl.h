@@ -6,7 +6,7 @@
 // NT35510 max TFT width - 800
 // NT35510 max TFT height - 480
 
-//#define DISABLE_COLOR_DEFINES
+#define DISABLE_COLOR_DEFINES
 #include <Arduino_GFX_Library.h>
 #include <gfxfont.h>
 
@@ -20,15 +20,16 @@
 // https://learn.microsoft.com/en-us/dotnet/media/art-color-table.png?view=windowsdesktop-7.0
 // http://www.rinkydinkelectronics.com/calc_rgb565.php
 
-//#define BLACK 0x0000
-//#define GREY 0x8410
-//#define WHITE 0xFFFF
-//#define BLUE 0x001F
-//#define GREEN 0x07E0
-//#define RED 0xF800
-//#define CYAN 0x07FF
-//#define YELLOW 0xFFE0
-//#define PURPLE 0x780F
+#define BLACK 0x0000
+#define GREY 0x8410
+#define DIMGREY 0x6B4D
+#define WHITE 0xFFFF
+#define BLUE 0x001F
+#define GREEN 0x07E0
+#define RED 0xF800
+#define CYAN 0x07FF
+#define YELLOW 0xFFE0
+#define PURPLE 0x780F
 
 enum FrameState
 {
