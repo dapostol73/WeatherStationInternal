@@ -26,16 +26,16 @@ bool HTTPTimeClient::forceUpdate() {
     }
 
     char connectInfo[96] = "";
-    sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u/api/json/utc/now\n", server, port);
+    sprintf(connectInfo, "[HTTP] Requesting resource at http://%s:%u/generate_204\n", server, port);
 	Serial.println(connectInfo);
 
     // Send HTTP GET request
     Serial.println(F("[HTTP] connected, now GETting data"));
     // TODO: Figure out why Connection: close truncates client.read()
-    client.println(F("GET /api/json/utc/now HTTP/1.0"));
+    client.println(F("GET /generate_204 HTTP/1.1"));
     client.print(F("Host: "));
     client.println(server);
-    client.println(F("Connection: keep-alive"));
+    client.println(F("Connection: close"));
     client.println();
 
     // Wait for data with timeout
@@ -68,30 +68,101 @@ bool HTTPTimeClient::forceUpdate() {
 }
 
 // Extract "currentFileTime" from JSON response
-bool HTTPTimeClient::parseFileTime(String response) {
-    int idx = response.indexOf(F("\"currentFileTime\":"));
-    if (idx < 0) return false;
-    int start = idx + 18;
-    int end = response.indexOf(",", start);
-    if (end < 0) return false;
-    String filetimeStr = response.substring(start, end);
-    //Serial.print("FileTime: ");
-    //Serial.println(filetimeStr);
-    //FileTime to EpcohTime:
-    // 133814487212461578 / 10000000 = 13381448721.2461578 seconds since Jan 1, 1601.
-    // 13381448721.2461578 - 11644473600 = 1737000000 (approximately) seconds since Jan 1, 1970 (Unix epoch). 
-    uint64_t fileTime = parseUint64(filetimeStr.c_str());
-    epochTime = (fileTime / 10000000) - 11644473600;
+bool HTTPTimeClient::parseFileTime(String response)
+{
+    int idx = response.indexOf("Date:");
+    if (idx < 0)
+        return false;
+
+    int end = response.indexOf("\r\n", idx);
+    if (end < 0)
+        return false;
+
+    String date = response.substring(idx + 5, end);
+    date.trim();
+
+    char weekday[4];
+    char month[4];
+    int day, year, hour, minute, second;
+
+    if (sscanf(date.c_str(),
+               "%3s, %d %3s %d %d:%d:%d GMT",
+               weekday,
+               &day,
+               month,
+               &year,
+               &hour,
+               &minute,
+               &second) != 7)
+    {
+        return false;
+    }
+
+    epochTime = dateToEpoch(year, month, day, hour, minute, second);
     return true;
 }
 
-uint64_t HTTPTimeClient::parseUint64(const char* s) {
-    uint64_t value = 0;
+uint8_t HTTPTimeClient::monthToNumber(const char* month)
+{
+    static const char* months[] =
+    {
+        "Jan","Feb","Mar","Apr","May","Jun",
+        "Jul","Aug","Sep","Oct","Nov","Dec"
+    };
 
-    while (*s) {
-        char c = *s++;
-        if (c < '0' || c > '9') break;
-        value = value * 10 + (c - '0');
+    for (uint8_t i = 0; i < 12; i++)
+    {
+        if (strcmp(month, months[i]) == 0)
+            return i + 1;
     }
-    return value;
+
+    return 0;
+}
+
+bool HTTPTimeClient::isLeapYear(int year)
+{
+    return ((year % 4 == 0 && year % 100 != 0) ||
+            (year % 400 == 0));
+}
+
+unsigned long HTTPTimeClient::dateToEpoch(
+    int year,
+    const char* month,
+    int day,
+    int hour,
+    int minute,
+    int second)
+{
+    static const uint8_t daysInMonth[] =
+    {
+        31,28,31,30,31,30,
+        31,31,30,31,30,31
+    };
+
+    uint8_t monthNum = monthToNumber(month);
+    if (monthNum == 0)
+        return 0;
+
+    unsigned long days = 0;
+
+    // Days from 1970 up to this year
+    for (int y = 1970; y < year; y++)
+        days += isLeapYear(y) ? 366 : 365;
+
+    // Days from previous months this year
+    for (uint8_t m = 1; m < monthNum; m++)
+    {
+        days += daysInMonth[m - 1];
+
+        if (m == 2 && isLeapYear(year))
+            days++;
+    }
+
+    // Days this month
+    days += day - 1;
+
+    return days * 86400UL +
+           hour * 3600UL +
+           minute * 60UL +
+           second;
 }

@@ -7,7 +7,7 @@
 
 class HTTPTimeClient {
   public:
-    HTTPTimeClient(const char* server = "worldclockapi.com", uint16_t port = 80);
+    HTTPTimeClient(const char* server = "clients3.google.com", uint16_t port = 80);
     
     /**
      * This should be called in the main loop of your application. By default an update from the HTTP Server is only
@@ -45,7 +45,9 @@ class HTTPTimeClient {
     unsigned long updateInterval;
 
     bool parseFileTime(String response);
-    uint64_t parseUint64(const char* s);
+    uint8_t monthToNumber(const char* month);
+    bool isLeapYear(int year);
+    unsigned long dateToEpoch(int year, const char* month, int day, int hour, int minute, int second);
 };
 
 #endif
