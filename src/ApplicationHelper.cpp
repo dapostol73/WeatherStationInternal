@@ -71,9 +71,11 @@ Timezone naAT(naADT, naAST);
 
 #ifdef TIMEZONE_PACIFIC
 // North America Pacific Time Zone (Las Vegas, Los Angeles, Vancouver)
-TimeChangeRule naPDT = {"PDT", Second, Sun, Mar, 2, -420};
-TimeChangeRule naPST = {"PST", First, Sun, Nov, 2, -480};
-Timezone naPT(naPDT, naPST);
+//TimeChangeRule naPDT = {"PDT", Second, Sun, Mar, 2, -420};
+//TimeChangeRule naPST = {"PST", First, Sun, Nov, 2, -480};
+// New North America Pacific Time Zone (Phoenix, Vancouver)
+TimeChangeRule naPCT = {"PST", First, Sun, Nov, 2, -420};
+Timezone naPT(naPCT);
 #endif
 
 void initHelpers()
